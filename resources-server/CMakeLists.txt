@@ -43,7 +43,7 @@ file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 
 add_executable(ResourcesServer ${source_file} ${header_file})
-target_include_directories(ResourcesServer PUBLIC include inifile/include jsoncpp/include)
+target_include_directories(ResourcesServer PUBLIC include external/inifile/include external/jsoncpp/include)
 
 # import boost 1.84.0 library
 FetchContent_Declare(
@@ -59,9 +59,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(boost gRPC)
 
-add_subdirectory(inifile)
-add_subdirectory(spdlog)
-add_subdirectory(jsoncpp)
+add_subdirectory(external/inifile)
+add_subdirectory(external/spdlog)
+add_subdirectory(external/jsoncpp)
 
 target_link_libraries(
   ResourcesServer

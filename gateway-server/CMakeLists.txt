@@ -80,8 +80,8 @@ file(GLOB_RECURSE proto_file CONFIGURE_DEPENDS proto/*.proto)
 
 add_executable(GatewayServer ${source_file} ${header_file}
                              ${GENERATED_PROTOBUF_FILES})
-target_include_directories(GatewayServer PUBLIC include jsoncpp/include
-                                                ada/include inifile/include/)
+target_include_directories(GatewayServer PUBLIC include external/jsoncpp/include
+                                                external/inifile/include/)
 
 # import boost 1.84.0 library
 FetchContent_Declare(
@@ -97,11 +97,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(boost gRPC)
 
-#add_subdirectory(ada)
-add_subdirectory(jsoncpp)
-add_subdirectory(inifile)
-add_subdirectory(hiredis)
-add_subdirectory(spdlog)
+add_subdirectory(external/jsoncpp)
+add_subdirectory(external/inifile)
+add_subdirectory(external/hiredis)
+add_subdirectory(external/spdlog)
 
 target_link_libraries(
   GatewayServer
@@ -110,7 +109,6 @@ target_link_libraries(
          Boost::uuid
          Boost::mysql
          Boost::url
-        # ada-singleheader-lib
          jsoncpp_object
          grpc++
          libprotobuf

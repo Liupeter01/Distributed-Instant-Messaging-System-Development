@@ -80,8 +80,8 @@ file(GLOB_RECURSE proto_file CONFIGURE_DEPENDS proto/*.proto)
 
 add_executable(ChattingServer ${source_file} ${header_file}
                               ${GENERATED_PROTOBUF_FILES})
-target_include_directories(ChattingServer PUBLIC include inifile/include/
-                                                 hiredis/include)
+target_include_directories(ChattingServer PUBLIC include external/inifile/include/
+                                                 external/hiredis/include)
 
 # import boost 1.84.0 library
 FetchContent_Declare(
@@ -97,10 +97,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(boost gRPC)
 
-add_subdirectory(inifile)
-add_subdirectory(spdlog)
-add_subdirectory(jsoncpp)
-add_subdirectory(hiredis)
+add_subdirectory(external/inifile)
+add_subdirectory(external/spdlog)
+add_subdirectory(external/jsoncpp)
+add_subdirectory(external/hiredis)
 
 target_link_libraries(
   ChattingServer

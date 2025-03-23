@@ -1,35 +1,45 @@
-[submodule "gateway-server/jsoncpp"]
-	path = gateway-server/jsoncpp
+[submodule "gateway-server/external/jsoncpp"]
+	path = gateway-server/external/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
-[submodule "gateway-server/inifile"]
-	path = gateway-server/inifile
+[submodule "gateway-server/external/inifile"]
+	path = gateway-server/external/inifile
 	url = https://github.com/Rookfighter/inifile-cpp.git
-[submodule "gateway-server/hiredis"]
-	path = gateway-server/hiredis
+[submodule "gateway-server/external/hiredis"]
+	path = gateway-server/external/hiredis
 	url = https://github.com/redis/hiredis.git
-[submodule "gateway-server/spdlog"]
-	path = gateway-server/spdlog
+[submodule "gateway-server/external/spdlog"]
+	path = gateway-server/external/spdlog
 	url = https://github.com/gabime/spdlog.git
 	
-[submodule "balance-server/hiredis"]
-	path = balance-server/hiredis
+[submodule "balance-server/external/hiredis"]
+	path = balance-server/external/hiredis
 	url = https://github.com/redis/hiredis.git	
-[submodule "balance-server/spdlog"]
-	path = balance-server/spdlog
+[submodule "balance-server/external/spdlog"]
+	path = balance-server/external/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "balance-server/inifile"]
-	path = balance-server/inifile
+[submodule "balance-server/external/inifile"]
+	path = balance-server/external/inifile
 	url = https://github.com/Rookfighter/inifile-cpp.git
 
-[submodule "chatting-server/hiredis"]
-	path = chatting-server/hiredis
+[submodule "chatting-server/external/hiredis"]
+	path = chatting-server/external/hiredis
 	url = https://github.com/redis/hiredis.git	
-[submodule "chatting-server/spdlog"]
-	path = chatting-server/spdlog
+[submodule "chatting-server/external/spdlog"]
+	path = chatting-server/external/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "chatting-server/inifile"]
-	path = chatting-server/inifile
+[submodule "chatting-server/external/inifile"]
+	path = chatting-server/external/inifile
 	url = https://github.com/Rookfighter/inifile-cpp.git
-[submodule "chatting-server/jsoncpp"]
-	path = chatting-server/jsoncpp
+[submodule "chatting-server/external/jsoncpp"]
+	path = chatting-server/external/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+	
+[submodule "resources-server/external/spdlog"]
+	path = resources-server/external/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "resources-server/external/inifile"]
+	path = resources-server/external/inifile
+	url = https://github.com/Rookfighter/inifile-cpp.git
+[submodule "resources-server/external/jsoncpp"]
+	path = resources-server/external/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git

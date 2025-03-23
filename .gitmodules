@@ -13,7 +13,7 @@
 	
 [submodule "balance-server/external/hiredis"]
 	path = balance-server/external/hiredis
-	url = https://github.com/redis/hiredis.git	
+	url = https://github.com/redis/hiredis.git
 [submodule "balance-server/external/spdlog"]
 	path = balance-server/external/spdlog
 	url = https://github.com/gabime/spdlog.git

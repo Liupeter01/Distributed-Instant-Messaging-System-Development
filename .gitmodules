@@ -43,9 +43,22 @@
 [submodule "resources-server/external/jsoncpp"]
 	path = resources-server/external/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
+	
 [submodule "external/boost"]
 	path = external/boost
 	url = https://github.com/boostorg/boost.git
 [submodule "external/grpc"]
 	path = external/grpc
 	url = https://github.com/grpc/grpc.git
+[submodule "external/spdlog"]
+	path = external/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "external/hiredis"]
+	path = external/hiredis
+	url = https://github.com/redis/hiredis.git
+[submodule "external/inifile"]
+	path = external/inifile
+	url = https://github.com/Rookfighter/inifile-cpp.git
+[submodule "external/jsoncpp"]
+	path = external/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git

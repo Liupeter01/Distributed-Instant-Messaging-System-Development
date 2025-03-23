@@ -23,7 +23,7 @@
 
 [submodule "chatting-server/external/hiredis"]
 	path = chatting-server/external/hiredis
-	url = https://github.com/redis/hiredis.git	
+	url = https://github.com/redis/hiredis.git
 [submodule "chatting-server/external/spdlog"]
 	path = chatting-server/external/spdlog
 	url = https://github.com/gabime/spdlog.git

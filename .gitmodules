@@ -43,3 +43,9 @@
 [submodule "resources-server/external/jsoncpp"]
 	path = resources-server/external/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "external/boost"]
+	path = external/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "external/grpc"]
+	path = external/grpc
+	url = https://github.com/grpc/grpc.git

@@ -1,4 +1,3 @@
-//#include <ada.h>
 #include <boost/url.hpp>
 #include <handler/HandleMethod.hpp>
 #include <http/HttpConnection.hpp>

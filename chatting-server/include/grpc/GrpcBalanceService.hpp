@@ -12,29 +12,29 @@
 
 struct gRPCBalancerService {
 
-          static message::LoginChattingResponse 
-                    userLoginToServer(std::size_t uuid, const std::string& token);
+  static message::LoginChattingResponse
+  userLoginToServer(std::size_t uuid, const std::string &token);
 
-          static message::PeerResponse
-                    getPeerChattingServerLists(const std::string& cur_name);
+  static message::PeerResponse
+  getPeerChattingServerLists(const std::string &cur_name);
 
-          static message::PeerResponse
-                    getPeerGrpcServerLists(const std::string& cur_name);
+  static message::PeerResponse
+  getPeerGrpcServerLists(const std::string &cur_name);
 
-          static message::GrpcStatusResponse
-                    registerChattingServerInstance(const std::string& name,
-                              const std::string& host,
-                              const std::string& port);
+  static message::GrpcStatusResponse
+  registerChattingServerInstance(const std::string &name,
+                                 const std::string &host,
+                                 const std::string &port);
 
-          static message::GrpcStatusResponse
-                    registerGrpcServer(const std::string& name, const std::string& host,
-                              const std::string& port);
+  static message::GrpcStatusResponse
+  registerGrpcServer(const std::string &name, const std::string &host,
+                     const std::string &port);
 
-          static message::GrpcStatusResponse
-                    chattingServerShutdown(const std::string& name);
+  static message::GrpcStatusResponse
+  chattingServerShutdown(const std::string &name);
 
-          static message::GrpcStatusResponse
-                    grpcServerShutdown(const std::string& name);
+  static message::GrpcStatusResponse
+  grpcServerShutdown(const std::string &name);
 };
 
 #endif // GRPCBALANCESERVICE_HPP_

@@ -86,19 +86,19 @@ void HTTPConnection::write_response() {
 void HTTPConnection::handle_get_request(
     std::shared_ptr<HTTPConnection> extended_lifetime) {
   /*store url info /path?username=me&password=passwd*/
- // Store URL info
-          this->http_url_info = http_request.target();
+  // Store URL info
+  this->http_url_info = http_request.target();
 
-          // Parse the URL
-          boost::urls::url_view url_view(this->http_url_info);
-          std::string_view url_path = url_view.encoded_path();
-          std::string_view url_param = url_view.query();
+  // Parse the URL
+  boost::urls::url_view url_view(this->http_url_info);
+  std::string_view url_path = url_view.encoded_path();
+  std::string_view url_param = url_view.query();
 
   spdlog::info("url_path = {0}, url_param = {1}", url_path, url_param);
 
   // Use Boost.URL to parse the query parameters
-  for (const auto& param : url_view.params()) {
-            this->http_params.emplace(param.key, param.value);
+  for (const auto &param : url_view.params()) {
+    this->http_params.emplace(param.key, param.value);
   }
 
   /*fix bug: because url_path is a std::string_view so when using .data method

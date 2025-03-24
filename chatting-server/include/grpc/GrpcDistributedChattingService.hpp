@@ -21,8 +21,8 @@ public:
                        const message::FriendRequest &req);
 
   message::ChattingTextMsgResponse
-   sendChattingTextMsg(const std::string& server_name,
-            const message::ChattingTextMsgRequest& req);
+  sendChattingTextMsg(const std::string &server_name,
+                      const message::ChattingTextMsgRequest &req);
 
 protected:
   void updateGrpcPeerLists();

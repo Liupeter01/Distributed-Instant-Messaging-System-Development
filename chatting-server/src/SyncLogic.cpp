@@ -86,31 +86,27 @@ void SyncLogic::registerCallbacks() {
    * Handling the user send chatting text msg to others
    */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_TEXTCHATMSGREQUEST,
-            std::bind(&SyncLogic::handlingTextChatMsg, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+      ServiceType::SERVICE_TEXTCHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingTextChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
   /*
- * SERVICE_VOICECHATMSGREQUEST
- * Handling the user send chatting voice msg to others
- */
+   * SERVICE_VOICECHATMSGREQUEST
+   * Handling the user send chatting voice msg to others
+   */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_VOICECHATMSGREQUEST,
-            std::bind(&SyncLogic::handlingVoiceChatMsg, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+      ServiceType::SERVICE_VOICECHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingVoiceChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
   /*
- * ServiceType::SERVICE_VIDEOCHATMSGREQUEST
- * Handling the user send chatting video msg to others
- */
+   * ServiceType::SERVICE_VIDEOCHATMSGREQUEST
+   * Handling the user send chatting video msg to others
+   */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
-            std::bind(&SyncLogic::handlingVideoChatMsg, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
-
+      ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingVideoChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 }
 
 void SyncLogic::commit(pair recv_node) {
@@ -351,19 +347,20 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     }
 
     /*acquire Friend List*/
-     std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op = getAuthFriendsInfo(uuid); 
-     if (friendlist_op.has_value()) {
-               for (auto& req : friendlist_op.value()) {
-                         Json::Value obj;
-                         obj["uuid"] = req->m_uuid;
-                         obj["username"] = req->m_username;
-                         obj["avator"] = req->m_avatorPath;
-                         obj["nickname"] = req->m_nickname;
-                         obj["description"] = req->m_description;
-                         obj["sex"] = static_cast<uint8_t>(req->m_sex);
-                         redis_root["AuthFriendList"].append(obj);
-               }
-     }
+    std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op =
+        getAuthFriendsInfo(uuid);
+    if (friendlist_op.has_value()) {
+      for (auto &req : friendlist_op.value()) {
+        Json::Value obj;
+        obj["uuid"] = req->m_uuid;
+        obj["username"] = req->m_username;
+        obj["avator"] = req->m_avatorPath;
+        obj["nickname"] = req->m_nickname;
+        obj["description"] = req->m_description;
+        obj["sex"] = static_cast<uint8_t>(req->m_sex);
+        redis_root["AuthFriendList"].append(obj);
+      }
+    }
 
     /*send it back*/
     session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
@@ -835,7 +832,8 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
 
     /*propagate the message to dst user*/
     session_op.value()->sendMessage(
-        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL, root.toStyledString());
+        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+        root.toStyledString());
   } else {
     /*
      * GRPC REQUEST
@@ -879,184 +877,186 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
 
 /*Handling the user send chatting text msg to others*/
 void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
-                                                                std::shared_ptr<Session> session,
-                                                                NodePtr recv)
-{
-          Json::Value src_root;    /*store json from client*/
-          Json::Reader reader;
+                                    std::shared_ptr<Session> session,
+                                    NodePtr recv) {
+  Json::Value src_root; /*store json from client*/
+  Json::Reader reader;
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          /*parse error*/
-          if (!reader.parse(body.value(), src_root)) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  /*parse error*/
+  if (!reader.parse(body.value(), src_root)) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          auto src_uuid = src_root["text_sender"].asString();         //my uuid
-          auto dst_uuid = src_root["text_receiver"].asString();       //target user's uuid
-          const Json::Value textMsgArray = src_root["text_msg"];
+  auto src_uuid = src_root["text_sender"].asString();   // my uuid
+  auto dst_uuid = src_root["text_receiver"].asString(); // target user's uuid
+  const Json::Value textMsgArray = src_root["text_msg"];
 
-          auto src_uuid_op = tools::string_to_value<std::size_t>(src_uuid);
-          auto dst_uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
+  auto src_uuid_op = tools::string_to_value<std::size_t>(src_uuid);
+  auto dst_uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
 
-          if (!src_uuid_op.has_value() || !dst_uuid_op.has_value()) {
-                    spdlog::warn("Casting string typed key to std::size_t!");
-                    generateErrorMessage("Internel Server Error",
-                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                              ServiceStatus::NETWORK_ERROR, session);
-                    return;
-          }
+  if (!src_uuid_op.has_value() || !dst_uuid_op.has_value()) {
+    spdlog::warn("Casting string typed key to std::size_t!");
+    generateErrorMessage("Internel Server Error",
+                         ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                         ServiceStatus::NETWORK_ERROR, session);
+    return;
+  }
 
-          /*connection pool RAII*/
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext> raii;
-          connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection> mysql;
+  /*connection pool RAII*/
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
+  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
+      mysql;
 
-          /*
-           * Search For User Belonged Server Cache in Redis
-           * find key = server_prefix + src_uuid in redis, GET
-           */
-          std::optional<std::string> server_op = raii->get()->checkValue(server_prefix + src_uuid);
+  /*
+   * Search For User Belonged Server Cache in Redis
+   * find key = server_prefix + src_uuid in redis, GET
+   */
+  std::optional<std::string> server_op =
+      raii->get()->checkValue(server_prefix + src_uuid);
 
-          /*we cannot find it in Redis directly*/
-          if (!server_op.has_value()) {
-                    return;
-          }
+  /*we cannot find it in Redis directly*/
+  if (!server_op.has_value()) {
+    return;
+  }
 
-          message::ChattingTextMsgResponse response;
-          response.set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
+  message::ChattingTextMsgResponse response;
+  response.set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
 
-          /*Is target user and msg text sender on the same server*/
-          if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
+  /*Is target user and msg text sender on the same server*/
+  if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
 
-                    /*try to find this target user on current chatting-server*/
-                    auto session_op = UserManager::get_instance()->getSession(dst_uuid);
-                    if (!session_op.has_value()) {
-                              generateErrorMessage("Target User's Session Not Found",
-                                        ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                                        ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
-                                        session);
-                              return;
-                    }
+    /*try to find this target user on current chatting-server*/
+    auto session_op = UserManager::get_instance()->getSession(dst_uuid);
+    if (!session_op.has_value()) {
+      generateErrorMessage("Target User's Session Not Found",
+                           ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                           ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
+                           session);
+      return;
+    }
 
-                    Json::Value dst_root;    /*try to do message forwarding to dst target user*/
-                    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-                    dst_root["text_sender"] = src_uuid;
-                    dst_root["text_receiver"] = dst_uuid;
-                    dst_root["text_msg"] = textMsgArray;
+    Json::Value dst_root; /*try to do message forwarding to dst target user*/
+    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+    dst_root["text_sender"] = src_uuid;
+    dst_root["text_receiver"] = dst_uuid;
+    dst_root["text_msg"] = textMsgArray;
 
-                    /*propagate the message to dst user*/
-                    session_op.value()->sendMessage(
-                              ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST, dst_root.toStyledString());
-          }
-          else {
-                    message::ChattingTextMsgRequest req;
-                    req.set_src_uuid(src_uuid_op.value());
-                    req.set_dst_uuid(dst_uuid_op.value());
+    /*propagate the message to dst user*/
+    session_op.value()->sendMessage(
+        ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
+        dst_root.toStyledString());
+  } else {
+    message::ChattingTextMsgRequest req;
+    req.set_src_uuid(src_uuid_op.value());
+    req.set_dst_uuid(dst_uuid_op.value());
 
-                    /*generate a grpc repreated message array*/
-                    std::for_each(textMsgArray.begin(), textMsgArray.end(), [&req](decltype(*textMsgArray.begin())& data) {
-                              message::ChattingHistoryData* data_item = req.add_lists();
+    /*generate a grpc repreated message array*/
+    std::for_each(textMsgArray.begin(), textMsgArray.end(),
+                  [&req](decltype(*textMsgArray.begin()) &data) {
+                    message::ChattingHistoryData *data_item = req.add_lists();
 
-                              /*msg sender and msg receiver identity*/
-                              data_item->set_msg_sender(data["msg_sender"].asString());
-                              data_item->set_msg_receiver(data["msg_receiver"].asString());
+                    /*msg sender and msg receiver identity*/
+                    data_item->set_msg_sender(data["msg_sender"].asString());
+                    data_item->set_msg_receiver(
+                        data["msg_receiver"].asString());
 
-                              /*generate an unique uuid for this message*/
-                              data_item->set_msg_id(data["msg_id"].asString());
+                    /*generate an unique uuid for this message*/
+                    data_item->set_msg_id(data["msg_id"].asString());
 
-                              /*send message*/
-                              data_item->set_msg_content(data["msg_content"].asString());
-                     });
+                    /*send message*/
+                    data_item->set_msg_content(data["msg_content"].asString());
+                  });
 
-                    response =
-                              gRPCDistributedChattingService::get_instance()->sendChattingTextMsg(
-                                        server_op.value(), req);
+    response =
+        gRPCDistributedChattingService::get_instance()->sendChattingTextMsg(
+            server_op.value(), req);
 
-                    if (response.error() !=
-                              static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
-                              spdlog::warn("[GRPC {} Service]: UUID = {} Send Request To GRPC {} "
-                                        "Service Failed!",
-                                        ServerConfig::get_instance()->GrpcServerName, dst_uuid,
-                                        server_op.value());
-                    }
+    if (response.error() !=
+        static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
+      spdlog::warn("[GRPC {} Service]: UUID = {} Send Request To GRPC {} "
+                   "Service Failed!",
+                   ServerConfig::get_instance()->GrpcServerName, dst_uuid,
+                   server_op.value());
+    }
+  }
 
-          }
+  /*
+   * Response SERVICE_SUCCESS to the text msg sender
+   * Current session should receive a successful response first
+   */
+  Json::Value result_root; // reponse status to sender
+  result_root["error"] = response.error();
+  result_root["text_sender"] = src_root["text_sender"].asString(); // my uuid
+  result_root["text_receiver"] =
+      src_root["text_receiver"].asString(); // target user's uuid
 
-          /*
-           * Response SERVICE_SUCCESS to the text msg sender
-           * Current session should receive a successful response first
-           */
-          Json::Value result_root;    //reponse status to sender
-          result_root["error"] = response.error();
-          result_root["text_sender"] = src_root["text_sender"].asString();         //my uuid
-          result_root["text_receiver"] = src_root["text_receiver"].asString();       //target user's uuid
-
-          session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                    result_root.toStyledString());
+  session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                       result_root.toStyledString());
 }
 
 /*Handling the user send chatting text msg to others*/
 void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
-                                                                  std::shared_ptr<Session> session,
-                                                                  NodePtr recv)
-{
-          Json::Value src_root;    /*store json from client*/
-          Json::Value result_root; /*send processing result back to dst user*/
-          Json::Reader reader;
+                                     std::shared_ptr<Session> session,
+                                     NodePtr recv) {
+  Json::Value src_root;    /*store json from client*/
+  Json::Value result_root; /*send processing result back to dst user*/
+  Json::Reader reader;
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          /*parse error*/
-          if (!reader.parse(body.value(), src_root)) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  /*parse error*/
+  if (!reader.parse(body.value(), src_root)) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 }
 
 /*Handling the user send chatting text msg to others*/
 void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
-                                                                    std::shared_ptr<Session> session,
-                                                                    NodePtr recv)
-{
-          Json::Value src_root;    /*store json from client*/
-          Json::Value result_root; /*send processing result back to dst user*/
-          Json::Reader reader;
+                                     std::shared_ptr<Session> session,
+                                     NodePtr recv) {
+  Json::Value src_root;    /*store json from client*/
+  Json::Value result_root; /*send processing result back to dst user*/
+  Json::Reader reader;
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          /*parse error*/
-          if (!reader.parse(body.value(), src_root)) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  /*parse error*/
+  if (!reader.parse(body.value(), src_root)) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 }
 
 /*get user's basic info(name, age, sex, ...) from redis*/
@@ -1158,23 +1158,23 @@ SyncLogic::getFriendRequestInfo(const std::string &dst_uuid,
  * @param: interval: how many friends re going to acquire [startpos, startpos +
  * interval)
  */
- std::optional<std::vector<std::unique_ptr<UserNameCard>>>
- SyncLogic::getAuthFriendsInfo(const std::string& dst_uuid, const std::size_t
- start_pos, const std::size_t interval) {
-           auto uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
-           if (!uuid_op.has_value()) {
-                     spdlog::warn("Casting string typed key to std::size_t!");
-                     return std::nullopt;
-           }
+std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+SyncLogic::getAuthFriendsInfo(const std::string &dst_uuid,
+                              const std::size_t start_pos,
+                              const std::size_t interval) {
+  auto uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
+  if (!uuid_op.has_value()) {
+    spdlog::warn("Casting string typed key to std::size_t!");
+    return std::nullopt;
+  }
 
-           /*search it in mysql*/
-           connection::ConnectionRAII<mysql::MySQLConnectionPool,
-                     mysql::MySQLConnection>
-                     mysql;
+  /*search it in mysql*/
+  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
+      mysql;
 
-           return mysql->get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
-                     interval);
- }
+  return mysql->get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
+                                               interval);
+}
 
 void SyncLogic::shutdown() {
   m_stop = true;

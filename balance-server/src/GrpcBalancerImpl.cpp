@@ -233,8 +233,8 @@ void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
 
 ::grpc::Status grpc::GrpcBalancerImpl::RegisterChattingServerInstance(
     ::grpc::ServerContext *context,
-          const ::message::GrpcRegisterRequest* request,
-          ::message::GrpcStatusResponse* response){
+    const ::message::GrpcRegisterRequest *request,
+    ::message::GrpcStatusResponse *response) {
 
   spdlog::info("[Balance Server]: Remote Chatting Server {0} Request To "
                "Register ChattingServerInstance.",
@@ -278,8 +278,8 @@ void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
 
 ::grpc::Status grpc::GrpcBalancerImpl::RegisterChattingGrpcServer(
     ::grpc::ServerContext *context,
-          const ::message::GrpcRegisterRequest* request,
-          ::message::GrpcStatusResponse* response) {
+    const ::message::GrpcRegisterRequest *request,
+    ::message::GrpcStatusResponse *response) {
 
   spdlog::info("[Balance Server]: Remote Chatting GRPC Server {0} Request To "
                "Register ChattingGrpcInstance.",
@@ -326,8 +326,8 @@ void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
 
 ::grpc::Status grpc::GrpcBalancerImpl::ChattingServerShutDown(
     ::grpc::ServerContext *context,
-          const ::message::GrpcShutdownRequest* request,
-          ::message::GrpcStatusResponse* response) {
+    const ::message::GrpcShutdownRequest *request,
+    ::message::GrpcStatusResponse *response) {
   /*is both operation success or not*/
   bool status = true;
 
@@ -347,41 +347,39 @@ void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
                "ChattingServer Instance Successful",
                request->cur_server());
 
-  response->set_error(
-      static_cast<std::size_t>(status ? ServiceStatus::SERVICE_SUCCESS
-                                      : ServiceStatus::CHATTING_SERVER_NOT_EXISTS));
+  response->set_error(static_cast<std::size_t>(
+      status ? ServiceStatus::SERVICE_SUCCESS
+             : ServiceStatus::CHATTING_SERVER_NOT_EXISTS));
   return grpc::Status::OK;
 }
 
 ::grpc::Status grpc::GrpcBalancerImpl::ChattingGrpcServerShutDown(
-          ::grpc::ServerContext* context,
-          const ::message::GrpcShutdownRequest* request,
-          ::message::GrpcStatusResponse* response)
-{
-          /*is both operation success or not*/
-          bool status = true;
+    ::grpc::ServerContext *context,
+    const ::message::GrpcShutdownRequest *request,
+    ::message::GrpcStatusResponse *response) {
+  /*is both operation success or not*/
+  bool status = true;
 
-          {
-                    std::lock_guard<std::mutex> _lckg(this->grpc_mtx);
-                    auto target = this->grpc_servers.find(request->cur_server());
-                    if (target == this->grpc_servers.end()) {
-                              status = false;
-                              spdlog::warn("[Balance Server]: GRPC Peer Server {} Remove Failed",
-                                        request->cur_server());
-                    }
-                    else {
-                              this->grpc_servers.erase(target);
-                    }
-          }
+  {
+    std::lock_guard<std::mutex> _lckg(this->grpc_mtx);
+    auto target = this->grpc_servers.find(request->cur_server());
+    if (target == this->grpc_servers.end()) {
+      status = false;
+      spdlog::warn("[Balance Server]: GRPC Peer Server {} Remove Failed",
+                   request->cur_server());
+    } else {
+      this->grpc_servers.erase(target);
+    }
+  }
 
-          spdlog::info("[Balance Server]: Remote Grpc Server {} Removing "
-                    "Grpc Server Instance Successful",
-                    request->cur_server());
+  spdlog::info("[Balance Server]: Remote Grpc Server {} Removing "
+               "Grpc Server Instance Successful",
+               request->cur_server());
 
-          response->set_error(
-                    static_cast<std::size_t>(status ? ServiceStatus::SERVICE_SUCCESS
-                              : ServiceStatus::GRPC_SERVER_NOT_EXISTS));
-          return grpc::Status::OK;
+  response->set_error(
+      static_cast<std::size_t>(status ? ServiceStatus::SERVICE_SUCCESS
+                                      : ServiceStatus::GRPC_SERVER_NOT_EXISTS));
+  return grpc::Status::OK;
 }
 
 std::string grpc::GrpcBalancerImpl::userTokenGenerator() {

@@ -39,7 +39,8 @@ void gRPCDistributedChattingService::updateGrpcPeerLists() {
 }
 
 std::optional<std::shared_ptr<stubpool::DistributedChattingServicePool>>
-gRPCDistributedChattingService::getTargetChattingServer(const std::string &server_name) {
+gRPCDistributedChattingService::getTargetChattingServer(
+    const std::string &server_name) {
   /*user should not input current server*/
   if (ServerConfig::get_instance()->GrpcServerName == server_name) {
     return std::nullopt;
@@ -56,9 +57,8 @@ gRPCDistributedChattingService::getTargetChattingServer(const std::string &serve
   return it->second;
 }
 
-message::FriendResponse 
-gRPCDistributedChattingService::sendFriendRequest(const std::string &server_name, 
-                                                                                        const message::FriendRequest &req) {
+message::FriendResponse gRPCDistributedChattingService::sendFriendRequest(
+    const std::string &server_name, const message::FriendRequest &req) {
   grpc::ClientContext context;
   message::FriendResponse response;
 
@@ -97,9 +97,8 @@ gRPCDistributedChattingService::sendFriendRequest(const std::string &server_name
   return response;
 }
 
-message::FriendResponse 
-gRPCDistributedChattingService::confirmFriendRequest(const std::string &server_name, 
-                                                                                             const message::FriendRequest &req) {
+message::FriendResponse gRPCDistributedChattingService::confirmFriendRequest(
+    const std::string &server_name, const message::FriendRequest &req) {
   grpc::ClientContext context;
   message::FriendResponse response;
 
@@ -139,37 +138,37 @@ gRPCDistributedChattingService::confirmFriendRequest(const std::string &server_n
   return response;
 }
 
-
 message::ChattingTextMsgResponse
-gRPCDistributedChattingService::sendChattingTextMsg(const std::string& server_name,
-                                                                                            const message::ChattingTextMsgRequest& req){
-          grpc::ClientContext context;
-          message::ChattingTextMsgResponse response;
+gRPCDistributedChattingService::sendChattingTextMsg(
+    const std::string &server_name,
+    const message::ChattingTextMsgRequest &req) {
+  grpc::ClientContext context;
+  message::ChattingTextMsgResponse response;
 
-          /*get the connection pool of this server*/
-          auto server_op = getTargetChattingServer(server_name);
+  /*get the connection pool of this server*/
+  auto server_op = getTargetChattingServer(server_name);
 
-          // server not found
-          if (!server_op.has_value()) {
-                    spdlog::warn("[GRPC {} Service]: GRPC {} Not Found",
-                              ServerConfig::get_instance()->GrpcServerName, server_name);
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-                    return response;
-          }
+  // server not found
+  if (!server_op.has_value()) {
+    spdlog::warn("[GRPC {} Service]: GRPC {} Not Found",
+                 ServerConfig::get_instance()->GrpcServerName, server_name);
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+    return response;
+  }
 
-          /*get one connection stub from connection pool*/
-          auto stub_op = server_op.value()->acquire_stub();
+  /*get one connection stub from connection pool*/
+  auto stub_op = server_op.value()->acquire_stub();
 
-          grpc::Status status =
-                    stub_op.value().get()->SendChattingTextMsg(&context, req, &response);
+  grpc::Status status =
+      stub_op.value().get()->SendChattingTextMsg(&context, req, &response);
 
-          /*return this stub back*/
-          server_op.value()->release_stub(std::move(stub_op.value()));
+  /*return this stub back*/
+  server_op.value()->release_stub(std::move(stub_op.value()));
 
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
 
-          return response;
+  return response;
 }

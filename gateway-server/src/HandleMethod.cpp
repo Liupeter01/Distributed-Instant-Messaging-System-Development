@@ -138,11 +138,12 @@ void HandleMethod::registerPostCallBacks() {
         }
 
         /*get uuid by username*/
-        std::optional<std::size_t> res = mysql->get()->getUUIDByUsername(username);
+        std::optional<std::size_t> res =
+            mysql->get()->getUUIDByUsername(username);
         if (!res.has_value()) {
-                  generateErrorMessage("No UUID related to Username",
-                            ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
-                  return false;
+          generateErrorMessage("No UUID related to Username",
+                               ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
+          return false;
         }
 
         send_root["error"] =
@@ -320,9 +321,9 @@ void HandleMethod::registerPostCallBacks() {
         /*get uuid by username*/
         res = mysql->get()->getUUIDByUsername(username);
         if (!res.has_value()) {
-                  generateErrorMessage("No UUID related to Username",
-                            ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
-                  return false;
+          generateErrorMessage("No UUID related to Username",
+                               ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
+          return false;
         }
 
         std::size_t uuid = res.value();

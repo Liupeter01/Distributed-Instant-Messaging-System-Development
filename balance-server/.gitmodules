@@ -1,9 +1,0 @@
-[submodule "inifile"]
-	path = inifile
-	url = https://github.com/Rookfighter/inifile-cpp.git
-[submodule "hiredis"]
-	path = hiredis
-	url = https://github.com/redis/hiredis.git
-[submodule "spdlog"]
-	path = spdlog
-	url = https://github.com/gabime/spdlog.git

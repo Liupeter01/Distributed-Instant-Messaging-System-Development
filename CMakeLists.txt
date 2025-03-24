@@ -29,24 +29,13 @@ set(protobuf_USE_STATIC_LIBS OFF)
 
 include(FetchContent)
 
-set(BOOST_ENABLE_CMAKE
-    ON
-    CACHE BOOL "" FORCE)
-set(BOOST_INCLUDE_LIBRARIES
-    asio
-    filesystem
-    uuid
-    system
-    beast
-    mysql
-    url)
+set(BOOST_ENABLE_CMAKE ON CACHE BOOL "" FORCE)
+set(BOOST_INCLUDE_LIBRARIES asio filesystem uuid system  beast mysql url)
 
 # Enable MSVC exceptions (as above)
 if(MSVC)
   message(STATUS "MSVC detected, enabling /EHsc")
-  set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} /EHsc"
-      CACHE STRING "MSVC exception flag" FORCE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc" CACHE STRING "MSVC exception flag" FORCE)
   add_compile_options(/EHsc)
 endif()
 
@@ -57,13 +46,15 @@ FetchContent_Declare(
   boost
   GIT_REPOSITORY https://github.com/boostorg/boost.git
   GIT_TAG boost-1.84.0
-  GIT_SUBMODULES_RECURSE TRUE)
+ GIT_SUBMODULES_RECURSE TRUE
+)
 
 FetchContent_Declare(
   gRPC
   GIT_REPOSITORY https://github.com/grpc/grpc
   GIT_TAG v1.50.2
-  GIT_SUBMODULES_RECURSE TRUE)
+ GIT_SUBMODULES_RECURSE TRUE
+)
 
 FetchContent_MakeAvailable(boost gRPC)
 
@@ -71,21 +62,37 @@ set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 add_library(boost_common INTERFACE)
-target_link_libraries(boost_common INTERFACE Boost::asio Boost::system
-                                             Boost::filesystem Boost::uuid)
+target_link_libraries(boost_common INTERFACE
+  Boost::asio
+    Boost::system
+     Boost::filesystem
+         Boost::uuid
+)
 
 add_library(boost_balance INTERFACE)
-target_link_libraries(boost_balance INTERFACE boost_common)
+target_link_libraries(boost_balance INTERFACE
+    boost_common
+)
 
 add_library(boost_gateway INTERFACE)
-target_link_libraries(boost_gateway INTERFACE Boost::beast Boost::mysql
-                                              boost_common Boost::url)
+target_link_libraries(boost_gateway INTERFACE
+  Boost::beast
+  Boost::mysql
+  boost_common
+  Boost::url
+)
 
 add_library(boost_chatting INTERFACE)
-target_link_libraries(boost_chatting INTERFACE boost_common Boost::mysql)
+target_link_libraries(boost_chatting INTERFACE
+    boost_common
+  Boost::mysql
+)
 
 add_library(boost_resources INTERFACE)
-target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql)
+target_link_libraries(boost_resources INTERFACE
+    boost_common
+  Boost::mysql
+)
 
 # Add external dependencies once
 add_subdirectory(external/jsoncpp)

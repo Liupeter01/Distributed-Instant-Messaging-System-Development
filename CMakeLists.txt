@@ -61,13 +61,32 @@ FetchContent_MakeAvailable(boost gRPC)
 set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
-add_library(boost_interface INTERFACE)
-target_link_libraries(boost_interface INTERFACE
+add_library(boost_common INTERFACE)
+target_link_libraries(boost_common INTERFACE
   Boost::asio
+    Boost::system
+     Boost::filesystem
+)
+
+add_library(boost_balance INTERFACE)
+target_link_libraries(boost_balance INTERFACE
+    Boost::uuid
+    boost_common
+)
+
+add_library(boost_gateway INTERFACE)
+target_link_libraries(boost_gateway INTERFACE
   Boost::beast
-  Boost::system
   Boost::uuid
-  Boost::filesystem
+  Boost::mysql
+  boost_common
+)
+
+add_library(boost_chatting INTERFACE)
+target_link_libraries(boost_chatting INTERFACE
+    Boost::uuid
+    boost_common
+  Boost::mysql
 )
 
 # Add external dependencies once

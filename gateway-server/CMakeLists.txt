@@ -57,15 +57,8 @@ add_executable(GatewayServer ${source_file} ${header_file}
                              ${GENERATED_PROTOBUF_FILES})
 target_include_directories(GatewayServer PUBLIC include)
 
-target_link_libraries(
-  GatewayServer
-  PUBLIC  
-        boost_gateway
-         grpc++
-         spdlog
-         inicpp
-          hiredis
-          jsoncpp_object)
+target_link_libraries(GatewayServer PUBLIC boost_gateway grpc++ spdlog inicpp
+                                           hiredis jsoncpp_object)
 
 target_compile_definitions(
   GatewayServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

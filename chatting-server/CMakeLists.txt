@@ -55,17 +55,10 @@ file(GLOB_RECURSE proto_file CONFIGURE_DEPENDS proto/*.proto)
 
 add_executable(ChattingServer ${source_file} ${header_file}
                               ${GENERATED_PROTOBUF_FILES})
-target_include_directories(ChattingServer PUBLIC include )
+target_include_directories(ChattingServer PUBLIC include)
 
-target_link_libraries(
-  ChattingServer
-  PUBLIC 
-          boost_chatting
-         grpc++
-        inicpp
-         spdlog
-        hiredis
-         jsoncpp_object)
+target_link_libraries(ChattingServer PUBLIC boost_chatting grpc++ inicpp spdlog
+                                            hiredis jsoncpp_object)
 
 target_compile_definitions(
   ChattingServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

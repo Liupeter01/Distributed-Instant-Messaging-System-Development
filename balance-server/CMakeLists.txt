@@ -57,14 +57,8 @@ add_executable(LoadBalanceServer ${source_file} ${header_file}
                                  ${GENERATED_PROTOBUF_FILES})
 target_include_directories(LoadBalanceServer PUBLIC include)
 
-target_link_libraries(
-  LoadBalanceServer
-  PUBLIC
-         boost_balance
-         grpc++
-         inicpp
-         spdlog
-         hiredis)
+target_link_libraries(LoadBalanceServer PUBLIC boost_balance grpc++ inicpp
+                                               spdlog hiredis)
 
 target_compile_definitions(
   LoadBalanceServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

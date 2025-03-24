@@ -89,6 +89,13 @@ target_link_libraries(boost_chatting INTERFACE
   Boost::mysql
 )
 
+add_library(boost_resources INTERFACE)
+target_link_libraries(boost_resources INTERFACE
+    Boost::uuid
+    boost_common
+  Boost::mysql
+)
+
 # Add external dependencies once
 add_subdirectory(external/jsoncpp)
 add_subdirectory(external/inifile)

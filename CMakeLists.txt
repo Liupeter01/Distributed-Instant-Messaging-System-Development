@@ -30,7 +30,7 @@ set(protobuf_USE_STATIC_LIBS OFF)
 include(FetchContent)
 
 set(BOOST_ENABLE_CMAKE ON CACHE BOOL "" FORCE)
-set(BOOST_INCLUDE_LIBRARIES asio filesystem uuid system  beast mysql )
+set(BOOST_INCLUDE_LIBRARIES asio filesystem uuid system  beast mysql url)
 
 # Enable MSVC exceptions (as above)
 if(MSVC)
@@ -66,32 +66,30 @@ target_link_libraries(boost_common INTERFACE
   Boost::asio
     Boost::system
      Boost::filesystem
+         Boost::uuid
 )
 
 add_library(boost_balance INTERFACE)
 target_link_libraries(boost_balance INTERFACE
-    Boost::uuid
     boost_common
 )
 
 add_library(boost_gateway INTERFACE)
 target_link_libraries(boost_gateway INTERFACE
   Boost::beast
-  Boost::uuid
   Boost::mysql
   boost_common
+  Boost::url
 )
 
 add_library(boost_chatting INTERFACE)
 target_link_libraries(boost_chatting INTERFACE
-    Boost::uuid
     boost_common
   Boost::mysql
 )
 
 add_library(boost_resources INTERFACE)
 target_link_libraries(boost_resources INTERFACE
-    Boost::uuid
     boost_common
   Boost::mysql
 )

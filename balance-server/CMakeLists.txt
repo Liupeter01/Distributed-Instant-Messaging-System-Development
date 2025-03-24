@@ -60,7 +60,7 @@ target_include_directories(LoadBalanceServer PUBLIC include)
 target_link_libraries(
   LoadBalanceServer
   PUBLIC
-         boost_interface
+         boost_balance
          grpc++
          inicpp
          spdlog

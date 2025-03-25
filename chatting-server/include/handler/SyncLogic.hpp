@@ -88,18 +88,15 @@ private:
 
   /*Handling the user send chatting text msg to others*/
   void handlingTextChatMsg(ServiceType srv_type,
-                                std::shared_ptr<Session> session,
-                                NodePtr recv);
+                           std::shared_ptr<Session> session, NodePtr recv);
 
   /*Handling the user send chatting voice msg to others*/
   void handlingVoiceChatMsg(ServiceType srv_type,
-            std::shared_ptr<Session> session,
-            NodePtr recv);
+                            std::shared_ptr<Session> session, NodePtr recv);
 
   /*Handling the user send chatting video msg to others*/
   void handlingVideoChatMsg(ServiceType srv_type,
-            std::shared_ptr<Session> session,
-            NodePtr recv);
+                            std::shared_ptr<Session> session, NodePtr recv);
 
   /*
    * get friend request list from the database
@@ -119,9 +116,10 @@ private:
    * @param: interval: how many friends re going to acquire [startpos, startpos
    * + interval)
    */
-   std::optional<std::vector<std::unique_ptr<UserNameCard>>>
-             getAuthFriendsInfo(const std::string& dst_uuid, const std::size_t
-             start_pos = 0, const std::size_t interval = 10);
+  std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+  getAuthFriendsInfo(const std::string &dst_uuid,
+                     const std::size_t start_pos = 0,
+                     const std::size_t interval = 10);
 
 public:
   /*redis*/

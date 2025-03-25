@@ -60,25 +60,25 @@ public:
                         const ::message::PeerListsRequest *request,
                         ::message::PeerResponse *response);
 
-  virtual ::grpc::Status RegisterChattingServerInstance(
-      ::grpc::ServerContext *context,
-      const ::message::GrpcRegisterRequest*request,
-      ::message::GrpcStatusResponse*response);
+  virtual ::grpc::Status
+  RegisterChattingServerInstance(::grpc::ServerContext *context,
+                                 const ::message::GrpcRegisterRequest *request,
+                                 ::message::GrpcStatusResponse *response);
 
-  virtual ::grpc::Status RegisterChattingGrpcServer(
-      ::grpc::ServerContext *context,
-      const ::message::GrpcRegisterRequest*request,
-      ::message::GrpcStatusResponse*response);
+  virtual ::grpc::Status
+  RegisterChattingGrpcServer(::grpc::ServerContext *context,
+                             const ::message::GrpcRegisterRequest *request,
+                             ::message::GrpcStatusResponse *response);
 
-  virtual ::grpc::Status ChattingServerShutDown(
-      ::grpc::ServerContext *context,
-      const ::message::GrpcShutdownRequest*request,
-      ::message::GrpcStatusResponse*response);
+  virtual ::grpc::Status
+  ChattingServerShutDown(::grpc::ServerContext *context,
+                         const ::message::GrpcShutdownRequest *request,
+                         ::message::GrpcStatusResponse *response);
 
-  virtual ::grpc::Status ChattingGrpcServerShutDown(
-            ::grpc::ServerContext* context,
-            const ::message::GrpcShutdownRequest* request,
-            ::message::GrpcStatusResponse* response);
+  virtual ::grpc::Status
+  ChattingGrpcServerShutDown(::grpc::ServerContext *context,
+                             const ::message::GrpcShutdownRequest *request,
+                             ::message::GrpcStatusResponse *response);
 
   static std::string userTokenGenerator();
 

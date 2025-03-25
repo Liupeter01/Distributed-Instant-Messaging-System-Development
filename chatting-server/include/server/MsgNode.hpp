@@ -13,9 +13,9 @@
 class QString;
 class TCPNetworkConnection;
 
-enum class MsgNodeType{
-    MSGNODE_NORMAL,
-    MSGNODE_FILE_TRANSFER /*file size no more then 4GB*/
+enum class MsgNodeType {
+  MSGNODE_NORMAL,
+  MSGNODE_FILE_TRANSFER /*file size no more then 4GB*/
 };
 
 template <typename _Ty> struct add_const_lvalue_reference {
@@ -88,28 +88,21 @@ public:
 };
 
 template <typename Container> struct MsgHeader {
-    /*letting tcpnetwork to handle protected _buffer*/
-    friend class TCPNetworkConnection;
+  /*letting tcpnetwork to handle protected _buffer*/
+  friend class TCPNetworkConnection;
 
   /*For receiving data*/
   MsgHeader(MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
-      : _id(0)
-      , _type(type)
-      , _cur_length(0)
-  {
-      _length = get_header_length();
+      : _id(0), _type(type), _cur_length(0) {
+    _length = get_header_length();
     _buffer.resize(_length, 0);
   }
 
   /*for sending message*/
-  MsgHeader(uint16_t id,
-            const Container &input,
+  MsgHeader(uint16_t id, const Container &input,
             MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
-      : _id(id)
-      , _type(type)
-      , _cur_length(0)
-  {
-      _length = input.size() + get_header_length();
+      : _id(id), _type(type), _cur_length(0) {
+    _length = input.size() + get_header_length();
     _buffer.resize(_length, 0);
   }
 
@@ -117,10 +110,10 @@ template <typename Container> struct MsgHeader {
   static std::size_t MSGNODE_FILE_HEADER_LENGTH;
 
   std::size_t get_header_length() {
-      if(this->_type == MsgNodeType::MSGNODE_FILE_TRANSFER){
-          return MSGNODE_FILE_HEADER_LENGTH;
-      }
-      return MSGNODE_NORMAL_HEADER_LENGTH;
+    if (this->_type == MsgNodeType::MSGNODE_FILE_TRANSFER) {
+      return MSGNODE_FILE_HEADER_LENGTH;
+    }
+    return MSGNODE_NORMAL_HEADER_LENGTH;
   }
 
   typename std::iterator_traits<typename Container::iterator>::pointer
@@ -203,9 +196,7 @@ template <typename Container> struct MsgHeader {
     return !(_cur_length >= this->get_header_length());
   }
 
-  const bool check_body_remaining(){
-      return !(_cur_length >= _length);
-  }
+  const bool check_body_remaining() { return !(_cur_length >= _length); }
 
 protected:
   typename std::iterator_traits<typename Container::iterator>::pointer
@@ -219,7 +210,7 @@ protected:
   }
 
 public:
-          uint16_t _id;
+  uint16_t _id;
 
 protected:
   /* ---------------------------------------------
@@ -239,7 +230,8 @@ class RecvNode<
     : public MsgHeader<Container> {
 
 public:
-  RecvNode(Callable &&Network2Host, MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
+  RecvNode(Callable &&Network2Host,
+           MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
       : m_convertor(std::move(Network2Host)), MsgHeader<Container>(type) {}
 
   virtual std::optional<uint16_t> get_id() {
@@ -295,10 +287,8 @@ struct SendNode<
     typename std::enable_if<send_msg_check<Container>::value, void>::type>
     : public MsgHeader<Container> {
 
-  SendNode(uint16_t msg_id,
-        Container &string,
-        Callable &&Host2Network,
-        MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
+  SendNode(uint16_t msg_id, Container &string, Callable &&Host2Network,
+           MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
       : m_convertor(std::move(Host2Network)),
         MsgHeader<Container>(msg_id, string, type) {
 

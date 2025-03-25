@@ -38,9 +38,9 @@ public:
 
   // transfer chatting message from user A to B
   virtual ::grpc::Status
-            SendChattingTextMsg(::grpc::ClientContext* context,
-                      const ::message::ChattingTextMsgRequest* request,
-                      ::message::ChattingTextMsgResponse* response);
+  SendChattingTextMsg(::grpc::ClientContext *context,
+                      const ::message::ChattingTextMsgRequest *request,
+                      ::message::ChattingTextMsgResponse *response);
 
 private:
 };

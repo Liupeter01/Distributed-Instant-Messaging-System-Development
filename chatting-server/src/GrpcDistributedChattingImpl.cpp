@@ -107,66 +107,65 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
 }
 
 // transfer chatting message from user A to B
-::grpc::Status grpc::GrpcDistributedChattingImpl::SendChattingTextMsg(::grpc::ClientContext* context,
-          const ::message::ChattingTextMsgRequest* request,
-          ::message::ChattingTextMsgResponse* response)
-{
+::grpc::Status grpc::GrpcDistributedChattingImpl::SendChattingTextMsg(
+    ::grpc::ClientContext *context,
+    const ::message::ChattingTextMsgRequest *request,
+    ::message::ChattingTextMsgResponse *response) {
 
-          /*
-           * try to locate target user id in this server's user management mapping ds
-           * Maybe we can not find this user in the server
-           */
-          std::optional<std::shared_ptr<Session>> session_op =
-                    UserManager::get_instance()->getSession(
-                              std::to_string(request->dst_uuid()));
+  /*
+   * try to locate target user id in this server's user management mapping ds
+   * Maybe we can not find this user in the server
+   */
+  std::optional<std::shared_ptr<Session>> session_op =
+      UserManager::get_instance()->getSession(
+          std::to_string(request->dst_uuid()));
 
-          if (!session_op.has_value()) {
-                    spdlog::warn("[GRPC {} Service]: Find Target User {} Error!",
-                              ServerConfig::get_instance()->GrpcServerName,
-                              request->src_uuid());
-                    response->set_error(
-                              static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
-          }
-          else {
-                    Json::Value msg_array;         /*try to parse grpc repeated array*/
-                    Json::Value dst_root;    /*try to do message forwarding to dst target user*/
+  if (!session_op.has_value()) {
+    spdlog::warn("[GRPC {} Service]: Find Target User {} Error!",
+                 ServerConfig::get_instance()->GrpcServerName,
+                 request->src_uuid());
+    response->set_error(
+        static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
+  } else {
+    Json::Value msg_array; /*try to parse grpc repeated array*/
+    Json::Value dst_root;  /*try to do message forwarding to dst target user*/
 
-                    /*get server lists*/
-                    auto& msg_lists = request->lists();
+    /*get server lists*/
+    auto &msg_lists = request->lists();
 
-                    /*traversal server lists and create multiple DistributedChattingServicePool
-                     * according to host and port*/
-                    std::for_each(msg_lists.begin(), msg_lists.end(), [&msg_array](decltype(*msg_lists.begin())& server) {
-                              Json::Value msg;
+    /*traversal server lists and create multiple DistributedChattingServicePool
+     * according to host and port*/
+    std::for_each(msg_lists.begin(), msg_lists.end(),
+                  [&msg_array](decltype(*msg_lists.begin()) &server) {
+                    Json::Value msg;
 
-                              /*msg sender and msg receiver identity*/
-                              msg["msg_sender"] = server.msg_sender();
-                              msg["msg_receiver"] = server.msg_receiver();
+                    /*msg sender and msg receiver identity*/
+                    msg["msg_sender"] = server.msg_sender();
+                    msg["msg_receiver"] = server.msg_receiver();
 
-                              /*generate an unique uuid for this message*/
-                              msg["msg_id"] = server.msg_id();
+                    /*generate an unique uuid for this message*/
+                    msg["msg_id"] = server.msg_id();
 
-                              /*send message*/
-                              msg["msg_content"] = server.msg_content();
+                    /*send message*/
+                    msg["msg_content"] = server.msg_content();
 
-                              msg_array.append(msg);
-                    });
+                    msg_array.append(msg);
+                  });
 
+    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+    dst_root["text_sender"] = request->src_uuid();
+    dst_root["text_receiver"] = request->dst_uuid();
+    dst_root["text_msg"] = msg_array;
 
-                    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-                    dst_root["text_sender"] = request->src_uuid();
-                    dst_root["text_receiver"] = request->dst_uuid();
-                    dst_root["text_msg"] = msg_array;
+    /*send a forwarding packet*/
+    session_op.value()->sendMessage(
+        ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
+        dst_root.toStyledString());
 
-                    /*send a forwarding packet*/
-                    session_op.value()->sendMessage(
-                              ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
-                              dst_root.toStyledString());
-
-                    /*setup response*/
-                    response->set_src_uuid(request->src_uuid());
-                    response->set_dst_uuid(request->dst_uuid());
-                    response->set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
-          }
-          return grpc::Status::OK;
+    /*setup response*/
+    response->set_src_uuid(request->src_uuid());
+    response->set_dst_uuid(request->dst_uuid());
+    response->set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
+  }
+  return grpc::Status::OK;
 }

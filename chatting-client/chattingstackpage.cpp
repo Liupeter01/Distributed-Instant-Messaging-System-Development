@@ -18,9 +18,71 @@ ChattingStackPage::ChattingStackPage(QWidget *parent)
     , m_text_msg_counter(0)
 {
   ui->setupUi(this);
+
+  /*register signal*/
+    registerSignal();
+
+    /*load chattingstackpage*/
+    Tools::loadImgResources({"emoj_clicked.png", "emoj_hover.png", "emoj_normal.png"},
+        ui->emo_label->width(),
+        ui->emo_label->height());
+
+  /*load chattingstackpage*/
+  Tools::loadImgResources({"file_clicked.png", "file_hover.png", "file_normal.png"},
+                          ui->file_label->width(),
+                          ui->file_label->height());
+
+    /*set default image for chattingstackpage*/
+    Tools::setQLableImage(ui->emo_label, "emoj_normal.png");
+    Tools::setQLableImage(ui->file_label, "file_normal.png");
 }
 
 ChattingStackPage::~ChattingStackPage() { delete ui; }
+
+void ChattingStackPage::registerSignal(){
+
+    connect(ui->emo_label, &MultiClickableQLabel::clicked, this, [this]() {
+        handle_clicked(ui->emo_label, "emoj_hover.png", "emoj_clicked.png");
+    });
+
+    connect(ui->emo_label, &MultiClickableQLabel::update_display, this, [this]() {
+        handle_hover(ui->emo_label, "emoj_clicked.png", "emoj_hover.png", "emoj_normal.png");
+    });
+
+    connect(ui->file_label, &MultiClickableQLabel::clicked, this, [this]() {
+        handle_clicked(ui->file_label, "file_hover.png", "file_clicked.png");
+    });
+
+    connect(ui->file_label, &MultiClickableQLabel::update_display, this, [this]() {
+        handle_hover(ui->file_label, "file_clicked.png", "file_hover.png", "file_normal.png");
+    });
+}
+
+void ChattingStackPage::handle_clicked(MultiClickableQLabel *label,
+                                       const QString &hover,
+                                       const QString &clicked){
+    auto state = label->getState();
+    if (state.visiable == LabelState::VisiableStatus::ENABLED) {
+        Tools::setQLableImage(label, clicked);
+    } else {
+        Tools::setQLableImage(label, hover);
+    }
+}
+
+void ChattingStackPage::handle_hover(MultiClickableQLabel *label,
+                                     const QString &click,
+                                     const QString &hover,
+                                     const QString &normal){
+    auto state = label->getState();
+    if (state.hover == LabelState::HoverStatus::ENABLED) {
+        Tools::setQLableImage(label, state.visiable
+                                         ? click
+                                         : hover);
+    } else {
+        Tools::setQLableImage(label, state.visiable ? click
+                                                    : normal);
+    }
+}
 
 bool ChattingStackPage::isFriendCurrentlyChatting(const QString &target_uuid){
     /*friendinfo doesn't load any friend info yet*/

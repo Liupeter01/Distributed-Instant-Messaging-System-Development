@@ -1,11 +1,14 @@
-#include <config/ServerConfig.hpp>
-#include <handler/SyncLogic.hpp>
+#include <fstream>
 #include <json/json.h>
 #include <json/reader.h>
 #include <json/value.h>
-#include <server/AsyncServer.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
+/*base64*/
+#include <absl/strings/escaping.h>
+#include <server/AsyncServer.hpp>
+#include <handler/SyncLogic.hpp>
+#include <config/ServerConfig.hpp>
 
 /*redis*/
 std::string SyncLogic::redis_server_login = "redis_server";
@@ -105,5 +108,113 @@ void SyncLogic::shutdown() {
 void SyncLogic::handlingFileUploading(ServiceType srv_type,
                                                                   std::shared_ptr<Session> session, 
                                                                   NodePtr recv) {
+          Json::Value src_root;   /*store json from client*/
+          Json::Value dst_root; /*write into body and return to client*/
+          Json::Reader reader;
 
+          /*output file*/
+          std::ofstream out;
+
+          std::optional<std::string> body = recv->get_msg_body();
+          /*recv message error*/
+          if (!body.has_value()) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          /*parse error*/
+          if (!reader.parse(body.value(), src_root)) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          /*parsing failed*/
+          if (!(src_root.isMember("filename") 
+                    && src_root.isMember("checksum")
+                    && src_root.isMember("block")
+                    && src_root.isMember("cur_sql"))) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+                    return;
+          }
+
+          auto filename = src_root["filename"].asString();
+          auto checksum = src_root["checksum"].asString();
+          auto last_seq = src_root["last_seq"].asString();
+
+          auto cur_size_op = tools::string_to_value<std::size_t>(src_root["cur_size"].asString());
+          auto total_size_op = tools::string_to_value<std::size_t>(src_root["file_size"].asString());
+
+          if (!cur_size_op.has_value() || !total_size_op.has_value()) {
+                    spdlog::warn("Casting string typed key to std::size_t!");
+                    generateErrorMessage("Internel Server Error",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::FILE_UPLOAD_ERROR, session);
+                    return;
+          }
+
+          auto cur_size = cur_size_op.value();
+          auto total_size = total_size_op.value();
+
+          /*if it is first package then we should create a new file*/
+          bool isFirstPackage = src_root["cur_seq"].asString() == std::string("1");
+
+          /*End of Transmission*/
+          if (src_root.isMember("EOF")) {
+                    //src_root["EOF"].asInt();
+          }
+
+          /*convert base64 to binary*/
+          std::string block_data;
+          absl::Base64Unescape(src_root["block"].asString(), &block_data);
+
+          if (isFirstPackage) {
+                    /*if this is the first package*/
+                    out.open(filename, std::ios::binary | std::ios::trunc);
+          }
+          else {
+                    /*append mode*/
+                    out.open(filename, std::ios::binary | std::ios::app);
+          }
+
+          if (!out.is_open()) {
+                    spdlog::warn("Uploading File [{}] {} Error!",
+                              filename,
+                              isFirstPackage ? std::string("Created"): std::string("Opened")
+                    );
+
+                    generateErrorMessage(
+                              isFirstPackage ? "File Created Error" : "File Opened Error",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              isFirstPackage ? ServiceStatus::FILE_CREATE_ERROR :ServiceStatus::FILE_OPEN_ERROR, 
+                              session
+                    );
+                    return;
+          }
+
+          out.write(block_data.data(), block_data.size());
+          if (!out) {
+                    spdlog::warn("Uploading File [{}] Write Error!", filename);
+
+                    generateErrorMessage("File Write Error",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::FILE_WRITE_ERROR,
+                              session
+                    );
+                    return;
+          }
+
+          out.close();
+
+          dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+          dst_root["filename"] = filename;
+          dst_root["curr_seq"] = src_root["cur_seq"].asString();
+          dst_root["curr_size"] = std::to_string(cur_size);
+          dst_root["total_size"] = std::to_string(total_size);
+          session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE, dst_root.toStyledString());
 }

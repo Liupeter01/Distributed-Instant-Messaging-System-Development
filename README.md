@@ -266,7 +266,7 @@ All services are using HTTP short connections, users are going to create a POST 
    mysql -uroot -p"your_password"                #login mysql db ( -u: root by default, -p password)
    ```
 
-   Initialise `MySQL` database with following `SQL` commands to create DB and table schemas.
+   Initialize `MySQL` database with following `SQL` commands to create DB and table schemas.
 
    ```sql
    CREATE DATABASE chatting;
@@ -420,24 +420,30 @@ Most of those basic configurations are using *.ini file, except `Captcha-server`
 ### Platform Support
 Windows, Linux, MacOS(Intel & Apple Silicon M)
 
-### Download FullStackChattingDemo
+### Download and build Distributed-Instant-Messaging-System-Development
 
 ```bash
-git clone https://github.com/Liupeter01/FullStackChattingDemo
+git clone https://github.com/Liupeter01/Distributed-Instant-Messaging-System-Development
 git submodule update --init --recursive
 ```
 
-### Compile and build FullStackChattingDemo
+### Build Distributed-Instant-Messaging-System-Development **Servers**
 
-Those are submodules building tutorial links.
+#### All C++ Based Server
 
-[Gateway-server](https://github.com/Liupeter01/gateway-server/blob/main/README.md)
+```bash
+cd Distributed-Instant-Messaging-System-Development
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_INCLUDE_PATH=/usr/local/include -DCMAKE_CXX_FLAGS=-03
+cmake --build build --target all
+```
 
-[Balance-server](https://github.com/Liupeter01/balance-server/blob/main/README.md)
-
-[Chatting-server](https://github.com/Liupeter01/chatting-server/blob/main/README.md)
+#### Captcha Server
 
 [Captcha-server](https://github.com/Liupeter01/captcha-server/blob/main/README.md)
+
+
+
+### Build  Distributed-Instant-Messaging-System-Development  Client Application
 
 [Chatting-client](https://github.com/Liupeter01/chatting-client/blob/main/README.md)
 
@@ -563,6 +569,22 @@ Those are submodules building tutorial links.
 6. E No address added out of total 1 resolved
 
    you have to start the main server first and then open nodejs service
+
+   
+
+7. `/EHsc` causing compile error issue
+
+   **Add those codes in front of FetchContent** to prevent inclusion issue.
+
+   ```cmake
+   if(MSVC)
+     message(STATUS "MSVC detected, enabling /EHsc")
+     set(CMAKE_CXX_FLAGS
+         "${CMAKE_CXX_FLAGS} /EHsc"
+         CACHE STRING "MSVC exception flag" FORCE)
+     add_compile_options(/EHsc)
+   endif()
+   ```
 
    
 

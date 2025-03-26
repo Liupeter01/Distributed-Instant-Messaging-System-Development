@@ -23,14 +23,15 @@ int main() {
     /*setting up signal*/
     boost::asio::io_context ioc;
     boost::asio::signal_set signal{ioc, SIGINT, SIGTERM};
-    signal.async_wait([&ioc, &service_pool](boost::system::error_code ec, int sig_number) {
-      if (ec) {
-        return;
-      }
-      spdlog::critical("Resources Server exit due to control-c input!");
-      ioc.stop();
-      service_pool->shutdown();
-    });
+    signal.async_wait(
+        [&ioc, &service_pool](boost::system::error_code ec, int sig_number) {
+          if (ec) {
+            return;
+          }
+          spdlog::critical("Resources Server exit due to control-c input!");
+          ioc.stop();
+          service_pool->shutdown();
+        });
 
     /*create chatting server*/
     std::shared_ptr<AsyncServer> async = std::make_shared<AsyncServer>(

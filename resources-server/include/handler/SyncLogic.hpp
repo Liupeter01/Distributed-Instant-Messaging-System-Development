@@ -45,8 +45,8 @@ private:
   void execute(pair &&node);
 
 protected:
-          void handlingFileUploading(ServiceType srv_type,
-                    std::shared_ptr<Session> session, NodePtr recv);
+  void handlingFileUploading(ServiceType srv_type,
+                             std::shared_ptr<Session> session, NodePtr recv);
 
 public:
   /*redis*/

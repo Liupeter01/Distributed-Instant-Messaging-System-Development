@@ -39,7 +39,8 @@ set(BOOST_INCLUDE_LIBRARIES
     system
     beast
     mysql
-    url)
+    url
+    json)
 
 # Enable MSVC exceptions (as above)
 if(MSVC)
@@ -71,8 +72,9 @@ set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 add_library(boost_common INTERFACE)
-target_link_libraries(boost_common INTERFACE Boost::asio Boost::system
-                                             Boost::filesystem Boost::uuid)
+target_link_libraries(
+  boost_common INTERFACE Boost::asio Boost::system Boost::filesystem
+                         Boost::uuid Boost::json)
 
 add_library(boost_balance INTERFACE)
 target_link_libraries(boost_balance INTERFACE boost_common)

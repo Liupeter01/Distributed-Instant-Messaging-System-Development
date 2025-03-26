@@ -434,8 +434,10 @@ git submodule update --init --recursive
 ```bash
 cd Distributed-Instant-Messaging-System-Development
 cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_INCLUDE_PATH=/usr/local/include -DCMAKE_CXX_FLAGS=-03
-cmake --build build --target all
+cmake --build build --parallel [x] --target all
 ```
+
+
 
 #### Captcha Server
 

@@ -38,7 +38,7 @@ private:
     loadGrpcServerInfo();
     loadBalanceServiceInfo();
     loadMySQLInfo();
-   // loadRedisInfo();
+    // loadRedisInfo();
   }
 
   void loadGrpcServerInfo() {
@@ -48,9 +48,10 @@ private:
   }
 
   void loadChattingServiceInfo() {
-    //ChattingServerPort = m_ini["ChattingServer"]["port"].as<unsigned short>();
-   // ChattingServerQueueSize =
-     //   m_ini["ChattingServer"]["send_queue_size"].as<int>();
+    // ChattingServerPort = m_ini["ChattingServer"]["port"].as<unsigned
+    // short>();
+    // ChattingServerQueueSize =
+    //   m_ini["ChattingServer"]["send_queue_size"].as<int>();
   }
 
   void loadBalanceServiceInfo() {

@@ -47,8 +47,7 @@ void Session::closeSession() {
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
   try {
     std::lock_guard<std::mutex> _lckg(m_mtx);
-    if (m_send_queue.size() >
-        ServerConfig::get_instance()->ResourceQueueSize) {
+    if (m_send_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
       spdlog::warn("Client [UUID = {}] Sending Queue is full!");
       return;
     }

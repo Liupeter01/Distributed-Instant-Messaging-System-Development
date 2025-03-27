@@ -1,7 +1,9 @@
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcDistributedChattingImpl.hpp>
 #include <handler/SyncLogic.hpp>
-#include <json/value.h>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+#include <boost/json.hpp>
 #include <server/Session.hpp>
 #include <server/UserManager.hpp>
 #include <server/UserNameCard.hpp>
@@ -30,7 +32,7 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
         static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
   } else {
     /*setup json data and forward to target user*/
-    Json::Value root;
+            boost::json::object root;
     root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     root["src_uuid"] = std::to_string(request->src_uuid());
     root["dst_uuid"] = std::to_string(request->dst_uuid());
@@ -43,7 +45,7 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
 
     /*send a forwarding packet*/
     session_op.value()->sendMessage(
-        ServiceType::SERVICE_FRIENDREINCOMINGREQUEST, root.toStyledString());
+        ServiceType::SERVICE_FRIENDREINCOMINGREQUEST, boost::json::serialize(root));
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());
@@ -74,7 +76,7 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
         static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
   } else {
     /*setup json data and forward to target user*/
-    Json::Value root;
+            boost::json::object root;
 
     root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     root["friend_uuid"] = request->dst_uuid();
@@ -87,7 +89,7 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
     /*send a forwarding packet*/
     session_op.value()->sendMessage(
         ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-        root.toStyledString());
+              boost::json::serialize(root));
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());
@@ -127,8 +129,8 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
     response->set_error(
         static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
   } else {
-    Json::Value msg_array; /*try to parse grpc repeated array*/
-    Json::Value dst_root;  /*try to do message forwarding to dst target user*/
+            boost::json::array  msg_array; /*try to parse grpc repeated array*/
+    boost::json::object  dst_root;  /*try to do message forwarding to dst target user*/
 
     /*get server lists*/
     auto &msg_lists = request->lists();
@@ -137,7 +139,7 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
      * according to host and port*/
     std::for_each(msg_lists.begin(), msg_lists.end(),
                   [&msg_array](decltype(*msg_lists.begin()) &server) {
-                    Json::Value msg;
+                        boost::json::object  msg;
 
                     /*msg sender and msg receiver identity*/
                     msg["msg_sender"] = server.msg_sender();
@@ -148,19 +150,18 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
 
                     /*send message*/
                     msg["msg_content"] = server.msg_content();
-
-                    msg_array.append(msg);
+                    msg_array.push_back(std::move(msg));
                   });
 
     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     dst_root["text_sender"] = request->src_uuid();
     dst_root["text_receiver"] = request->dst_uuid();
-    dst_root["text_msg"] = msg_array;
+    dst_root["text_msg"] = std::move(msg_array);
 
     /*send a forwarding packet*/
     session_op.value()->sendMessage(
         ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
-        dst_root.toStyledString());
+              boost::json::serialize(dst_root));
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());

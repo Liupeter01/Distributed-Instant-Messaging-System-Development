@@ -30,7 +30,7 @@ add_executable(ResourcesServer ${source_file} ${header_file})
 target_include_directories(ResourcesServer PUBLIC include ${Boost_INCLUDE_DIR})
 
 target_link_libraries(ResourcesServer PUBLIC boost_resources grpc++ inicpp
-                                             spdlog jsoncpp_object)
+                                             spdlog)
 
 target_compile_definitions(
   ResourcesServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

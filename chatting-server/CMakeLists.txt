@@ -58,7 +58,7 @@ add_executable(ChattingServer ${source_file} ${header_file}
 target_include_directories(ChattingServer PUBLIC include)
 
 target_link_libraries(ChattingServer PUBLIC boost_chatting grpc++ inicpp spdlog
-                                            hiredis jsoncpp_object)
+                                            hiredis)
 
 target_compile_definitions(
   ChattingServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

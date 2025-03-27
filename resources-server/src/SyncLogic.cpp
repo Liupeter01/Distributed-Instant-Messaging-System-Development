@@ -1,15 +1,10 @@
-#include "boost/json/object.hpp"
-#include "boost/json/parse.hpp"
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
 #include <boost/json.hpp>
 #include <fstream>
-// #include <json/json.h>
-// #include <json/reader.h>
-// #include <json/value.h>
-
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
-/*base64*/
-#include <absl/strings/escaping.h>
+#include <absl/strings/escaping.h>      /*base64*/
 #include <config/ServerConfig.hpp>
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
@@ -112,9 +107,6 @@ void SyncLogic::shutdown() {
 void SyncLogic::handlingFileUploading(ServiceType srv_type,
                                       std::shared_ptr<Session> session,
                                       NodePtr recv) {
-  // Json::Value src_root; /*store json from client*/
-  // Json::Value dst_root; /*write into body and return to client*/
-  // Json::Reader reader;
 
   boost::json::object src_obj;
   boost::json::object dst_root;
@@ -133,8 +125,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   // prevent parse error
   try {
-    auto src_value = boost::json::parse(body.value());
-    src_obj = src_value.as_object();
+    src_obj = boost::json::parse(body.value()).as_object();
 
   } catch (const boost::json::system_error &e) {
 
@@ -144,14 +135,6 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
     return;
   }
-
-  /*parse error
-  if (!reader.parse(body.value(), src_root)) {
-    //generateErrorMessage("Failed to parse json data",
-    //                     ServiceType::SERVICE_FILEUPLOADRESPONSE,
-    //                     ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }*/
 
   // Parsing failed
   if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
@@ -164,24 +147,15 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
     return;
   }
 
-  /*parsing failed
-  if (!(src_root.isMember("filename") && src_root.isMember("checksum") &&
-        src_root.isMember("block") && src_root.isMember("cur_sql"))) {
-    //generateErrorMessage("Failed to parse json data",
-    //                     ServiceType::SERVICE_FILEUPLOADRESPONSE,
-    //                     ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-    return;
-  }
-  */
+  auto filename = boost::json::value_to<std::string>(src_obj["filename"]);
+  auto checksum = boost::json::value_to<std::string>(src_obj["checksum"]);
+  auto last_seq = boost::json::value_to<std::string>(src_obj["last_seq"]);
+  auto cur_seq = boost::json::value_to<std::string>(src_obj["cur_seq"]);
 
-  auto filename = std::string(src_obj["filename"].as_string().c_str());
-  auto checksum = src_obj["checksum"].as_string();
-  auto last_seq = src_obj["last_seq"].as_string();
-
-  auto cur_size_op =
-      tools::string_to_value<std::size_t>(src_obj["cur_size"].as_string());
+  auto cur_size_op = 
+      tools::string_to_value<std::size_t>(boost::json::value_to<std::string>(src_obj["cur_size"]));
   auto total_size_op =
-      tools::string_to_value<std::size_t>(src_obj["file_size"].as_string());
+      tools::string_to_value<std::size_t>(boost::json::value_to<std::string>(src_obj["file_size"]));
 
   if (!cur_size_op.has_value() || !total_size_op.has_value()) {
     spdlog::warn("Casting string typed key to std::size_t!");
@@ -195,7 +169,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto total_size = total_size_op.value();
 
   /*if it is first package then we should create a new file*/
-  bool isFirstPackage = (src_obj["cur_seq"].as_string() == std::string("1"));
+  bool isFirstPackage = (boost::json::value_to<std::string>(src_obj["cur_seq"])== std::string("1"));
 
   /*End of Transmission*/
   if (src_obj.contains("EOF")) {
@@ -242,7 +216,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   dst_root["filename"] = filename;
-  dst_root["curr_seq"] = src_obj["cur_seq"].as_string();
+  dst_root["curr_seq"] = cur_seq;
   dst_root["curr_size"] = std::to_string(cur_size);
   dst_root["total_size"] = std::to_string(total_size);
   session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,

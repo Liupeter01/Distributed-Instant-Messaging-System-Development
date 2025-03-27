@@ -1,13 +1,13 @@
+#include <absl/strings/escaping.h> /*base64*/
+#include <boost/json.hpp>
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
-#include <boost/json.hpp>
-#include <fstream>
-#include <spdlog/spdlog.h>
-#include <tools/tools.hpp>
-#include <absl/strings/escaping.h>      /*base64*/
 #include <config/ServerConfig.hpp>
+#include <fstream>
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
+#include <spdlog/spdlog.h>
+#include <tools/tools.hpp>
 
 /*redis*/
 std::string SyncLogic::redis_server_login = "redis_server";
@@ -152,10 +152,10 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto last_seq = boost::json::value_to<std::string>(src_obj["last_seq"]);
   auto cur_seq = boost::json::value_to<std::string>(src_obj["cur_seq"]);
 
-  auto cur_size_op = 
-      tools::string_to_value<std::size_t>(boost::json::value_to<std::string>(src_obj["cur_size"]));
-  auto total_size_op =
-      tools::string_to_value<std::size_t>(boost::json::value_to<std::string>(src_obj["file_size"]));
+  auto cur_size_op = tools::string_to_value<std::size_t>(
+      boost::json::value_to<std::string>(src_obj["cur_size"]));
+  auto total_size_op = tools::string_to_value<std::size_t>(
+      boost::json::value_to<std::string>(src_obj["file_size"]));
 
   if (!cur_size_op.has_value() || !total_size_op.has_value()) {
     spdlog::warn("Casting string typed key to std::size_t!");
@@ -169,7 +169,8 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto total_size = total_size_op.value();
 
   /*if it is first package then we should create a new file*/
-  bool isFirstPackage = (boost::json::value_to<std::string>(src_obj["cur_seq"])== std::string("1"));
+  bool isFirstPackage = (boost::json::value_to<std::string>(
+                             src_obj["cur_seq"]) == std::string("1"));
 
   /*End of Transmission*/
   if (src_obj.contains("EOF")) {

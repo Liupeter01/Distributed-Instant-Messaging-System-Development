@@ -1,4 +1,5 @@
 # Gateway-server
+
 ## 0x00 Description
 
 All services are using HTTP short connections, users are going to create a POST method to the gateway-server and gateway-server is going to respond to the client requests accordingly.
@@ -7,33 +8,23 @@ All services are using HTTP short connections, users are going to create a POST 
 
    User sends a email address to gateway-server and request to get a Email verification code(CPATCHA) request to server. server using **gRPC** protocol to communicate with NodeJS server(`captcha-server`) and create an unique **uuid** for the user. The **uuid** is going to store in a **Redis** memory database with a timeout setting, user should register the new account within the valid time or request for a new one instead.
 
-   
-
 2. `/post_registration`
 
    After request for a **valid CPATCHA**, user could trigger registration confirm button to post registration request to the server. Server will whether this user's identity is collision with any other user inside the system, if no collision found the info will be stored inside database. ~~however, SQL injection protection mechanism is still not available yet!~~
-
-   
 
 3. `/check_accountexists`
 
    After account registration, when user demands to change his/her password, we have to verifiy the account existance.
 
-   
-
 4. `/reset_password`
 
    After executing `/check_accountexists` process, then user could enter his/her new password info, and client terminal could send the new password info to the the server. server will do the similiar process in `/post_registration` and alter the existing data inside the database.
-
-   
 
 5. `/trylogin_server`
 
    please be careful, `trylogin_server` **could not login into** the real server directly. **It's a server relay!**
 
    The identification is similiar to `/check_accountexists` authenication process. The `gateway-server` will communicate with `balance-server` for the address of `chatting-server` by using **gRPC**, and `chatting-server` will do load-balancing and return the lowest load server info back. However, The user connection status **will not** maintained and managed by `gateway-server` and `gateway-server` doesn't care about this either, client will receive the real address of `chatting-server` and connecting to it by itself. ~~however, SQL injection protection mechanism is still not available yet!~~
-
-   
 
 ## 0x02 Requirements
 
@@ -137,7 +128,7 @@ All services are using HTTP short connections, users are going to create a POST 
    Creating a `Redis` container and execute following commands.
 
    ```bash
-   docker pull redis:7.2.4		#Pull the official docker image from Docker hub
+   docker pull redis:7.2.4  #Pull the official docker image from Docker hub
    docker run \
        --restart always \
        -p 16379:6379 --name redis \
@@ -151,8 +142,8 @@ All services are using HTTP short connections, users are going to create a POST 
    Entering `Redis` container and access to command line `redis-cli`.
 
    ```bash
-   docker exec -it redis bash	 #entering redis
-   redis-cli									 	 #login redis db
+   docker exec -it redis bash  #entering redis
+   redis-cli            #login redis db
    ```
 
 2. MySQL Database
@@ -162,7 +153,7 @@ All services are using HTTP short connections, users are going to create a POST 
    ```bash
    #if you are using windows, please download WSL2
    mkdir -p /path/to/mysql/{conf,data} 
-   touch /path/to/mysql/conf/my.cnf	#create
+   touch /path/to/mysql/conf/my.cnf #create
    cat > /path/to/redis/conf/redis.conf <<EOF
    [mysqld]
    default-authentication-plugin=mysql_native_password
@@ -186,7 +177,7 @@ All services are using HTTP short connections, users are going to create a POST 
    Creating a `MySQL` container and execute following commands.
 
    ```bash
-   docker pull mysql:8.0		#Pull the official docker image from Docker hub
+   docker pull mysql:8.0  #Pull the official docker image from Docker hub
    docker run --restart=on-failure:3 -d \
        -v /path/to/mysql/conf:/etc/mysql/conf.d \
        -v /path/to/mysql/data:/var/lib/mysql \
@@ -198,7 +189,7 @@ All services are using HTTP short connections, users are going to create a POST 
    Entering `MySQL` container and access to `mysql` command line.
 
    ```bash
-   docker exec -it "your_container_name" bash		#entering mysql
+   docker exec -it "your_container_name" bash  #entering mysql
    mysql -uroot -p"your_password"                #login mysql db ( -u: root by default, -p password)
    ```
 
@@ -228,17 +219,15 @@ All services are using HTTP short connections, users are going to create a POST 
    -- Create Friend Request Table
    CREATE TABLE chatting.FriendRequest(
        id INT AUTO_INCREMENT PRIMARY KEY,
-   	src_uuid INT NOT NULL,
+    src_uuid INT NOT NULL,
        dst_uuid INT NOT NULL,
        nickname VARCHAR(255),
        message VARCHAR(255),
-       status BOOL,	-- request status
+       status BOOL, -- request status
        FOREIGN KEY (src_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE,
        FOREIGN KEY (dst_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
    );
    ```
-
-
 
 ### Servers' Configurations
 
@@ -266,11 +255,10 @@ host=127.0.0.1
 port=59900
 ```
 
-
-
 ## 0x03 Developer Quick Start
 
 ### Platform Support
+
 Windows, Linux, MacOS(Intel & Apple Silicon M)
 
 ### Compile From Source Code
@@ -309,8 +297,6 @@ grpc-1.50.2 will be downloaded automatically, and we will use boringssl instead 
    ./build/GatewayServer
    ```
 
-
-
 ### Docker
 
 1. Download From GitHub
@@ -330,5 +316,3 @@ grpc-1.50.2 will be downloaded automatically, and we will use boringssl instead 
    ```bash
    docker run -P -v /path/to/gateway/conf/config.ini:/app/config.ini gateway-server-container ./build/GatewayServer
    ```
-
-   

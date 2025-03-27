@@ -1,10 +1,10 @@
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcBalanceService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
 #include <handler/SyncLogic.hpp>
-#include <boost/json/object.hpp>
-#include <boost/json/parse.hpp>
-#include <boost/json.hpp>
 #include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/UserFriendRequest.hpp>
@@ -237,11 +237,11 @@ void SyncLogic::execute(pair &&node) {
 void SyncLogic::handlingLogin(ServiceType srv_type,
                               std::shared_ptr<Session> session, NodePtr recv) {
 
-          boost::json::object src_obj;
-          boost::json::object redis_root;
+  boost::json::object src_obj;
+  boost::json::object redis_root;
 
-          boost::json::array friendreq;        //pending request
-          boost::json::array authfriend;      //friends that have already been added
+  boost::json::array friendreq;  // pending request
+  boost::json::array authfriend; // friends that have already been added
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -254,21 +254,20 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_obj = boost::json::parse(body.value()).as_object();
-  }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_LOGINRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   // Parsing failed
   if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_LOGINRESPONSE,
-                      ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-            return;
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
   }
 
   std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
@@ -341,7 +340,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
 
     if (requestlist_op.has_value()) {
       for (auto &req : requestlist_op.value()) {
-                boost::json::object obj;
+        boost::json::object obj;
         obj["src_uuid"] = req->m_uuid;
         obj["dst_uuid"] = req->dst_uuid;
         obj["username"] = req->m_username;
@@ -350,7 +349,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
         obj["description"] = req->m_description;
         obj["message"] = req->message;
         obj["sex"] = static_cast<uint8_t>(req->m_sex);
-        //redis_root["FriendRequestList"]
+        // redis_root["FriendRequestList"]
         friendreq.push_back(std::move(obj));
       }
     }
@@ -360,14 +359,14 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
         getAuthFriendsInfo(uuid);
     if (friendlist_op.has_value()) {
       for (auto &req : friendlist_op.value()) {
-                boost::json::object obj;
+        boost::json::object obj;
         obj["uuid"] = req->m_uuid;
         obj["username"] = req->m_username;
         obj["avator"] = req->m_avatorPath;
         obj["nickname"] = req->m_nickname;
         obj["description"] = req->m_description;
         obj["sex"] = static_cast<uint8_t>(req->m_sex);
-        //redis_root["AuthFriendList"].append(obj);
+        // redis_root["AuthFriendList"].append(obj);
         authfriend.push_back(std::move(obj));
       }
     }
@@ -377,7 +376,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
 
     /*send it back*/
     session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-              boost::json::serialize(redis_root));
+                         boost::json::serialize(redis_root));
 
     /*
      * add user connection counter for current server
@@ -418,7 +417,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
                                    NodePtr recv) {
 
   boost::json::object src_obj;  /*store json from client*/
-  boost::json::object dst_root;    /*store json from client*/
+  boost::json::object dst_root; /*store json from client*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -431,25 +430,24 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_obj = boost::json::parse(body.value()).as_object();
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
-  }
-
 
   // Parsing failed
   if (!src_obj.contains("username")) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                      ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-            return;
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
   }
 
-  std::string username = boost::json::value_to<std::string>(src_obj["username"]);
+  std::string username =
+      boost::json::value_to<std::string>(src_obj["username"]);
   spdlog::info("[User UUID = {}] Searching For User {} ", session->s_uuid,
                username);
 
@@ -490,7 +488,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
     dst_root["description"] = info->m_description;
   }
   session->sendMessage(ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-            boost::json::serialize(dst_root));
+                       boost::json::serialize(dst_root));
 }
 
 /*the person who init friend request*/
@@ -498,8 +496,8 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
                                              std::shared_ptr<Session> session,
                                              NodePtr recv) {
 
-          boost::json::object src_root;   /*store json from client*/
-          boost::json::object  result_root; /*send processing result back to src user*/
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to src user*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -512,25 +510,26 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_root = boost::json::parse(body.value()).as_object();
-  }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   // Parsing failed
   if (!(src_root.contains("src_uuid") && src_root.contains("dst_uuid"))) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                      ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-            return;
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
   }
 
-  auto src_uuid = boost::json::value_to<std::string>(src_root["src_uuid"]); // my uuid
-  auto dst_uuid = boost::json::value_to<std::string>(src_root["dst_uuid"]); // target uuid
+  auto src_uuid =
+      boost::json::value_to<std::string>(src_root["src_uuid"]); // my uuid
+  auto dst_uuid =
+      boost::json::value_to<std::string>(src_root["dst_uuid"]); // target uuid
   auto msg = boost::json::value_to<std::string>(src_root["message"]);
   auto nickname = boost::json::value_to<std::string>(src_root["nickname"]);
 
@@ -617,7 +616,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
       return;
     }
     /*send it to dst user*/
-    boost::json::object  dst_root;
+    boost::json::object dst_root;
 
     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     dst_root["src_uuid"] = src_uuid;
@@ -632,7 +631,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
     /*propagate the message to dst user*/
     session_op.value()->sendMessage(
         ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
-              boost::json::serialize(dst_root));
+        boost::json::serialize(dst_root));
 
     result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   } else {
@@ -674,7 +673,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
   result_root["src_uuid"] = src_uuid;
   result_root["dst_uuid"] = dst_uuid;
   session->sendMessage(ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-            boost::json::serialize(result_root));
+                       boost::json::serialize(result_root));
 }
 
 /*the person who receive friend request are going to confirm it*/
@@ -682,8 +681,8 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
                                              std::shared_ptr<Session> session,
                                              NodePtr recv) {
 
-  boost::json::object src_root;   /*store json from client*/
-  boost::json::object  result_root; /*send processing result back to src user*/
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to src user*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -696,31 +695,31 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_root = boost::json::parse(body.value()).as_object();
-  }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   // Parsing failed
   if (!(src_root.contains("src_uuid") && src_root.contains("dst_uuid"))) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                      ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-            return;
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
   }
 
   /*------------------------target user's uuid-------------------------*/
-  auto src_uuid = boost::json::value_to<std::string>(src_root["src_uuid"]); 
+  auto src_uuid = boost::json::value_to<std::string>(src_root["src_uuid"]);
   auto src_uuid_op = tools::string_to_value<std::size_t>(src_uuid);
   /*----------------------------my uuid-------------------------------*/
-  auto dst_uuid = boost::json::value_to<std::string>(src_root["dst_uuid"]); 
+  auto dst_uuid = boost::json::value_to<std::string>(src_root["dst_uuid"]);
   auto dst_uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
 
-  auto alternative = boost::json::value_to<std::string>(src_root["alternative_name"]);
+  auto alternative =
+      boost::json::value_to<std::string>(src_root["alternative_name"]);
 
   if (!src_uuid_op.has_value() || !dst_uuid_op.has_value()) {
     spdlog::warn("Casting string typed key to std::size_t!");
@@ -759,7 +758,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
    */
   result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   session->sendMessage(ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-            boost::json::serialize(result_root));
+                       boost::json::serialize(result_root));
 
   /*
    * update the database, and add biddirectional friend authentication messages
@@ -805,7 +804,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
   root["friend_sex"] = static_cast<uint8_t>(src_namecard->m_sex);
 
   session->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-            boost::json::serialize(root));
+                       boost::json::serialize(root));
 
   /*
    * update the database, and add biddirectional friend authentication messages
@@ -869,8 +868,8 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
 
     /*propagate the message to dst user*/
     session_op.value()->sendMessage(
-              ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-              boost::json::serialize(root));
+        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+        boost::json::serialize(root));
   } else {
     /*
      * GRPC REQUEST
@@ -917,7 +916,7 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
                                     std::shared_ptr<Session> session,
                                     NodePtr recv) {
 
-          boost::json::object src_root; /*store json from client*/
+  boost::json::object src_root; /*store json from client*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -930,25 +929,27 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_root = boost::json::parse(body.value()).as_object();
-  }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   // Parsing failed
-  if (!(src_root.contains("text_sender") && src_root.contains("text_receiver"))) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                      ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-            return;
+  if (!(src_root.contains("text_sender") &&
+        src_root.contains("text_receiver"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
   }
 
-  auto text_sender = boost::json::value_to<std::string>(src_root["text_sender"]);   // my uuid
-  auto text_receiver = boost::json::value_to<std::string>(src_root["text_receiver"]); // target user's uuid
+  auto text_sender =
+      boost::json::value_to<std::string>(src_root["text_sender"]); // my uuid
+  auto text_receiver = boost::json::value_to<std::string>(
+      src_root["text_receiver"]); // target user's uuid
   const auto textMsgArray = src_root["text_msg"];
 
   auto src_uuid_op = tools::string_to_value<std::size_t>(text_sender);
@@ -996,7 +997,8 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
       return;
     }
 
-    boost::json::object dst_root; /*try to do message forwarding to dst target user*/
+    boost::json::object
+        dst_root; /*try to do message forwarding to dst target user*/
     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     dst_root["text_sender"] = text_sender;
     dst_root["text_receiver"] = text_receiver;
@@ -1005,7 +1007,7 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
     /*propagate the message to dst user*/
     session_op.value()->sendMessage(
         ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
-              boost::json::serialize(dst_root));
+        boost::json::serialize(dst_root));
   } else {
     message::ChattingTextMsgRequest req;
     req.set_src_uuid(src_uuid_op.value());
@@ -1013,30 +1015,32 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
 
     /*generate a grpc repreated message array*/
     auto msgArray = textMsgArray.as_array();
-    for (auto& msg : msgArray) {
-              if (!msg.is_object()) {
-                        spdlog::warn("Element in 'text_msg' is not an object.");
-                        continue;
-              }
+    for (auto &msg : msgArray) {
+      if (!msg.is_object()) {
+        spdlog::warn("Element in 'text_msg' is not an object.");
+        continue;
+      }
 
-              auto& obj = msg.as_object();
-              if (!(obj.contains("msg_sender") && obj.contains("msg_receiver"))) {
-                        spdlog::warn("No Sender And Msg Receiver's info!");
-                        continue;
-              }
+      auto &obj = msg.as_object();
+      if (!(obj.contains("msg_sender") && obj.contains("msg_receiver"))) {
+        spdlog::warn("No Sender And Msg Receiver's info!");
+        continue;
+      }
 
-              message::ChattingHistoryData* data_item = req.add_lists();
+      message::ChattingHistoryData *data_item = req.add_lists();
 
-              /*msg sender and msg receiver identity*/
-              data_item->set_msg_sender(boost::json::value_to<std::string>(obj["msg_sender"]));
-              data_item->set_msg_receiver(
-                        boost::json::value_to<std::string>(obj["msg_receiver"]));
+      /*msg sender and msg receiver identity*/
+      data_item->set_msg_sender(
+          boost::json::value_to<std::string>(obj["msg_sender"]));
+      data_item->set_msg_receiver(
+          boost::json::value_to<std::string>(obj["msg_receiver"]));
 
-              /*generate an unique uuid for this message*/
-              data_item->set_msg_id(boost::json::value_to<std::string>(obj["msg_id"]));
+      /*generate an unique uuid for this message*/
+      data_item->set_msg_id(boost::json::value_to<std::string>(obj["msg_id"]));
 
-              /*send message*/
-              data_item->set_msg_content(boost::json::value_to<std::string>(obj["msg_content"]));
+      /*send message*/
+      data_item->set_msg_content(
+          boost::json::value_to<std::string>(obj["msg_content"]));
     }
 
     response =
@@ -1058,11 +1062,11 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
    */
   boost::json::object result_root; // reponse status to sender
   result_root["error"] = response.error();
-  result_root["text_sender"] = text_sender; // my uuid
-  result_root["text_receiver"] =text_receiver; // target user's uuid
+  result_root["text_sender"] = text_sender;     // my uuid
+  result_root["text_receiver"] = text_receiver; // target user's uuid
 
   session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-            boost::json::serialize(result_root));
+                       boost::json::serialize(result_root));
 }
 
 /*Handling the user send chatting text msg to others*/
@@ -1070,8 +1074,8 @@ void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
                                      std::shared_ptr<Session> session,
                                      NodePtr recv) {
 
-          boost::json::object src_root;    /*store json from client*/
-          boost::json::object result_root; /*send processing result back to dst user*/
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to dst user*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -1084,13 +1088,12 @@ void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_root = boost::json::parse(body.value()).as_object();
-  }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 }
 
@@ -1098,8 +1101,8 @@ void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
 void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
                                      std::shared_ptr<Session> session,
                                      NodePtr recv) {
-          boost::json::object src_root;    /*store json from client*/
-          boost::json::object result_root; /*send processing result back to dst user*/
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to dst user*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -1112,13 +1115,12 @@ void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
 
   // prevent parse error
   try {
-            src_root = boost::json::parse(body.value()).as_object();
-  }
-  catch (const boost::json::system_error& e) {
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 }
 
@@ -1141,24 +1143,22 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
     /*parse cache data inside Redis*/
     boost::json::object root;
     try {
-              root = boost::json::parse(info_str.value()).as_object();
-    }
-    catch (const boost::json::system_error& e) {
-              spdlog::error("Failed to parse json data!");
-              return std::nullopt;
+      root = boost::json::parse(info_str.value()).as_object();
+    } catch (const boost::json::system_error &e) {
+      spdlog::error("Failed to parse json data!");
+      return std::nullopt;
     }
 
     return std::make_unique<UserNameCard>(
-              boost::json::value_to<std::string>(root["uuid"]),
-              boost::json::value_to<std::string>(root["avator"]),
-              boost::json::value_to<std::string>(root["username"]),
-              boost::json::value_to<std::string>(root["nickname"]),
-              boost::json::value_to<std::string>(root["description"]),
-              static_cast<Sex>(root["sex"].as_int64())
-    );
+        boost::json::value_to<std::string>(root["uuid"]),
+        boost::json::value_to<std::string>(root["avator"]),
+        boost::json::value_to<std::string>(root["username"]),
+        boost::json::value_to<std::string>(root["nickname"]),
+        boost::json::value_to<std::string>(root["description"]),
+        static_cast<Sex>(root["sex"].as_int64()));
 
   } else {
-            boost::json::object redis_root;
+    boost::json::object redis_root;
 
     /*search it in mysql*/
     connection::ConnectionRAII<mysql::MySQLConnectionPool,
@@ -1191,7 +1191,7 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
 
     /*write data into redis as cache*/
     if (!raii->get()->setValue(user_prefix + key,
-              boost::json::serialize(redis_root))) {
+                               boost::json::serialize(redis_root))) {
       spdlog::error("[UUID = {}] Write Data To Redis Failed!", uuid);
       return std::nullopt;
     }

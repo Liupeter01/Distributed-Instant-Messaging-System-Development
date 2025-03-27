@@ -72,22 +72,24 @@ set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 add_library(boost_common INTERFACE)
-target_link_libraries(
-  boost_common INTERFACE Boost::asio Boost::system Boost::filesystem
-                         Boost::uuid)
+target_link_libraries(boost_common INTERFACE Boost::asio Boost::system
+                                             Boost::filesystem Boost::uuid)
 
 add_library(boost_balance INTERFACE)
 target_link_libraries(boost_balance INTERFACE boost_common)
 
 add_library(boost_gateway INTERFACE)
-target_link_libraries(boost_gateway INTERFACE Boost::beast Boost::mysql
-                                              boost_common Boost::url  Boost::json)
+target_link_libraries(
+  boost_gateway INTERFACE Boost::beast Boost::mysql boost_common Boost::url
+                          Boost::json)
 
 add_library(boost_chatting INTERFACE)
-target_link_libraries(boost_chatting INTERFACE boost_common Boost::mysql  Boost::json)
+target_link_libraries(boost_chatting INTERFACE boost_common Boost::mysql
+                                               Boost::json)
 
 add_library(boost_resources INTERFACE)
-target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql  Boost::json)
+target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql
+                                                Boost::json)
 
 # Add external dependencies once
 add_subdirectory(external/inifile)

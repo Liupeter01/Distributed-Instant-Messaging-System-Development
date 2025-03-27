@@ -7,6 +7,3 @@
 [submodule "external/inifile"]
 	path = external/inifile
 	url = https://github.com/Rookfighter/inifile-cpp.git
-[submodule "external/jsoncpp"]
-	path = external/jsoncpp
-	url = https://github.com/open-source-parsers/jsoncpp.git

@@ -19,8 +19,13 @@ grpc::GrpcBalancerImpl::GrpcBalancerImpl() {
 
 grpc::GrpcBalancerImpl::~GrpcBalancerImpl() {}
 
-std::shared_ptr<grpc::GrpcBalancerImpl::ChattingServerConfig>
+std::optional<std::shared_ptr<grpc::GrpcBalancerImpl::ChattingServerConfig>>
 grpc::GrpcBalancerImpl::serverLoadBalancer() {
+
+          /*Currently, No chatting server connected!*/
+          if (!chatting_servers.size()) {
+                    return std::nullopt;
+          }
 
   std::lock_guard<std::mutex> _lckg(chatting_mtx);
 
@@ -109,14 +114,22 @@ void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
     const ::message::RegisterToBalancer *request,
     ::message::GetAllocatedChattingServer *response) {
 
-  auto uuid = request->uuid();
-  std::optional<std::string> exists = getUserToken(uuid);
-
   /*get the lowest load server*/
-  auto target = serverLoadBalancer();
+  auto target_op = serverLoadBalancer();
+
+  /*if serverloadbalancer returns a nullopt, then it means that there is no avaibale chatting-server right now!*/
+  if (!target_op.has_value()) {
+            response->set_error(static_cast<std::size_t>(ServiceStatus::NO_AVAILABLE_CHATTING_SERVER));
+            return grpc::Status::OK;
+  }
+
+  auto target = target_op.value();
   response->set_error(static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS));
   response->set_host(target->_host);
   response->set_port(target->_port);
+
+  auto uuid = request->uuid();
+  std::optional<std::string> exists = getUserToken(uuid);
 
   /*check if it is registered?*/
   if (!exists.has_value()) {

@@ -83,7 +83,7 @@ public:
   static std::string userTokenGenerator();
 
 private:
-  std::shared_ptr<grpc::GrpcBalancerImpl::ChattingServerConfig>
+  std::optional<std::shared_ptr<grpc::GrpcBalancerImpl::ChattingServerConfig>>
   serverLoadBalancer();
   void registerUserInfo(std::size_t uuid, std::string &&tokens);
 

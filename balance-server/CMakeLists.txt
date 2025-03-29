@@ -46,7 +46,7 @@ endif()
 
 project(
   LoadBalanceServer
-  VERSION 2.1.1
+  VERSION 2.1.2
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)

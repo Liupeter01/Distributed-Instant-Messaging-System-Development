@@ -2,38 +2,61 @@
 
 ## 0x00 Description
 
-Distributed-Instant-Messaging-System-Development is a real-time chat application built using C++17, Boost and gRPC, featuring a distributed TCP server architecture.
+Distributed-Instant-Messaging-System-Development is a real-time chat application built using C++17, Boost, and gRPC, featuring a distributed TCP server architecture. The system now supports file transfer functionality.
 
-1. **Frontend Development:**
+### **Frontend Development:**
 
-   - Developed a chat dialog using **Qt**, leveraging `QListWidget` for an efficient chat record list and combining `QGridLayout` and `QPainter` for customized chat bubble styling to enhance the user experience.
-   - Encapsulated **Qt Network** modules to support HTTP and CP service communication.
-   - Implemented core features such as adding friends, friend communication, and chat record display.
+- Developed a chat dialog using **Qt**, using `QListWidget` for an efficient chat record list and combining `QGridLayout` and `QPainter` for customized chat bubble styling to enhance the user experience.
+- Encapsulated **Qt Network** modules to support HTTP and CP service communication.
+- Implemented core features such as adding friends, friend communication, and chat record display.
+- Integrated file transfer functionality to allow users to upload and download files.
+- Implemented an intuitive file management interface with drag-and-drop support.
 
-   **Backend Architecture Design:**
 
-   - Designed a distributed service architecture with the following components:
-     - **`gateway-server` (Gateway Service):** Provides HTTP APIs to handle user login, registration, and authentication.
-     - **`chatting-server` (Chat Service):** Utilized ASIO to implement efficient TCP long connection communication.
-     - **`balance-server` (Load Balancing Service):** Allocates chat services dynamically to achieve load balancing.
-     - **`captcha-server` (Captcha Service):** Generates and validates captchas for enhanced security.
-     - **`resources-server` (Resources Service):** Storing User Uploaded Files & Photos
-   - Enabled inter-service communication using the **gRPC protocol**, ensuring high availability and support for reconnections.
 
-   **High-Performance Optimization:**
+**Backend Architecture Design:**
 
-   - Implemented multithreading with `io_context` pools in the `chatting-server` to boost concurrent performance.
-   - Developed a **MySQL connection pool** to manage user data, friend relationships, and chat records.
-   - Designed a **Redis connection pool** for caching optimization.
-   - Built a gRPC connection pool to enhance distributed service access efficiency.
+- Designed a distributed service architecture with the following components:
 
-   **Technical Highlights:**
+  - `**gateway-server**` **(Gateway Service):** Provides HTTP APIs to handle user login, registration, and authentication.
+  - `**chatting-server**` **(Chat Service):** Utilized ASIO to implement efficient TCP long connection communication.
+  - `**balance-server**` **(Load Balancing Service):** Allocates chat services dynamically to achieve load balancing.
+  - `**captcha-server**` **(Captcha Service):** Generates and validates captchas for enhanced security.
+  - `**resources-server**` **(Resources Service):** Manages file storage, supporting file uploads and downloads.
 
-   - Gateway service provides **stateful HTTP interfaces** and integrates load balancing functionality.
-   - Chat service supports **asynchronous message forwarding** with reliable TCP long connections.
-   - Achieved support for **8000+ concurrent connections** on a single server, with distributed deployment supporting **10K-20K active users**.
+- Enabled inter-service communication using the **gRPC protocol**, ensuring high availability and support for reconnections.
 
-   **we are going to use boringssl instead of openssl for gRPC framework**
+  
+
+**High-Performance Optimization:**
+
+- Implemented multithreading with `io_context` pools in the `chatting-server` to boost concurrent performance.
+- Developed a **MySQL connection pool** to manage user data, friend relationships, and chat records.
+- Designed a **Redis connection pool** for caching optimization.
+- Built a gRPC connection pool to enhance distributed service access efficiency.
+
+
+
+### File Transfer Features
+
+- File transfers are managed using the `resources-server`.
+- Implemented chunked file uploads to handle large files efficiently.
+- Supported resumable uploads and downloads using unique identifiers.
+- Enhanced file security with authentication checks and encryption.
+
+
+
+**Technical Highlights:**
+
+- Gateway service provides **stateful HTTP interfaces** and integrates load balancing functionality.
+- Chat service supports **asynchronous message forwarding** with reliable TCP long connections.
+- Achieved support for **8000+ concurrent connections** on a single server, with distributed deployment supporting **10K-20K active users**.
+
+
+
+**we are going to use boringssl instead of openssl for gRPC framework**
+
+
 
 ## 0x01 All Servers in this project
 
@@ -41,9 +64,13 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 
 Captcha-server imported `ioredis`, `grpc-js`, `pproto-loader`, `nodemailer`, `uuidv4` libraries to the project.
 
-### Balance-server
+#### Balance-server
+
+- Manages load balancing and server resource allocation.
 
 ### Resources-server
+
+Responsible for storing user-uploaded files and ensuring secure file access.
 
 ### Chatting-server
 
@@ -83,7 +110,19 @@ All services are using HTTP short connections, users are going to create a POST 
 
    The identification is similiar to `/check_accountexists` authenication process. The `gateway-server` will communicate with `balance-server` for the address of `chatting-server` by using **gRPC**, and `chatting-server` will do load-balancing and return the lowest load server info back. However, The user connection status **will not** maintained and managed by `gateway-server` and `gateway-server` doesn't care about this either, client will receive the real address of `chatting-server` and connecting to it by itself. ~~however, SQL injection protection mechanism is still not available yet!~~
 
+
+
 ## 0x02 Requirements
+
+Ensure you have the following installed:
+
+- **Docker** for container management
+
+- **Redis** for caching
+
+- **MySQL** for user and file metadata storage
+
+  
 
 ### Basic Infrastructures
 
@@ -389,6 +428,8 @@ Most of those basic configurations are using *.ini file, except `Captcha-server`
    timeout=60
    ```
 
+
+
 ## 0x03 Developer Quick Start
 
 ### Platform Support
@@ -412,76 +453,96 @@ cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_INCLUDE_PATH=/usr/local/include
 cmake --build build --parallel [x] --target all
 ```
 
+
+
 #### Captcha Server
 
 [Captcha-server](https://github.com/Liupeter01/captcha-server/blob/main/README.md)
+
+
 
 ### Build  Distributed-Instant-Messaging-System-Development  Client Application
 
 [Chatting-client](https://github.com/Liupeter01/chatting-client/blob/main/README.md)
 
+
+
 ### How to Execute
 
-1. Activate Redis and MySQL service first
+#### Step1 - Activate Redis and MySQL service first
 
-   **IMPORTANT: you have to start those services first!!**
+**[IMPORTANT]: you have to start those services first!!**
 
-2. Execute Servers' program
 
-   **Gateway-server should be started after Captcha-server!**
 
-   ```bash
-   cd captcha-server
-   npm install
-   # you could use nodemon
-   node index.js
-   ```
+#### Step2 - Execute Resources-Server and Chatting-Server
 
-   Then start gateway-server
+**[IMPORTANT]: If Chatting-server not started before balance-server, then it will resulting in `NO_AVAILABLE_CHATTING_SERVER` ERROR**
 
-   ```bash
-   ./gateway-server/build/GatewayServer
-   ```
+```bash
+.\build\debug\chatting-server\ChattingServer
+.\build\debug\resources-server\ResourcesServer
+```
 
-   **Chatting-server should be started after Balance-server!**
+#### Step3 - Execute Captcha-server
 
-   ```bash
-   ./balance-server/build/BalanceServer
-   ./chatting-server/build/ChattingServer
-   ```
+```bash
+cd captcha-server
+npm install
+node index.js
+```
+
+#### Step4 - Execute Gateway-server
+
+```bash
+.\build\debug\gateway-server\GatewayServer
+```
+
+#### Step5 - Other Server
+
+```bash
+.\build\debug\balance-server\LoadBalanceServer.exe
+```
+
+
 
 ## 0x04 Error handling
 
-1. SyntaxError: Unexpected token  in JSON at position 0
+### Error 1:  SyntaxError: Unexpected token  in JSON at position 0
+
+```bash
+SyntaxError: Unexpected token  in JSON at position 0
+    at JSON.parse (<anonymous>)
+```
+
+Solving
+please change your encoding method to UTF-8, especially for VSCode user
+
+Referring Url
+<https://stackoverflow.com/questions/55960919/nodejs-syntaxerror-unexpected-token-in-json-at-position-0>
+
+
+
+### Error 2:  undefined symbol upb_alloc_global
+
+```cmake
+set(protobuf_BUILD_LIBUPB OFF)
+```
+
+Referring Url
+<https://github.com/grpc/grpc/issues/35794>
+
+
+
+### Error 3:  fatal error: 'unicode/locid.h' 'unicode/ucnv.h' file not found (usually happened on MacOS)
+
+1. Download icu 74.1
 
    ```bash
-   SyntaxError: Unexpected token  in JSON at position 0
-       at JSON.parse (<anonymous>)
+   git clone https://github.com/unicode-org/icu.git
    ```
 
-   Solving
-   please change your encoding method to UTF-8, especially for VSCode user
-
-   Referring Url
-   <https://stackoverflow.com/questions/55960919/nodejs-syntaxerror-unexpected-token-in-json-at-position-0>
-
-2. undefined symbol upb_alloc_global
-
-   ```cmake
-   set(protobuf_BUILD_LIBUPB OFF)
-   ```
-
-   Referring Url
-   <https://github.com/grpc/grpc/issues/35794>
-
-3. fatal error: 'unicode/locid.h' 'unicode/ucnv.h' file not found (usually happened on MacOS)
-   Download icu 74.1
-
-   ```bash
-   wget https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz
-   ```
-
-   Compile and Install
+2. Compile and Install
 
    ```bash
    git clone https://github.com/unicode-org/icu.git
@@ -490,59 +551,72 @@ cmake --build build --parallel [x] --target all
    sudo make install
    ```
 
-   set cmake variable
+3. setup cmake variable
 
-   ```cmake
+   ```bash
    cmake -Bbuild -DCMAKE_INCLUDE_PATH=/usr/local/include
    cmake --build build --parallel x
    ```
 
-   Referring Url
-   <https://unicode-org.github.io/icu/userguide/icu4c/build.html>
+   
 
-4. boringssl undefined win32
+Referring Url
+<https://unicode-org.github.io/icu/userguide/icu4c/build.html>
 
-   ```cmake
-   set(OPENSSL_NO_ASM ON)
-   ```
 
-   Referring Url
-   <https://github.com/grpc/grpc/issues/16376>
 
-5. Handling gRPC issue
-   Issue description
+### Error 4: Boringssl undefined win32
 
-   ```bash
-   CMake Error: install(EXPORT "protobuf-targets" ...) includes target "libprotobuf-lite" which requires target "absl_node_hash_map" that is not in any export set.
-   ```
+```cmake
+set(OPENSSL_NO_ASM ON)
+```
 
-   Problem Solving
+Referring Url
+<https://github.com/grpc/grpc/issues/16376>
 
-   ```cmake
-   set(ABSL_ENABLE_INSTALL ON)
-   ```
 
-   Referring Url
-    <https://github.com/protocolbuffers/protobuf/issues/12185>
-    <https://github.com/protocolbuffers/protobuf/issues/12185#issuecomment-1594685860>
 
-6. E No address added out of total 1 resolved
+### Error 5:  Handling gRPC issue
 
-   you have to start the main server first and then open nodejs service
+```bash
+CMake Error: install(EXPORT "protobuf-targets" ...) includes target "libprotobuf-lite" which requires target "absl_node_hash_map" that is not in any export set.
+```
 
-7. `/EHsc` causing compile error issue
 
-   **Add those codes in front of FetchContent** to prevent inclusion issue.
 
-   ```cmake
-   if(MSVC)
-     message(STATUS "MSVC detected, enabling /EHsc")
-     set(CMAKE_CXX_FLAGS
-         "${CMAKE_CXX_FLAGS} /EHsc"
-         CACHE STRING "MSVC exception flag" FORCE)
-     add_compile_options(/EHsc)
-   endif()
-   ```
+#### Mitigation
+
+```cmake
+set(ABSL_ENABLE_INSTALL ON)
+```
+
+Referring Url
+ <https://github.com/protocolbuffers/protobuf/issues/12185>
+ <https://github.com/protocolbuffers/protobuf/issues/12185#issuecomment-1594685860>
+
+
+
+### Error 6:  E No address added out of total 1 resolved
+
+you have to start the main server first and then open nodejs service
+
+
+
+### Error 7:  /EHsc` causing compile error issue
+
+**Add those codes in front of FetchContent** to prevent inclusion issue.
+
+```cmake
+if(MSVC)
+  message(STATUS "MSVC detected, enabling /EHsc")
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} /EHsc"
+      CACHE STRING "MSVC exception flag" FORCE)
+  add_compile_options(/EHsc)
+endif()
+```
+
+
 
 ## 0x05 Showcases
 

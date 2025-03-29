@@ -473,11 +473,15 @@ cmake --build build --parallel [x] --target all
 
 **[IMPORTANT]: you have to start those services first!!**
 
+#### Step 2 - Execute LoadBalance-Server
 
+```bash
+.\build\debug\balance-server\LoadBalanceServer.exe
+```
 
-#### Step2 - Execute Resources-Server and Chatting-Server
+#### Step3 - Execute Resources-Server and Chatting-Server
 
-**[IMPORTANT]: If Chatting-server not started before balance-server, then it will resulting in `NO_AVAILABLE_CHATTING_SERVER` ERROR**
+**[IMPORTANT]: If Chatting-server not started , then it will resulting in `NO_AVAILABLE_CHATTING_SERVER` ERROR**
 
 ```bash
 .\build\debug\chatting-server\ChattingServer
@@ -496,12 +500,6 @@ node index.js
 
 ```bash
 .\build\debug\gateway-server\GatewayServer
-```
-
-#### Step5 - Other Server
-
-```bash
-.\build\debug\balance-server\LoadBalanceServer.exe
 ```
 
 

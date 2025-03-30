@@ -48,7 +48,7 @@ signals:
   void switchReset();
 
   /*try to connect to chatting server*/
-  void signal_establish_long_connnection();
+  void signal_connect2_chatting_server();
 
 private slots:
   void on_login_button_clicked();

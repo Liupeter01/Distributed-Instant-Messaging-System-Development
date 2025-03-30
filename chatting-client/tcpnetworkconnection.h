@@ -18,6 +18,11 @@ struct UserFriendRequest;
 struct ChattingTextMsg;
 enum class MsgType;
 
+enum class TargetServer{
+    CHATTINGSERVER,
+    RESOURCESSERVER
+};
+
 class TCPNetworkConnection
     : public QObject,
       public Singleton<TCPNetworkConnection>,
@@ -27,12 +32,18 @@ class TCPNetworkConnection
   friend class Singleton<TCPNetworkConnection>;
   using Callbackfunction = std::function<void(QJsonObject &&)>;
 
+  struct RecvInfo {
+      uint16_t _id = 0;
+      uint16_t _length = 0;
+      QByteArray _msg;
+  };
+
 public:
   virtual ~TCPNetworkConnection();
 
   /*use signal to trigger data sending*/
   void
-  send_data(SendNode<QByteArray, std::function<uint16_t(uint16_t)>> &&data);
+  send_data(SendNode<QByteArray, std::function<uint16_t(uint16_t)>> &&data, TargetServer tar = TargetServer::CHATTINGSERVER);
 
 private:
   TCPNetworkConnection();
@@ -42,11 +53,19 @@ private:
   void registerCallback();
   void registerErrorHandling();
 
+protected:
+  void setupDataRetrieveEvent(QTcpSocket& socket, RecvInfo& received,
+                              RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> & buffer);
+
 private slots:
-  void slot_establish_long_connnection();
+  void slot_connect2_chatting_server();
+  void slot_connect2_resources_server();
+  void slot_terminate_resources_server();
 
 signals:
-  void signal_establish_long_connnection();
+  void signal_connect2_chatting_server();
+  void signal_connect2_resources_server();
+  void signal_terminate_resources_server();
 
   /*return connection status to login class*/
   void signal_connection_status(bool status);
@@ -97,16 +116,15 @@ signals:
 
 private:
   /*establish tcp socket with server*/
-  QTcpSocket m_socket;
-
-  struct RecvInfo {
-    uint16_t _id = 0;
-    uint16_t _length = 0;
-    QByteArray _msg;
-  } m_received;
+  QTcpSocket m_chatting_server_socket;
+  QTcpSocket m_resources_server_socket;
 
   /*create a connection buffer to store the data transfer from server*/
-  RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> m_buffer;
+  RecvInfo m_chatting_info;
+  RecvInfo m_resource_info;
+
+  RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> m_chatting_buffer;
+  RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> m_resources_buffer;
 
   /*according to service type to execute callback*/
   std::map<ServiceType, Callbackfunction> m_callbacks;

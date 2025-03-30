@@ -77,6 +77,9 @@
           <height>25</height>
          </size>
         </property>
+        <property name="text">
+         <string>127.0.0.1</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -144,6 +147,9 @@
           <width>16777215</width>
           <height>25</height>
          </size>
+        </property>
+        <property name="text">
+         <string>52685</string>
         </property>
        </widget>
       </item>

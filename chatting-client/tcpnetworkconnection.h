@@ -31,6 +31,7 @@ class TCPNetworkConnection
   Q_OBJECT
   friend class Singleton<TCPNetworkConnection>;
   using Callbackfunction = std::function<void(QJsonObject &&)>;
+  using SendNodeType = SendNode<QByteArray, std::function<uint16_t(uint16_t)>>;
 
   struct RecvInfo {
       uint16_t _id = 0;
@@ -42,8 +43,15 @@ public:
   virtual ~TCPNetworkConnection();
 
   /*use signal to trigger data sending*/
-  void
-  send_data(SendNode<QByteArray, std::function<uint16_t(uint16_t)>> &&data, TargetServer tar = TargetServer::CHATTINGSERVER);
+  void send_data(SendNodeType &&data,
+            TargetServer tar = TargetServer::CHATTINGSERVER);
+
+  /*
+   * Send signals to a unified slot function for processing,
+   * implementing a queue mechanism and ensuring thread safety.
+   */
+  void send_sequential_data_f(std::shared_ptr<SendNodeType> data,
+                 TargetServer tar = TargetServer::CHATTINGSERVER);
 
 private:
   TCPNetworkConnection();
@@ -62,10 +70,22 @@ private slots:
   void slot_connect2_resources_server();
   void slot_terminate_resources_server();
 
+  /*Send signals to a unified slot function for processing,
+   * implementing a queue mechanism and ensuring thread safety.
+   */
+  void slot_send_message(std::shared_ptr<SendNodeType> data,
+                         TargetServer tar = TargetServer::CHATTINGSERVER);
+
 signals:
   void signal_connect2_chatting_server();
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
+
+  /*Send signals to a unified slot function for processing,
+   * implementing a queue mechanism and ensuring thread safety.
+   */
+  void signal_send_message(std::shared_ptr<SendNodeType>data,
+                           TargetServer tar = TargetServer::CHATTINGSERVER);
 
   /*return connection status to login class*/
   void signal_connection_status(bool status);

@@ -47,6 +47,9 @@ void TCPNetworkConnection::registerNetworkEvent() {
 
   connect(this, &TCPNetworkConnection::signal_terminate_resources_server, this,
           &TCPNetworkConnection::slot_terminate_resources_server);
+
+    connect(this, &TCPNetworkConnection::signal_send_message, this,
+            &TCPNetworkConnection::slot_send_message);
 }
 
 void TCPNetworkConnection::registerSocketSignal() {
@@ -466,8 +469,18 @@ void TCPNetworkConnection::slot_terminate_resources_server(){
     m_resources_server_socket.close();
 }
 
+void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data, TargetServer tar)
+{
+    if(tar == TargetServer::CHATTINGSERVER){
+        m_chatting_server_socket.write(data->get_buffer());
+    }
+    else if(tar == TargetServer::RESOURCESSERVER){
+        m_resources_server_socket.write(data->get_buffer());
+    }
+}
+
 void TCPNetworkConnection::send_data(
-    SendNode<QByteArray, std::function<uint16_t(uint16_t)>> &&data, TargetServer tar) {
+    SendNodeType &&data, TargetServer tar) {
 
     if(tar == TargetServer::CHATTINGSERVER){
         m_chatting_server_socket.write(data.get_buffer());
@@ -475,4 +488,11 @@ void TCPNetworkConnection::send_data(
     else if(tar == TargetServer::RESOURCESSERVER){
         m_resources_server_socket.write(data.get_buffer());
     }
+}
+
+/*Send signals to a unified slot function for processing,
+   * implementing a queue mechanism and ensuring thread safety.
+   */
+void TCPNetworkConnection::send_sequential_data_f(std::shared_ptr<SendNodeType> data, TargetServer tar){
+    emit signal_send_message(data, tar);
 }

@@ -3,7 +3,6 @@
 #include <def.hpp>
 #include <QFileInfo>
 #include <QByteArray>
-#include <MsgNode.hpp>
 #include <QFileDialog>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -11,16 +10,16 @@
 #include "filetransferdialog.h"
 #include "ui_filetransferdialog.h"
 #include <tcpnetworkconnection.h>
+#include <resourcestoragemanager.h>
 
-FileTransferDialog::FileTransferDialog(const std::size_t fileChunk,
+FileTransferDialog::FileTransferDialog(std::shared_ptr<UserNameCard> id,
+                                       const std::size_t fileChunk,
                                        QWidget *parent)
-    : QWidget(parent)
+    : QDialog(parent)
     , ui(new Ui::FileTransferDialog)
     , m_filePath{}
     , m_fileCheckSum{}
     , m_fileName{}
-    , m_ip{}
-    , m_port{}
     , m_fileSize(0)
     , m_fileChunk(fileChunk)    /*init fileChunk size*/
     , m_blockNumber(0)
@@ -29,16 +28,37 @@ FileTransferDialog::FileTransferDialog(const std::size_t fileChunk,
 
     /*server not connected*/
     ui->send_button->setDisabled(true);
+
+    /*register network event*/
+    registerNetworkEvent();
+
+    /*set userinfo to current user for validation*/
+    ResourceStorageManager::get_instance()->setUserInfo(id);
 }
 
 FileTransferDialog::~FileTransferDialog()
 {
+    emit signal_terminate_resources_server();
     delete ui;
 }
 
+void FileTransferDialog::registerNetworkEvent() {
+
+    connect(this, &FileTransferDialog::signal_connect2_resources_server,
+            TCPNetworkConnection::get_instance().get(),
+            &TCPNetworkConnection::signal_connect2_resources_server);
+
+    connect(this, &FileTransferDialog::signal_terminate_resources_server,
+            TCPNetworkConnection::get_instance().get(),
+            &TCPNetworkConnection::signal_terminate_resources_server);
+
+}
+
+
 bool FileTransferDialog::validateFile(const QString &file){
     QFileInfo info(file);
-    if(!info.isFile() || info.isReadable()){
+
+    if(!info.isFile() || !info.isReadable()){
         return false;
     }
 
@@ -48,6 +68,7 @@ bool FileTransferDialog::validateFile(const QString &file){
 
     qDebug() << "File Name: " << m_fileName << " Has Been Loaded!\n"
              << "File Size = " << m_fileSize;
+
     return true;
 }
 
@@ -59,11 +80,6 @@ void FileTransferDialog::updateProgressBar(const std::size_t fileSize){
 std::size_t FileTransferDialog::calculateBlockNumber(const std::size_t totalSize,
                                                      const std::size_t chunkSize){
     return static_cast<size_t>(std::ceil(static_cast<double>(totalSize) / chunkSize));
-}
-
-void FileTransferDialog::setServerInfo(const QString &ip, const QString &port){
-    m_ip  = ip;
-    m_port = port;
 }
 
 void FileTransferDialog::on_open_file_button_clicked(){
@@ -81,7 +97,7 @@ void FileTransferDialog::on_open_file_button_clicked(){
         return;
     }
 
-    if(!validateFile(m_filePath)){
+    if(!validateFile(fileName)){
         /*maybe its not a file and can not be read*/
         return;
     }
@@ -97,6 +113,7 @@ void FileTransferDialog::on_open_file_button_clicked(){
     /*update ui display*/
     ui->file_path->setText(m_filePath);
     ui->file_size_display->setText(QString::number(m_fileSize) + " byte");
+
     ui->send_button->setDisabled(false);
 }
 
@@ -160,11 +177,14 @@ void FileTransferDialog::on_send_button_clicked(){
         QJsonDocument doc(obj);
         auto json_data = doc.toJson(QJsonDocument::Compact);
 
-        SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+        std::shared_ptr<SendNodeType> send_buffer = std::make_shared<SendNodeType>(
             static_cast<uint16_t>(ServiceType::SERVICE_FILEUPLOADREQUEST),
             json_data, [](auto x) { return qToBigEndian(x); });
 
-        TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+        TCPNetworkConnection::get_instance()->send_sequential_data_f(
+            send_buffer,
+            TargetServer::RESOURCESSERVER
+        );
 
         ++cur_seq;
     }
@@ -176,7 +196,18 @@ void FileTransferDialog::on_send_button_clicked(){
 
 
 void FileTransferDialog::on_connect_server_clicked(){
-    emit
+    auto ip = ui->server_addr->text();
+    auto port = ui->server_port->text();
+
+    if(!ip.isEmpty() || !port.isEmpty()){
+        qDebug() << "Invalid Ip and Port!";
+        return;
+    }
+
+    ResourceStorageManager::get_instance()->set_host(ip);
+    ResourceStorageManager::get_instance()->set_port(port);
+
+    emit signal_connect2_resources_server();
 
     ui->connect_server->setDisabled(true);
     ui->send_button->setDisabled(false);

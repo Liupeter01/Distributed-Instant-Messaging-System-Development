@@ -9,6 +9,7 @@
 #include "ui_chattingstackpage.h"
 #include <useraccountmanager.hpp>
 #include <tcpnetworkconnection.h>
+#include <filetransferdialog.h>
 
 std::size_t ChattingStackPage::TXT_MSG_BUFFER_SIZE = 1024;
 
@@ -51,6 +52,18 @@ void ChattingStackPage::registerSignal(){
 
     connect(ui->file_label, &MultiClickableQLabel::clicked, this, [this]() {
         handle_clicked(ui->file_label, "file_hover.png", "file_clicked.png");
+
+        qDebug() << "Open File Transfer Dialog";
+
+        FileTransferDialog *dialog = new FileTransferDialog(
+            /*my id for verify*/UserAccountManager::get_instance()->getCurUserInfo(),
+            /*chunk size = */2048,
+            this
+        );
+
+        dialog->setModal(true);
+        dialog->show();
+
     });
 
     connect(ui->file_label, &MultiClickableQLabel::update_display, this, [this]() {
@@ -132,18 +145,18 @@ void ChattingStackPage::setChattingDlgHistory(std::shared_ptr<FriendChattingHist
 }
 
 void ChattingStackPage::insertToHistoryList(std::shared_ptr<ChattingHistoryData> data, MsgType type){
-    /*determine who is the msg sender*/
-    QWidget *bubble{nullptr};
-    ChattingMsgItem *item{nullptr};
 
     /*current user's uuid matching the msg sender's uuid*/
-     ChattingRole role = ChattingRole::Sender;
-    if(UserAccountManager::get_instance()->getCurUserInfo()->m_uuid == data->m_sender_uuid){
-        role = ChattingRole::Sender;
+    ChattingRole role = (UserAccountManager::get_instance()->getCurUserInfo()->m_uuid == data->m_sender_uuid)
+                            ? ChattingRole::Sender
+                            : ChattingRole::Receiver;
 
-        item = new ChattingMsgItem(role);
-        item->setupUserName(UserAccountManager::get_instance()->getCurUserInfo()->m_nickname);
-        item->setupIconPixmap(QPixmap(UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath));
+    ChattingMsgItem *item = new ChattingMsgItem(role);
+
+    if(role == ChattingRole::Sender){
+        auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
+        item->setupUserName(curUserInfo->m_nickname);
+        item->setupIconPixmap(QPixmap(curUserInfo->m_avatorPath));
     }
     else{
         auto friend_info = UserAccountManager::get_instance()->findAuthFriendsInfo(data->m_sender_uuid);
@@ -152,21 +165,22 @@ void ChattingStackPage::insertToHistoryList(std::shared_ptr<ChattingHistoryData>
             return;
         }
 
-        role = ChattingRole::Receiver;
-
-        item = new ChattingMsgItem(role);
         item->setupUserName(friend_info.value()->m_nickname);
         item->setupIconPixmap(QPixmap(friend_info.value()->m_avatorPath));
     }
+
+    /*determine who is the msg sender*/
+    QWidget* bubble{};
 
     if (type == MsgType::TEXT) {
         bubble = new TextMsgBubble(role, data->m_msg_content);
     } else if (type == MsgType::IMAGE) {
         bubble = new PictureMsgBubble(role, data->m_msg_content);
     } else if (type == MsgType::FILE) {
+        qDebug() << "File message handling not implemented yet.";
     }
 
-    if (bubble != nullptr) {
+    if (bubble) {
         item->setupBubbleWidget(bubble);
         ui->chatting_record->pushBackItem(item);
     }

@@ -6,10 +6,10 @@
 #include <boost/mysql/tcp_ssl.hpp>
 #include <chrono>
 #include <map>
-#include <vector>
 #include <optional>
 #include <server/UserNameCard.hpp>
 #include <string_view>
+#include <vector>
 
 /*delcaration*/
 struct UserNameCard;
@@ -34,12 +34,14 @@ enum class MySQLSelection : uint8_t {
   USER_PROFILE,       // check account user profile
   GET_USER_UUID,      // get uuid by username
 
-  CREATE_FRIENDING_REQUEST, // User A send friend request to B, status = 0
-  UPDATE_FRIEND_REQUEST_STATUS,   //User A agreed with B's request, then change status = 1
-  CREATE_AUTH_FRIEND_ENTRY, //After update status, add user A & B's info to AuthFriend Table
+  CREATE_FRIENDING_REQUEST,     // User A send friend request to B, status = 0
+  UPDATE_FRIEND_REQUEST_STATUS, // User A agreed with B's request, then change
+                                // status = 1
+  CREATE_AUTH_FRIEND_ENTRY, // After update status, add user A & B's info to
+                            // AuthFriend Table
 
-  GET_FRIEND_REQUEST_LIST, //Get User's Request List
-  GET_AUTH_FRIEND_LIST,       //Get User's Auth Friend List
+  GET_FRIEND_REQUEST_LIST, // Get User's Request List
+  GET_AUTH_FRIEND_LIST,    // Get User's Auth Friend List
 };
 
 class MySQLConnection {
@@ -66,22 +68,26 @@ public:
 
   /*update user friend request to confirmed status*/
   bool updateFriendingStatus(const std::size_t src_uuid,
-            const std::size_t dst_uuid);
+                             const std::size_t dst_uuid);
 
-  bool createAuthFriendsRelation(const std::size_t self_uuid, 
-            const std::size_t friend_uuid, 
-            const std::string& alternative);
+  bool createAuthFriendsRelation(const std::size_t self_uuid,
+                                 const std::size_t friend_uuid,
+                                 const std::string &alternative);
 
   /*
-  * get specfic amount of friending request
-  * which is restricted by a startpos and an interval
-  * the valid data is from [starpos, startpos + interval - 1]
-  */
+   * get specfic amount of friending request
+   * which is restricted by a startpos and an interval
+   * the valid data is from [starpos, startpos + interval - 1]
+   */
   std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
-            getFriendingRequestList(const std::size_t dst_uuid, const std::size_t start_pos, const std::size_t interval);
+  getFriendingRequestList(const std::size_t dst_uuid,
+                          const std::size_t start_pos,
+                          const std::size_t interval);
 
   std::optional<std::vector<std::unique_ptr<UserNameCard>>>
-            getAuthenticFriendsList(const std::size_t self_uuid, const std::size_t start_pos, const std::size_t interval);
+  getAuthenticFriendsList(const std::size_t self_uuid,
+                          const std::size_t start_pos,
+                          const std::size_t interval);
 
   /*insert new user, call MySQLSelection::CREATE_NEW_USER*/
   bool registerNewUser(MySQLRequestStruct &&request);

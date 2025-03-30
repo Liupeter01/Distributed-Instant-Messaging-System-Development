@@ -1,10 +1,10 @@
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcBalanceService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
 #include <handler/SyncLogic.hpp>
-#include <json/json.h>
-#include <json/reader.h>
-#include <json/value.h>
 #include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/UserFriendRequest.hpp>
@@ -86,31 +86,27 @@ void SyncLogic::registerCallbacks() {
    * Handling the user send chatting text msg to others
    */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_TEXTCHATMSGREQUEST,
-            std::bind(&SyncLogic::handlingTextChatMsg, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+      ServiceType::SERVICE_TEXTCHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingTextChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
   /*
- * SERVICE_VOICECHATMSGREQUEST
- * Handling the user send chatting voice msg to others
- */
+   * SERVICE_VOICECHATMSGREQUEST
+   * Handling the user send chatting voice msg to others
+   */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_VOICECHATMSGREQUEST,
-            std::bind(&SyncLogic::handlingVoiceChatMsg, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+      ServiceType::SERVICE_VOICECHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingVoiceChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
   /*
- * ServiceType::SERVICE_VIDEOCHATMSGREQUEST
- * Handling the user send chatting video msg to others
- */
+   * ServiceType::SERVICE_VIDEOCHATMSGREQUEST
+   * Handling the user send chatting video msg to others
+   */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
-            std::bind(&SyncLogic::handlingVideoChatMsg, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
-
+      ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingVideoChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 }
 
 void SyncLogic::commit(pair recv_node) {
@@ -193,10 +189,10 @@ bool SyncLogic::untagCurrentUser(const std::string &uuid) {
 void SyncLogic::generateErrorMessage(const std::string &log, ServiceType type,
                                      ServiceStatus status, SessionPtr conn) {
 
-  Json::Value root;
+  boost::json::object obj;
+  obj["error"] = static_cast<uint8_t>(status);
   spdlog::error(log);
-  root["error"] = static_cast<uint8_t>(status);
-  conn->sendMessage(type, root.toStyledString());
+  conn->sendMessage(type, boost::json::serialize(obj));
 }
 
 void SyncLogic::processing() {
@@ -222,12 +218,13 @@ void SyncLogic::processing() {
 
 void SyncLogic::execute(pair &&node) {
   std::shared_ptr<Session> session = node.first;
+
   ServiceType type = static_cast<ServiceType>(node.second->_id);
   try {
     /*executing callback on specific type*/
     auto it = m_callbacks.find(type);
     if (it == m_callbacks.end()) {
-      spdlog::error("Service Type Not Found!");
+      spdlog::warn("Service Type Not Found!");
       return;
     }
     m_callbacks[type](type, session, std::move(node.second));
@@ -239,9 +236,12 @@ void SyncLogic::execute(pair &&node) {
 
 void SyncLogic::handlingLogin(ServiceType srv_type,
                               std::shared_ptr<Session> session, NodePtr recv) {
-  Json::Value src_root;   /*store json from client*/
-  Json::Value redis_root; /*write into body*/
-  Json::Reader reader;
+
+  boost::json::object src_obj;
+  boost::json::object redis_root;
+
+  boost::json::array friendreq;  // pending request
+  boost::json::array authfriend; // friends that have already been added
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -252,24 +252,27 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     return;
   }
 
-  /*parse error*/
-  if (!reader.parse(body.value(), src_root)) {
+  // prevent parse error
+  try {
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_LOGINRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
     return;
   }
 
-  /*parsing failed*/
-  if (!(src_root.isMember("uuid") && src_root.isMember("token"))) {
+  // Parsing failed
+  if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_LOGINRESPONSE,
                          ServiceStatus::LOGIN_UNSUCCESSFUL, session);
     return;
   }
 
-  std::string uuid = src_root["uuid"].asString();
-  std::string token = src_root["token"].asString();
+  std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
+  std::string token = boost::json::value_to<std::string>(src_obj["token"]);
+
   spdlog::info("[UUID = {}] Trying to login to ChattingServer with Token {}",
                uuid, token);
 
@@ -334,9 +337,10 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
      */
     std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
         requestlist_op = getFriendRequestInfo(uuid);
+
     if (requestlist_op.has_value()) {
       for (auto &req : requestlist_op.value()) {
-        Json::Value obj;
+        boost::json::object obj;
         obj["src_uuid"] = req->m_uuid;
         obj["dst_uuid"] = req->dst_uuid;
         obj["username"] = req->m_username;
@@ -345,28 +349,34 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
         obj["description"] = req->m_description;
         obj["message"] = req->message;
         obj["sex"] = static_cast<uint8_t>(req->m_sex);
-        redis_root["FriendRequestList"].append(obj);
+        // redis_root["FriendRequestList"]
+        friendreq.push_back(std::move(obj));
       }
     }
 
     /*acquire Friend List*/
-     std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op = getAuthFriendsInfo(uuid); 
-     if (friendlist_op.has_value()) {
-               for (auto& req : friendlist_op.value()) {
-                         Json::Value obj;
-                         obj["uuid"] = req->m_uuid;
-                         obj["username"] = req->m_username;
-                         obj["avator"] = req->m_avatorPath;
-                         obj["nickname"] = req->m_nickname;
-                         obj["description"] = req->m_description;
-                         obj["sex"] = static_cast<uint8_t>(req->m_sex);
-                         redis_root["AuthFriendList"].append(obj);
-               }
-     }
+    std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op =
+        getAuthFriendsInfo(uuid);
+    if (friendlist_op.has_value()) {
+      for (auto &req : friendlist_op.value()) {
+        boost::json::object obj;
+        obj["uuid"] = req->m_uuid;
+        obj["username"] = req->m_username;
+        obj["avator"] = req->m_avatorPath;
+        obj["nickname"] = req->m_nickname;
+        obj["description"] = req->m_description;
+        obj["sex"] = static_cast<uint8_t>(req->m_sex);
+        // redis_root["AuthFriendList"].append(obj);
+        authfriend.push_back(std::move(obj));
+      }
+    }
+
+    redis_root["FriendRequestList"] = std::move(friendreq);
+    redis_root["AuthFriendList"] = std::move(authfriend);
 
     /*send it back*/
     session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                         redis_root.toStyledString());
+                         boost::json::serialize(redis_root));
 
     /*
      * add user connection counter for current server
@@ -405,9 +415,9 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
 void SyncLogic::handlingUserSearch(ServiceType srv_type,
                                    std::shared_ptr<Session> session,
                                    NodePtr recv) {
-  Json::Value src_root; /*store json from client*/
-  Json::Value dst_root;
-  Json::Reader reader;
+
+  boost::json::object src_obj;  /*store json from client*/
+  boost::json::object dst_root; /*store json from client*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -418,23 +428,26 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
     return;
   }
 
-  /*parse error*/
-  if (!reader.parse(body.value(), src_root)) {
+  // prevent parse error
+  try {
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
     return;
   }
 
-  /*parsing failed*/
-  if (!src_root.isMember("username")) {
+  // Parsing failed
+  if (!src_obj.contains("username")) {
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::LOGIN_UNSUCCESSFUL, session);
     return;
   }
 
-  std::string username = src_root["username"].asString();
+  std::string username =
+      boost::json::value_to<std::string>(src_obj["username"]);
   spdlog::info("[User UUID = {}] Searching For User {} ", session->s_uuid,
                username);
 
@@ -475,16 +488,16 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
     dst_root["description"] = info->m_description;
   }
   session->sendMessage(ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                       dst_root.toStyledString());
+                       boost::json::serialize(dst_root));
 }
 
 /*the person who init friend request*/
 void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
                                              std::shared_ptr<Session> session,
                                              NodePtr recv) {
-  Json::Value src_root;    /*store json from client*/
-  Json::Value result_root; /*send processing result back to src user*/
-  Json::Reader reader;
+
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to src user*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -495,18 +508,30 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
     return;
   }
 
-  /*parse error*/
-  if (!reader.parse(body.value(), src_root)) {
+  // prevent parse error
+  try {
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FRIENDSENDERRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
     return;
   }
 
-  auto src_uuid = src_root["src_uuid"].asString(); // my uuid
-  auto dst_uuid = src_root["dst_uuid"].asString(); // target uuid
-  auto msg = src_root["message"].asString();
-  auto nickname = src_root["nickname"].asString();
+  // Parsing failed
+  if (!(src_root.contains("src_uuid") && src_root.contains("dst_uuid"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
+
+  auto src_uuid =
+      boost::json::value_to<std::string>(src_root["src_uuid"]); // my uuid
+  auto dst_uuid =
+      boost::json::value_to<std::string>(src_root["dst_uuid"]); // target uuid
+  auto msg = boost::json::value_to<std::string>(src_root["message"]);
+  auto nickname = boost::json::value_to<std::string>(src_root["nickname"]);
 
   if (src_uuid == dst_uuid) {
     generateErrorMessage("Do Not Add yourself as a friend",
@@ -591,7 +616,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
       return;
     }
     /*send it to dst user*/
-    Json::Value dst_root;
+    boost::json::object dst_root;
 
     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     dst_root["src_uuid"] = src_uuid;
@@ -606,7 +631,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
     /*propagate the message to dst user*/
     session_op.value()->sendMessage(
         ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
-        dst_root.toStyledString());
+        boost::json::serialize(dst_root));
 
     result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   } else {
@@ -648,16 +673,16 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
   result_root["src_uuid"] = src_uuid;
   result_root["dst_uuid"] = dst_uuid;
   session->sendMessage(ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                       result_root.toStyledString());
+                       boost::json::serialize(result_root));
 }
 
 /*the person who receive friend request are going to confirm it*/
 void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
                                              std::shared_ptr<Session> session,
                                              NodePtr recv) {
-  Json::Value src_root;    /*store json from client*/
-  Json::Value result_root; /*send processing result back to dst user*/
-  Json::Reader reader;
+
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to src user*/
 
   std::optional<std::string> body = recv->get_msg_body();
   /*recv message error*/
@@ -668,24 +693,33 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
     return;
   }
 
-  /*parse error*/
-  if (!reader.parse(body.value(), src_root)) {
+  // prevent parse error
+  try {
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
     generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
     return;
   }
 
-  auto alternative = src_root["alternative_name"].asString();
+  // Parsing failed
+  if (!(src_root.contains("src_uuid") && src_root.contains("dst_uuid"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
 
   /*------------------------target user's uuid-------------------------*/
-  auto src_uuid = src_root["src_uuid"].asString();
-
-  /*----------------------------my uuid-------------------------------*/
-  auto dst_uuid = src_root["dst_uuid"].asString();
-
+  auto src_uuid = boost::json::value_to<std::string>(src_root["src_uuid"]);
   auto src_uuid_op = tools::string_to_value<std::size_t>(src_uuid);
+  /*----------------------------my uuid-------------------------------*/
+  auto dst_uuid = boost::json::value_to<std::string>(src_root["dst_uuid"]);
   auto dst_uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
+
+  auto alternative =
+      boost::json::value_to<std::string>(src_root["alternative_name"]);
 
   if (!src_uuid_op.has_value() || !dst_uuid_op.has_value()) {
     spdlog::warn("Casting string typed key to std::size_t!");
@@ -724,7 +758,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
    */
   result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   session->sendMessage(ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                       result_root.toStyledString());
+                       boost::json::serialize(result_root));
 
   /*
    * update the database, and add biddirectional friend authentication messages
@@ -757,7 +791,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
     return;
   }
 
-  Json::Value root;
+  boost::json::object root;
 
   std::shared_ptr<UserNameCard> src_namecard = info_str.value();
 
@@ -770,7 +804,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
   root["friend_sex"] = static_cast<uint8_t>(src_namecard->m_sex);
 
   session->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-                       root.toStyledString());
+                       boost::json::serialize(root));
 
   /*
    * update the database, and add biddirectional friend authentication messages
@@ -821,7 +855,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
       return;
     }
 
-    Json::Value root;
+    boost::json::object root;
     std::shared_ptr<UserNameCard> dst_namecard = dst_info.value();
 
     root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
@@ -834,7 +868,8 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
 
     /*propagate the message to dst user*/
     session_op.value()->sendMessage(
-        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL, root.toStyledString());
+        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+        boost::json::serialize(root));
   } else {
     /*
      * GRPC REQUEST
@@ -878,184 +913,215 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
 
 /*Handling the user send chatting text msg to others*/
 void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
-                                                                std::shared_ptr<Session> session,
-                                                                NodePtr recv)
-{
-          Json::Value src_root;    /*store json from client*/
-          Json::Reader reader;
+                                    std::shared_ptr<Session> session,
+                                    NodePtr recv) {
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  boost::json::object src_root; /*store json from client*/
 
-          /*parse error*/
-          if (!reader.parse(body.value(), src_root)) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          auto src_uuid = src_root["text_sender"].asString();         //my uuid
-          auto dst_uuid = src_root["text_receiver"].asString();       //target user's uuid
-          const Json::Value textMsgArray = src_root["text_msg"];
+  // prevent parse error
+  try {
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          auto src_uuid_op = tools::string_to_value<std::size_t>(src_uuid);
-          auto dst_uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
+  // Parsing failed
+  if (!(src_root.contains("text_sender") &&
+        src_root.contains("text_receiver"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
 
-          if (!src_uuid_op.has_value() || !dst_uuid_op.has_value()) {
-                    spdlog::warn("Casting string typed key to std::size_t!");
-                    generateErrorMessage("Internel Server Error",
-                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                              ServiceStatus::NETWORK_ERROR, session);
-                    return;
-          }
+  auto text_sender =
+      boost::json::value_to<std::string>(src_root["text_sender"]); // my uuid
+  auto text_receiver = boost::json::value_to<std::string>(
+      src_root["text_receiver"]); // target user's uuid
+  const auto textMsgArray = src_root["text_msg"];
 
-          /*connection pool RAII*/
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext> raii;
-          connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection> mysql;
+  auto src_uuid_op = tools::string_to_value<std::size_t>(text_sender);
+  auto dst_uuid_op = tools::string_to_value<std::size_t>(text_receiver);
 
-          /*
-           * Search For User Belonged Server Cache in Redis
-           * find key = server_prefix + src_uuid in redis, GET
-           */
-          std::optional<std::string> server_op = raii->get()->checkValue(server_prefix + src_uuid);
+  if (!src_uuid_op.has_value() || !dst_uuid_op.has_value()) {
+    spdlog::warn("Casting string typed key to std::size_t!");
+    generateErrorMessage("Internel Server Error",
+                         ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                         ServiceStatus::NETWORK_ERROR, session);
+    return;
+  }
 
-          /*we cannot find it in Redis directly*/
-          if (!server_op.has_value()) {
-                    return;
-          }
+  /*connection pool RAII*/
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
+  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
+      mysql;
 
-          message::ChattingTextMsgResponse response;
-          response.set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
+  /*
+   * Search For User Belonged Server Cache in Redis
+   * find key = server_prefix + text_sender  in redis, GET
+   */
+  std::optional<std::string> server_op =
+      raii->get()->checkValue(server_prefix + text_sender);
 
-          /*Is target user and msg text sender on the same server*/
-          if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
+  /*we cannot find it in Redis directly*/
+  if (!server_op.has_value()) {
+    return;
+  }
 
-                    /*try to find this target user on current chatting-server*/
-                    auto session_op = UserManager::get_instance()->getSession(dst_uuid);
-                    if (!session_op.has_value()) {
-                              generateErrorMessage("Target User's Session Not Found",
-                                        ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                                        ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
-                                        session);
-                              return;
-                    }
+  message::ChattingTextMsgResponse response;
+  response.set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
 
-                    Json::Value dst_root;    /*try to do message forwarding to dst target user*/
-                    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-                    dst_root["text_sender"] = src_uuid;
-                    dst_root["text_receiver"] = dst_uuid;
-                    dst_root["text_msg"] = textMsgArray;
+  /*Is target user and msg text sender on the same server*/
+  if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
 
-                    /*propagate the message to dst user*/
-                    session_op.value()->sendMessage(
-                              ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST, dst_root.toStyledString());
-          }
-          else {
-                    message::ChattingTextMsgRequest req;
-                    req.set_src_uuid(src_uuid_op.value());
-                    req.set_dst_uuid(dst_uuid_op.value());
+    /*try to find this target user on current chatting-server*/
+    auto session_op = UserManager::get_instance()->getSession(text_receiver);
+    if (!session_op.has_value()) {
+      generateErrorMessage("Target User's Session Not Found",
+                           ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                           ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
+                           session);
+      return;
+    }
 
-                    /*generate a grpc repreated message array*/
-                    std::for_each(textMsgArray.begin(), textMsgArray.end(), [&req](decltype(*textMsgArray.begin())& data) {
-                              message::ChattingHistoryData* data_item = req.add_lists();
+    boost::json::object
+        dst_root; /*try to do message forwarding to dst target user*/
+    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+    dst_root["text_sender"] = text_sender;
+    dst_root["text_receiver"] = text_receiver;
+    dst_root["text_msg"] = textMsgArray;
 
-                              /*msg sender and msg receiver identity*/
-                              data_item->set_msg_sender(data["msg_sender"].asString());
-                              data_item->set_msg_receiver(data["msg_receiver"].asString());
+    /*propagate the message to dst user*/
+    session_op.value()->sendMessage(
+        ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
+        boost::json::serialize(dst_root));
+  } else {
+    message::ChattingTextMsgRequest req;
+    req.set_src_uuid(src_uuid_op.value());
+    req.set_dst_uuid(dst_uuid_op.value());
 
-                              /*generate an unique uuid for this message*/
-                              data_item->set_msg_id(data["msg_id"].asString());
+    /*generate a grpc repreated message array*/
+    auto msgArray = textMsgArray.as_array();
+    for (auto &msg : msgArray) {
+      if (!msg.is_object()) {
+        spdlog::warn("Element in 'text_msg' is not an object.");
+        continue;
+      }
 
-                              /*send message*/
-                              data_item->set_msg_content(data["msg_content"].asString());
-                     });
+      auto &obj = msg.as_object();
+      if (!(obj.contains("msg_sender") && obj.contains("msg_receiver"))) {
+        spdlog::warn("No Sender And Msg Receiver's info!");
+        continue;
+      }
 
-                    response =
-                              gRPCDistributedChattingService::get_instance()->sendChattingTextMsg(
-                                        server_op.value(), req);
+      message::ChattingHistoryData *data_item = req.add_lists();
 
-                    if (response.error() !=
-                              static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
-                              spdlog::warn("[GRPC {} Service]: UUID = {} Send Request To GRPC {} "
-                                        "Service Failed!",
-                                        ServerConfig::get_instance()->GrpcServerName, dst_uuid,
-                                        server_op.value());
-                    }
+      /*msg sender and msg receiver identity*/
+      data_item->set_msg_sender(
+          boost::json::value_to<std::string>(obj["msg_sender"]));
+      data_item->set_msg_receiver(
+          boost::json::value_to<std::string>(obj["msg_receiver"]));
 
-          }
+      /*generate an unique uuid for this message*/
+      data_item->set_msg_id(boost::json::value_to<std::string>(obj["msg_id"]));
 
-          /*
-           * Response SERVICE_SUCCESS to the text msg sender
-           * Current session should receive a successful response first
-           */
-          Json::Value result_root;    //reponse status to sender
-          result_root["error"] = response.error();
-          result_root["text_sender"] = src_root["text_sender"].asString();         //my uuid
-          result_root["text_receiver"] = src_root["text_receiver"].asString();       //target user's uuid
+      /*send message*/
+      data_item->set_msg_content(
+          boost::json::value_to<std::string>(obj["msg_content"]));
+    }
 
-          session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                    result_root.toStyledString());
+    response =
+        gRPCDistributedChattingService::get_instance()->sendChattingTextMsg(
+            server_op.value(), req);
+
+    if (response.error() !=
+        static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
+      spdlog::warn("[GRPC {} Service]: UUID = {} Send Request To GRPC {} "
+                   "Service Failed!",
+                   ServerConfig::get_instance()->GrpcServerName, text_receiver,
+                   server_op.value());
+    }
+  }
+
+  /*
+   * Response SERVICE_SUCCESS to the text msg sender
+   * Current session should receive a successful response first
+   */
+  boost::json::object result_root; // reponse status to sender
+  result_root["error"] = response.error();
+  result_root["text_sender"] = text_sender;     // my uuid
+  result_root["text_receiver"] = text_receiver; // target user's uuid
+
+  session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                       boost::json::serialize(result_root));
 }
 
 /*Handling the user send chatting text msg to others*/
 void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
-                                                                  std::shared_ptr<Session> session,
-                                                                  NodePtr recv)
-{
-          Json::Value src_root;    /*store json from client*/
-          Json::Value result_root; /*send processing result back to dst user*/
-          Json::Reader reader;
+                                     std::shared_ptr<Session> session,
+                                     NodePtr recv) {
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to dst user*/
 
-          /*parse error*/
-          if (!reader.parse(body.value(), src_root)) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
+
+  // prevent parse error
+  try {
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 }
 
 /*Handling the user send chatting text msg to others*/
 void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
-                                                                    std::shared_ptr<Session> session,
-                                                                    NodePtr recv)
-{
-          Json::Value src_root;    /*store json from client*/
-          Json::Value result_root; /*send processing result back to dst user*/
-          Json::Reader reader;
+                                     std::shared_ptr<Session> session,
+                                     NodePtr recv) {
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to dst user*/
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          /*parse error*/
-          if (!reader.parse(body.value(), src_root)) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  // prevent parse error
+  try {
+    src_root = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 }
 
 /*get user's basic info(name, age, sex, ...) from redis*/
@@ -1073,18 +1139,26 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
 
   /*we could find it in Redis directly*/
   if (info_str.has_value()) {
+
     /*parse cache data inside Redis*/
-    Json::Reader reader;
-    Json::Value root;
-    reader.parse(info_str.value(), root);
+    boost::json::object root;
+    try {
+      root = boost::json::parse(info_str.value()).as_object();
+    } catch (const boost::json::system_error &e) {
+      spdlog::error("Failed to parse json data!");
+      return std::nullopt;
+    }
 
     return std::make_unique<UserNameCard>(
-        root["uuid"].asString(), root["avator"].asString(),
-        root["username"].asString(), root["nickname"].asString(),
-        root["description"].asString(),
-        static_cast<Sex>(root["sex"].asInt64()));
+        boost::json::value_to<std::string>(root["uuid"]),
+        boost::json::value_to<std::string>(root["avator"]),
+        boost::json::value_to<std::string>(root["username"]),
+        boost::json::value_to<std::string>(root["nickname"]),
+        boost::json::value_to<std::string>(root["description"]),
+        static_cast<Sex>(root["sex"].as_int64()));
+
   } else {
-    Json::Value redis_root;
+    boost::json::object redis_root;
 
     /*search it in mysql*/
     connection::ConnectionRAII<mysql::MySQLConnectionPool,
@@ -1117,7 +1191,7 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
 
     /*write data into redis as cache*/
     if (!raii->get()->setValue(user_prefix + key,
-                               redis_root.toStyledString())) {
+                               boost::json::serialize(redis_root))) {
       spdlog::error("[UUID = {}] Write Data To Redis Failed!", uuid);
       return std::nullopt;
     }
@@ -1157,23 +1231,23 @@ SyncLogic::getFriendRequestInfo(const std::string &dst_uuid,
  * @param: interval: how many friends re going to acquire [startpos, startpos +
  * interval)
  */
- std::optional<std::vector<std::unique_ptr<UserNameCard>>>
- SyncLogic::getAuthFriendsInfo(const std::string& dst_uuid, const std::size_t
- start_pos, const std::size_t interval) {
-           auto uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
-           if (!uuid_op.has_value()) {
-                     spdlog::warn("Casting string typed key to std::size_t!");
-                     return std::nullopt;
-           }
+std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+SyncLogic::getAuthFriendsInfo(const std::string &dst_uuid,
+                              const std::size_t start_pos,
+                              const std::size_t interval) {
+  auto uuid_op = tools::string_to_value<std::size_t>(dst_uuid);
+  if (!uuid_op.has_value()) {
+    spdlog::warn("Casting string typed key to std::size_t!");
+    return std::nullopt;
+  }
 
-           /*search it in mysql*/
-           connection::ConnectionRAII<mysql::MySQLConnectionPool,
-                     mysql::MySQLConnection>
-                     mysql;
+  /*search it in mysql*/
+  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
+      mysql;
 
-           return mysql->get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
-                     interval);
- }
+  return mysql->get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
+                                               interval);
+}
 
 void SyncLogic::shutdown() {
   m_stop = true;

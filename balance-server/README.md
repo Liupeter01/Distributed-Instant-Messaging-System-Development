@@ -1,4 +1,5 @@
 # Balance-server
+
 ## 0x00 Description
 
 ## 0x01 Requirements
@@ -103,7 +104,7 @@
    Creating a `Redis` container and execute following commands.
 
    ```bash
-   docker pull redis:7.2.4		#Pull the official docker image from Docker hub
+   docker pull redis:7.2.4  #Pull the official docker image from Docker hub
    docker run \
        --restart always \
        -p 16379:6379 --name redis \
@@ -117,11 +118,11 @@
    Entering `Redis` container and access to command line `redis-cli`.
 
    ```bash
-   docker exec -it redis bash	 #entering redis
-   redis-cli									 	 #login redis db
+   docker exec -it redis bash  #entering redis
+   redis-cli            #login redis db
    ```
 
-​	
+​ 
 
 ### Servers' Configurations
 
@@ -135,11 +136,10 @@ port=16379
 password=123456
 ```
 
-
-
 ## 0x03 Developer Quick Start
 
 ### Platform Support
+
 Windows, Linux, MacOS(Intel & Apple Silicon M)
 
 ### Download Balance-server
@@ -172,15 +172,11 @@ grpc-1.50.2 will be downloaded automatically, and we will use boringssl instead 
    cmake --build build --parallel [x]
    ```
 
-
-
 ### How to Execute
 
 1. Activate Redis service
 
    **IMPORTANT: you have to start the services first!!**
-
-   
 
 2. Execute Servers' program
 

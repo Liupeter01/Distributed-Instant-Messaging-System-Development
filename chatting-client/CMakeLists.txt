@@ -38,6 +38,9 @@ file(GLOB resource_file CONFIGURE_DEPENDS style/*.qrc)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network)
 
+# Add OpenCV Package
+# find_package(OpenCV REQUIRED)
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -85,6 +88,7 @@ if(Qt6_FOUND OR Qt5_FOUND)
         target_link_libraries(ChattingClient PRIVATE
                 Qt6::Widgets
                 Qt6::Network
+				${OpenCV_LIBS}
         )
 
 else()
@@ -92,10 +96,14 @@ else()
         target_link_libraries(ChattingClient PRIVATE
                 Qt${QT_VERSION_MAJOR}::Widgets
                 Qt${QT_VERSION_MAJOR}::Network
+				${OpenCV_LIBS}
         )
 endif()
 
-target_include_directories(ChattingClient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(ChattingClient PRIVATE 
+${CMAKE_CURRENT_SOURCE_DIR}
+ ${OpenCV_INCLUDE_DIRS}
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

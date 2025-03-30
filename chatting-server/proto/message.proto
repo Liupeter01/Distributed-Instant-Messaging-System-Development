@@ -25,20 +25,21 @@ service BalancerService {
   // user send SERVICE_LOGINSERVER request
   rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
 
-        //register current chatting server to balance server
-      rpc RegisterChattingServerInstance(GrpcRegisterRequest) returns (GrpcStatusResponse) {}
+  // register current chatting server to balance server
+  rpc RegisterChattingServerInstance(GrpcRegisterRequest)
+      returns (GrpcStatusResponse) {}
 
   // register current grpc server which belongs to chattingserver to balance
   // server
-  rpc RegisterChattingGrpcServer(GrpcRegisterRequest )
+  rpc RegisterChattingGrpcServer(GrpcRegisterRequest)
       returns (GrpcStatusResponse) {}
 
-      // when chatting server shutdown delete its existance in balance server
-        rpc ChattingServerShutDown(GrpcShutdownRequest)
-      returns (GrpcStatusResponse) {}
+  // when chatting server shutdown delete its existance in balance server
+  rpc ChattingServerShutDown(GrpcShutdownRequest) returns (GrpcStatusResponse) {
+  }
 
-            // when chatting grpc server shutdown delete its existance in balance server
-        rpc ChattingGrpcServerShutDown(GrpcShutdownRequest)
+  // when chatting grpc server shutdown delete its existance in balance server
+  rpc ChattingGrpcServerShutDown(GrpcShutdownRequest)
       returns (GrpcStatusResponse) {}
 
   // chatting server acquires other servers info through this service
@@ -111,13 +112,13 @@ service DistributedChattingService {
  * we still need src/dst_uuid to verify sender's' and receiver's' identiy
  */
 message FriendRequest {
-  int32 src_uuid = 1;   // request from who
-  int32 dst_uuid = 2;   // target
-  string nick_name = 3; // src nick name
-  string req_msg = 4;   // request message that src wants to deliver
-  string avator_path = 5;     //src avator path
-  string username = 6;        //src username
-  string description = 7;     //src description
+  int32 src_uuid = 1;     // request from who
+  int32 dst_uuid = 2;     // target
+  string nick_name = 3;   // src nick name
+  string req_msg = 4;     // request message that src wants to deliver
+  string avator_path = 5; // src avator path
+  string username = 6;    // src username
+  string description = 7; // src description
   int32 sex = 8;
 }
 message FriendResponse {
@@ -146,18 +147,18 @@ message AuthoriseResponse {
   int32 dst_uuid = 3; // target
 }
 
-message ChattingHistoryData{
-    string msg_sender = 1;
-   string msg_receiver = 2;
-    string msg_id = 3;
-    string msg_content = 4;
+message ChattingHistoryData {
+  string msg_sender = 1;
+  string msg_receiver = 2;
+  string msg_id = 3;
+  string msg_content = 4;
 }
 
 /*we still need src/dst_uuid to verify sender's' and receiver's' identiy*/
 message ChattingTextMsgRequest {
-  int32 src_uuid = 1; // request from who
-  int32 dst_uuid = 2; // target
-   repeated ChattingHistoryData lists = 3;       //send message array
+  int32 src_uuid = 1;                     // request from who
+  int32 dst_uuid = 2;                     // target
+  repeated ChattingHistoryData lists = 3; // send message array
 }
 
 message ChattingTextMsgResponse {

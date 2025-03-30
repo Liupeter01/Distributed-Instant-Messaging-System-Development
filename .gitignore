@@ -1,0 +1,6 @@
+﻿.vs/
+out/
+build/
+CMakePresets.json
+CMakeUserPresets.json
+/chatting-client/CMakeLists.txt.user

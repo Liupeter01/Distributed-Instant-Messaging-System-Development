@@ -41,11 +41,11 @@ enum class ServiceType : uint8_t {
   SERVICE_FRIENDREQUESTCONFIRM,
 
   /*If the forwarding successful, then send SERVICE_FRIENDSENDERRESPONSE to User
-     B*/
+   B*/
   SERVICE_FRIENDCONFIRMRESPONSE,
 
   /*if the friending process success, then both src_uuid and dst_uuid could
-     receive this*/
+   receive this*/
   SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
 
   /*User send text chat msg request*/
@@ -65,6 +65,10 @@ enum class ServiceType : uint8_t {
   SERVICE_VIDEOCHATMSGREQUEST,
   SERVICE_VIDEOCHATMSGRESPONSE,
 
+  /*User send file upload request*/
+  SERVICE_FILEUPLOADREQUEST,
+  SERVICE_FILEUPLOADRESPONSE,
+
   SERVICE_UNKNOWN // unkown service
 };
 
@@ -77,6 +81,7 @@ enum class ServiceStatus : uint8_t {
   GRPC_SERVER_ALREADY_EXISTS,     // GRPC server already exists
   CHATTING_SERVER_NOT_EXISTS,     // chatting server not exist
   CHATTING_SERVER_ALREADY_EXISTS, // chatting server already exists
+  NO_AVAILABLE_CHATTING_SERVER,         //chatting server no available
   REDIS_UNKOWN_ERROR,             // redis server error code
   REDIS_CPATCHA_NOT_FOUND,        // redis no cpatcha
   MYSQL_INTERNAL_ERROR,           // mysql error
@@ -89,9 +94,14 @@ enum class ServiceStatus : uint8_t {
   // error
   SEARCHING_USERNAME_NOT_FOUND, // client search another user's username not
   // found
-  FRIENDING_YOURSELF,             // user should not friending itself
-  FRIENDING_ERROR,                // friending error
-  FRIENDING_TARGET_USER_NOT_FOUND // target user not found
+  FRIENDING_YOURSELF,              // user should not friending itself
+  FRIENDING_ERROR,                 // friending error
+  FRIENDING_TARGET_USER_NOT_FOUND, // target user not found
+
+  FILE_UPLOAD_ERROR, // file upload error
+  FILE_CREATE_ERROR,
+  FILE_OPEN_ERROR,
+  FILE_WRITE_ERROR
 };
 
 #define _DEF_HPP_

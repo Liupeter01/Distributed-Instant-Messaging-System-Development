@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <ChattingHistory.hpp>
+#include <multiclickableqlabel.h>
 
 namespace Ui {
 class ChattingStackPage;
@@ -34,6 +35,17 @@ protected:
   void insertToHistoryList(std::shared_ptr<ChattingHistoryData> data, MsgType type);
 
 private:
+  void registerSignal();
+
+  void handle_clicked(MultiClickableQLabel *label,
+                      const QString& hover,
+                      const QString& clicked);
+
+  void handle_hover(MultiClickableQLabel *label,
+                    const QString& click,
+                    const QString& hover,
+                    const QString& normal);
+
   void parseChattingTextMsg(const ChattingTextMsg &msg);
   void parseChattingVoice(const ChattingVoice &msg);
   void parseChattingVideo(const ChattingVideo &msg);

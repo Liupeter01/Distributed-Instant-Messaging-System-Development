@@ -1,26 +1,4 @@
 cmake_minimum_required(VERSION 3.15)
-
-include(FetchContent)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(FETCHCONTENT_QUIET OFF)
-
-# disable boringssl assembly language
-set(OPENSSL_NO_ASM ON)
-
-# disable boost assembly language
-set(BOOST_NO_ASSEMBLY
-    ON
-    CACHE BOOL "Disable Boost Assembly")
-
-# we have to disable this to prevent upb_alloc_global
-set(protobuf_BUILD_LIBUPB OFF)
-
-set(gRPC_SSL_PROVIDER package)
-set(ABSL_ENABLE_INSTALL ON) # Very important!!!!
-
 # generate include/message/*.pb.h include/message/*.pb.cc
 set(PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/proto)
 set(MESSAGE_PROTO ${PROTO_PATH}/message.proto)
@@ -34,9 +12,6 @@ set(MESSAGE_GRPC_PB_H_FILE ${GEN_PROTO_DIR}/message.grpc.pb.h)
 set(GENERATED_PROTOBUF_FILES
     ${MESSAGE_PB_H_FILE} ${MESSAGE_PB_CPP_FILE} ${MESSAGE_GRPC_PB_H_FILE}
     ${MESSAGE_GRPC_PB_CPP_FILE})
-
-set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
-set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 # create directory
 if(EXISTS ${GEN_PROTO_DIR} AND IS_DIRECTORY ${GEN_PROTO_DIR})
@@ -80,43 +55,10 @@ file(GLOB_RECURSE proto_file CONFIGURE_DEPENDS proto/*.proto)
 
 add_executable(GatewayServer ${source_file} ${header_file}
                              ${GENERATED_PROTOBUF_FILES})
-target_include_directories(GatewayServer PUBLIC include jsoncpp/include
-                                                ada/include inifile/include/)
+target_include_directories(GatewayServer PUBLIC include)
 
-# import boost 1.84.0 library
-FetchContent_Declare(
-  boost
-  GIT_REPOSITORY https://github.com/boostorg/boost.git
-  GIT_TAG boost-1.84.0)
-
-# import grpc1.50.2 library strong not recommend to use grpc 1.60.x+ versions
-FetchContent_Declare(
-  gRPC
-  GIT_REPOSITORY https://github.com/grpc/grpc
-  GIT_TAG v1.50.2)
-
-FetchContent_MakeAvailable(boost gRPC)
-
-#add_subdirectory(ada)
-add_subdirectory(jsoncpp)
-add_subdirectory(inifile)
-add_subdirectory(hiredis)
-add_subdirectory(spdlog)
-
-target_link_libraries(
-  GatewayServer
-  PUBLIC Boost::asio
-         Boost::beast
-         Boost::uuid
-         Boost::mysql
-         Boost::url
-        # ada-singleheader-lib
-         jsoncpp_object
-         grpc++
-         libprotobuf
-         inicpp::inicpp
-         hiredis::hiredis
-         spdlog::spdlog)
+target_link_libraries(GatewayServer PUBLIC boost_gateway grpc++ spdlog inicpp
+                                           hiredis)
 
 target_compile_definitions(
   GatewayServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

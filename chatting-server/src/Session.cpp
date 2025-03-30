@@ -29,7 +29,7 @@ void Session::startSession() {
     boost::asio::async_read(
         s_socket,
         boost::asio::buffer(m_recv_buffer->get_header_base(),
-                            m_recv_buffer->HEADER_LENGTH),
+                            m_recv_buffer->get_header_length()),
         std::bind(&Session::handle_header, this, shared_from_this(),
                   std::placeholders::_1, std::placeholders::_2));
   } catch (const std::exception &e) {

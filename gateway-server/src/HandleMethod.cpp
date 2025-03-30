@@ -1,10 +1,10 @@
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
 #include <grpc/GrpcBalanceService.hpp>
 #include <grpc/GrpcVerificationService.hpp>
 #include <handler/HandleMethod.hpp>
 #include <http/HttpConnection.hpp>
-#include <json/json.h>
-#include <json/reader.h>
-#include <json/value.h>
 #include <redis/RedisManager.hpp>
 #include <spdlog/spdlog.h>
 #include <sql/MySQLConnectionPool.hpp>
@@ -29,35 +29,37 @@ void HandleMethod::registerPostCallBacks() {
 
         spdlog::info("Server receive post data: {}", body.c_str());
 
-        Json::Value send_root; /*write into body*/
-        Json::Value src_root;  /*store json from client*/
-        Json::Reader reader;
+        boost::json::object send_obj; /*write into body*/
+        boost::json::object src_obj;  /*store json from client*/
 
-        /*parsing failed*/
-        if (!reader.parse(body, src_root)) {
+        // prevent parse error
+        try {
+          src_obj = boost::json::parse(body).as_object();
+        } catch (const boost::json::system_error &e) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
-        if (!src_root.isMember("email")) {
+        // Parsing failed
+        if (!src_obj.contains("email")) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
         /*Get email string and send to grpc service*/
-        auto email = src_root["email"].asString();
+        auto email = boost::json::value_to<std::string>(src_obj["email"]);
 
         spdlog::info("Server receive verification request, email addr: {}",
                      email.c_str());
 
         auto response = gRPCVerificationService::getVerificationCode(email);
 
-        send_root["error"] = response.error();
-        send_root["email"] = src_root["email"].asString();
+        send_obj["error"] = response.error();
+        send_obj["email"] = email;
         boost::beast::ostream(conn->http_response.body())
-            << send_root.toStyledString();
+            << boost::json::serialize(send_obj);
         return true;
       });
 
@@ -72,30 +74,31 @@ void HandleMethod::registerPostCallBacks() {
         spdlog::info("Server receive registration request, post data: {}",
                      body.c_str());
 
-        Json::Value send_root; /*write into body*/
-        Json::Value src_root;  /*store json from client*/
-        Json::Reader reader;
+        boost::json::object send_obj; /*write into body*/
+        boost::json::object src_obj;  /*store json from client*/
 
-        /*parsing failed*/
-        if (!reader.parse(body, src_root)) {
+        // prevent parse error
+        try {
+          src_obj = boost::json::parse(body).as_object();
+        } catch (const boost::json::system_error &e) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
-        /*parsing failed*/
-        if (!(src_root.isMember("username") && src_root.isMember("password") &&
-              src_root.isMember("email") && src_root.isMember("cpatcha"))) {
+        // Parsing failed
+        if (!(src_obj.contains("username") && src_obj.contains("password") &&
+              src_obj.contains("email") && src_obj.contains("cpatcha"))) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
         /*Get email string and send to grpc service*/
-        Json::String username = src_root["username"].asString();
-        Json::String password = src_root["password"].asString();
-        Json::String email = src_root["email"].asString();
-        Json::String cpatcha = src_root["cpatcha"].asString();
+        auto username = boost::json::value_to<std::string>(src_obj["username"]);
+        auto password = boost::json::value_to<std::string>(src_obj["password"]);
+        auto email = boost::json::value_to<std::string>(src_obj["email"]);
+        auto cpatcha = boost::json::value_to<std::string>(src_obj["cpatcha"]);
 
         /*find verification code by checking email in redis*/
         connection::ConnectionRAII<redis::RedisConnectionPool,
@@ -138,24 +141,25 @@ void HandleMethod::registerPostCallBacks() {
         }
 
         /*get uuid by username*/
-        std::optional<std::size_t> res = mysql->get()->getUUIDByUsername(username);
+        std::optional<std::size_t> res =
+            mysql->get()->getUUIDByUsername(username);
         if (!res.has_value()) {
-                  generateErrorMessage("No UUID related to Username",
-                            ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
-                  return false;
+          generateErrorMessage("No UUID related to Username",
+                               ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
+          return false;
         }
 
-        send_root["error"] =
+        send_obj["error"] =
             static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-        send_root["username"] = username;
-        send_root["password"] = password;
-        send_root["email"] = email;
+        send_obj["username"] = username;
+        send_obj["password"] = password;
+        send_obj["email"] = email;
 
         /*get required uuid, and return it back to user!*/
-        send_root["uuid"] = std::to_string(res.value());
+        send_obj["uuid"] = std::to_string(res.value());
 
         boost::beast::ostream(conn->http_response.body())
-            << send_root.toStyledString();
+            << boost::json::serialize(send_obj);
         return true;
       });
 
@@ -170,27 +174,28 @@ void HandleMethod::registerPostCallBacks() {
         spdlog::info("Server receive registration request, post data: {}",
                      body.c_str());
 
-        Json::Value send_root; /*write into body*/
-        Json::Value src_root;  /*store json from client*/
-        Json::Reader reader;
+        boost::json::object send_obj; /*write into body*/
+        boost::json::object src_obj;  /*store json from client*/
 
-        /*parsing failed*/
-        if (!reader.parse(body, src_root)) {
+        // prevent parse error
+        try {
+          src_obj = boost::json::parse(body).as_object();
+        } catch (const boost::json::system_error &e) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
-        /*parsing failed*/
-        if (!(src_root.isMember("username") && src_root.isMember("email"))) {
+        // Parsing failed
+        if (!(src_obj.contains("username") && src_obj.contains("email"))) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
         /*Get email string and send to grpc service*/
-        Json::String username = src_root["username"].asString();
-        Json::String email = src_root["email"].asString();
+        auto username = boost::json::value_to<std::string>(src_obj["username"]);
+        auto email = boost::json::value_to<std::string>(src_obj["email"]);
 
         /*MYSQL(check exist)*/
         connection::ConnectionRAII<mysql::MySQLConnectionPool,
@@ -203,13 +208,13 @@ void HandleMethod::registerPostCallBacks() {
           return false;
         }
 
-        send_root["error"] =
+        send_obj["error"] =
             static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-        send_root["username"] = username;
-        send_root["email"] = email;
+        send_obj["username"] = username;
+        send_obj["email"] = email;
 
         boost::beast::ostream(conn->http_response.body())
-            << send_root.toStyledString();
+            << boost::json::serialize(send_obj);
         return true;
       });
 
@@ -223,29 +228,30 @@ void HandleMethod::registerPostCallBacks() {
         spdlog::info("Server receive registration request, post data: {}",
                      body.c_str());
 
-        Json::Value send_root; /*write into body*/
-        Json::Value src_root;  /*store json from client*/
-        Json::Reader reader;
+        boost::json::object send_obj; /*write into body*/
+        boost::json::object src_obj;  /*store json from client*/
 
-        /*parsing failed*/
-        if (!reader.parse(body, src_root)) {
+        // prevent parse error
+        try {
+          src_obj = boost::json::parse(body).as_object();
+        } catch (const boost::json::system_error &e) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
-        /*parsing failed*/
-        if (!(src_root.isMember("username") && src_root.isMember("password") &&
-              src_root.isMember("email"))) {
+        // Parsing failed
+        if (!(src_obj.contains("username") && src_obj.contains("password") &&
+              src_obj.contains("email"))) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
         /*Get email string and send to grpc service*/
-        Json::String username = src_root["username"].asString();
-        Json::String password = src_root["password"].asString();
-        Json::String email = src_root["email"].asString();
+        auto username = boost::json::value_to<std::string>(src_obj["username"]);
+        auto password = boost::json::value_to<std::string>(src_obj["password"]);
+        auto email = boost::json::value_to<std::string>(src_obj["email"]);
 
         MySQLRequestStruct request;
         request.m_username = username;
@@ -263,11 +269,11 @@ void HandleMethod::registerPostCallBacks() {
           return false;
         }
 
-        send_root["error"] =
+        send_obj["error"] =
             static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
 
         boost::beast::ostream(conn->http_response.body())
-            << send_root.toStyledString();
+            << boost::json::serialize(send_obj);
         return true;
       });
 
@@ -281,27 +287,28 @@ void HandleMethod::registerPostCallBacks() {
         spdlog::info("Server receive server allocation request, post data: {}",
                      body.c_str());
 
-        Json::Value send_root; /*write into body*/
-        Json::Value src_root;  /*store json from client*/
-        Json::Reader reader;
+        boost::json::object send_obj; /*write into body*/
+        boost::json::object src_obj;  /*store json from client*/
 
-        /*parsing failed*/
-        if (!reader.parse(body, src_root)) {
+        // prevent parse error
+        try {
+          src_obj = boost::json::parse(body).as_object();
+        } catch (const boost::json::system_error &e) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
-        /*parsing failed*/
-        if (!(src_root.isMember("username") && src_root.isMember("password"))) {
+        // Parsing failed
+        if (!(src_obj.contains("username") && src_obj.contains("password"))) {
           generateErrorMessage("Failed to parse json data",
                                ServiceStatus::JSONPARSE_ERROR, conn);
           return false;
         }
 
         /*Get email string and send to grpc service*/
-        Json::String username = src_root["username"].asString();
-        Json::String password = src_root["password"].asString();
+        auto username = boost::json::value_to<std::string>(src_obj["username"]);
+        auto password = boost::json::value_to<std::string>(src_obj["password"]);
 
         /*MYSQL(select username & password and retrieve uuid)*/
         connection::ConnectionRAII<mysql::MySQLConnectionPool,
@@ -320,9 +327,9 @@ void HandleMethod::registerPostCallBacks() {
         /*get uuid by username*/
         res = mysql->get()->getUUIDByUsername(username);
         if (!res.has_value()) {
-                  generateErrorMessage("No UUID related to Username",
-                            ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
-                  return false;
+          generateErrorMessage("No UUID related to Username",
+                               ServiceStatus::LOGIN_UNSUCCESSFUL, conn);
+          return false;
         }
 
         std::size_t uuid = res.value();
@@ -339,14 +346,14 @@ void HandleMethod::registerPostCallBacks() {
                         std::to_string(uuid), response.error());
         }
 
-        send_root["uuid"] = std::to_string(uuid);
-        send_root["error"] = response.error();
-        send_root["host"] = response.host();
-        send_root["port"] = response.port();
-        send_root["token"] = response.token();
+        send_obj["uuid"] = std::to_string(uuid);
+        send_obj["error"] = response.error();
+        send_obj["host"] = response.host();
+        send_obj["port"] = response.port();
+        send_obj["token"] = response.token();
 
         boost::beast::ostream(conn->http_response.body())
-            << send_root.toStyledString();
+            << boost::json::serialize(send_obj);
         return true;
       });
 }
@@ -354,10 +361,12 @@ void HandleMethod::registerPostCallBacks() {
 void HandleMethod::generateErrorMessage(std::string_view message,
                                         ServiceStatus status,
                                         std::shared_ptr<HTTPConnection> conn) {
-  Json::Value root;
+
+  boost::json::object obj;
+  obj["error"] = static_cast<uint8_t>(status);
   spdlog::error(message);
-  root["error"] = static_cast<uint8_t>(status);
-  boost::beast::ostream(conn->http_response.body()) << root.toStyledString();
+  boost::beast::ostream(conn->http_response.body())
+      << boost::json::serialize(obj);
 }
 
 void HandleMethod::registerCallBacks() {

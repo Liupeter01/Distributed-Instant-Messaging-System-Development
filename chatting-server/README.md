@@ -1,4 +1,5 @@
 # Chatting-server
+
 ## 0x00 Description
 
 1. User Login`(SERVICE_LOGINSERVER)`
@@ -10,8 +11,6 @@
 4. User Who Initiated Friend Request `(SERVICE_FRIENDREQUESTSENDER)`
 
 5. User Who Received Friend Request`(SERVICE_FRIENDREQUESTCONFIRM)`
-
-   
 
 ## 0x02 Requirements
 
@@ -115,7 +114,7 @@
    Creating a `Redis` container and execute following commands.
 
    ```bash
-   docker pull redis:7.2.4		#Pull the official docker image from Docker hub
+   docker pull redis:7.2.4  #Pull the official docker image from Docker hub
    docker run \
        --restart always \
        -p 16379:6379 --name redis \
@@ -129,8 +128,8 @@
    Entering `Redis` container and access to command line `redis-cli`.
 
    ```bash
-   docker exec -it redis bash	 #entering redis
-   redis-cli									 	 #login redis db
+   docker exec -it redis bash  #entering redis
+   redis-cli            #login redis db
    ```
 
 2. MySQL Database
@@ -140,7 +139,7 @@
    ```bash
    #if you are using windows, please download WSL2
    mkdir -p /path/to/mysql/{conf,data} 
-   touch /path/to/mysql/conf/my.cnf	#create
+   touch /path/to/mysql/conf/my.cnf #create
    cat > /path/to/redis/conf/redis.conf <<EOF
    [mysqld]
    default-authentication-plugin=mysql_native_password
@@ -164,7 +163,7 @@
    Creating a `MySQL` container and execute following commands.
 
    ```bash
-   docker pull mysql:8.0		#Pull the official docker image from Docker hub
+   docker pull mysql:8.0  #Pull the official docker image from Docker hub
    docker run --restart=on-failure:3 -d \
        -v /path/to/mysql/conf:/etc/mysql/conf.d \
        -v /path/to/mysql/data:/var/lib/mysql \
@@ -176,7 +175,7 @@
    Entering `MySQL` container and access to `mysql` command line.
 
    ```bash
-   docker exec -it "your_container_name" bash		#entering mysql
+   docker exec -it "your_container_name" bash  #entering mysql
    mysql -uroot -p"your_password"                #login mysql db ( -u: root by default, -p password)
    ```
 
@@ -206,17 +205,15 @@
    -- Create Friend Request Table
    CREATE TABLE chatting.FriendRequest(
        id INT AUTO_INCREMENT PRIMARY KEY,
-   	src_uuid INT NOT NULL,
+    src_uuid INT NOT NULL,
        dst_uuid INT NOT NULL,
        nickname VARCHAR(255),
        message VARCHAR(255),
-       status BOOL,	-- request status
+       status BOOL, -- request status
        FOREIGN KEY (src_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE,
        FOREIGN KEY (dst_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
    );
    ```
-
-
 
 ### Servers' Configurations
 
@@ -245,11 +242,10 @@ port=3307
 timeout=60
 ```
 
-
-
 ## 0x03 Developer Quick Start
 
 ### Platform Support
+
 Windows, Linux, MacOS(Intel & Apple Silicon M)
 
 ### Download Chatting-server
@@ -282,15 +278,11 @@ grpc-1.50.2 will be downloaded automatically, and we will use boringssl instead 
    cmake --build build --parallel [x]
    ```
 
-
-
 ### How to Execute
 
 1. Activate Redis and MySQL service
 
    **IMPORTANT: you have to start those services first!!**
-
-   
 
 2. **Start to execute `balance-server` first**
 

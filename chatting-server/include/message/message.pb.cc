@@ -21,34 +21,6 @@ namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
 namespace message {
-PROTOBUF_CONSTEXPR GetVerificationRequest::GetVerificationRequest(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.email_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_._cached_size_)*/{}} {}
-struct GetVerificationRequestDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR GetVerificationRequestDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~GetVerificationRequestDefaultTypeInternal() {}
-  union {
-    GetVerificationRequest _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetVerificationRequestDefaultTypeInternal _GetVerificationRequest_default_instance_;
-PROTOBUF_CONSTEXPR GetVerificationResponse::GetVerificationResponse(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.email_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.message_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.error_)*/0
-  , /*decltype(_impl_._cached_size_)*/{}} {}
-struct GetVerificationResponseDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR GetVerificationResponseDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~GetVerificationResponseDefaultTypeInternal() {}
-  union {
-    GetVerificationResponse _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetVerificationResponseDefaultTypeInternal _GetVerificationResponse_default_instance_;
 PROTOBUF_CONSTEXPR RegisterToBalancer::RegisterToBalancer(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.uuid_)*/0
@@ -297,27 +269,11 @@ struct ChattingTextMsgResponseDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChattingTextMsgResponseDefaultTypeInternal _ChattingTextMsgResponse_default_instance_;
 }  // namespace message
-static ::_pb::Metadata file_level_metadata_message_2eproto[19];
+static ::_pb::Metadata file_level_metadata_message_2eproto[17];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_message_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_message_2eproto = nullptr;
 
 const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::message::GetVerificationRequest, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::message::GetVerificationRequest, _impl_.email_),
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::message::GetVerificationResponse, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::message::GetVerificationResponse, _impl_.error_),
-  PROTOBUF_FIELD_OFFSET(::message::GetVerificationResponse, _impl_.email_),
-  PROTOBUF_FIELD_OFFSET(::message::GetVerificationResponse, _impl_.message_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::message::RegisterToBalancer, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -465,30 +421,26 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::message::ChattingTextMsgResponse, _impl_.dst_uuid_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::message::GetVerificationRequest)},
-  { 7, -1, -1, sizeof(::message::GetVerificationResponse)},
-  { 16, -1, -1, sizeof(::message::RegisterToBalancer)},
-  { 23, -1, -1, sizeof(::message::GetAllocatedChattingServer)},
-  { 33, -1, -1, sizeof(::message::LoginChattingServer)},
-  { 41, -1, -1, sizeof(::message::LoginChattingResponse)},
-  { 48, -1, -1, sizeof(::message::ServerInfo)},
-  { 57, -1, -1, sizeof(::message::PeerListsRequest)},
-  { 64, -1, -1, sizeof(::message::PeerResponse)},
-  { 72, -1, -1, sizeof(::message::GrpcRegisterRequest)},
-  { 79, -1, -1, sizeof(::message::GrpcShutdownRequest)},
-  { 86, -1, -1, sizeof(::message::GrpcStatusResponse)},
-  { 93, -1, -1, sizeof(::message::FriendRequest)},
-  { 107, -1, -1, sizeof(::message::FriendResponse)},
-  { 116, -1, -1, sizeof(::message::AuthoriseRequest)},
-  { 124, -1, -1, sizeof(::message::AuthoriseResponse)},
-  { 133, -1, -1, sizeof(::message::ChattingHistoryData)},
-  { 143, -1, -1, sizeof(::message::ChattingTextMsgRequest)},
-  { 152, -1, -1, sizeof(::message::ChattingTextMsgResponse)},
+  { 0, -1, -1, sizeof(::message::RegisterToBalancer)},
+  { 7, -1, -1, sizeof(::message::GetAllocatedChattingServer)},
+  { 17, -1, -1, sizeof(::message::LoginChattingServer)},
+  { 25, -1, -1, sizeof(::message::LoginChattingResponse)},
+  { 32, -1, -1, sizeof(::message::ServerInfo)},
+  { 41, -1, -1, sizeof(::message::PeerListsRequest)},
+  { 48, -1, -1, sizeof(::message::PeerResponse)},
+  { 56, -1, -1, sizeof(::message::GrpcRegisterRequest)},
+  { 63, -1, -1, sizeof(::message::GrpcShutdownRequest)},
+  { 70, -1, -1, sizeof(::message::GrpcStatusResponse)},
+  { 77, -1, -1, sizeof(::message::FriendRequest)},
+  { 91, -1, -1, sizeof(::message::FriendResponse)},
+  { 100, -1, -1, sizeof(::message::AuthoriseRequest)},
+  { 108, -1, -1, sizeof(::message::AuthoriseResponse)},
+  { 117, -1, -1, sizeof(::message::ChattingHistoryData)},
+  { 127, -1, -1, sizeof(::message::ChattingTextMsgRequest)},
+  { 136, -1, -1, sizeof(::message::ChattingTextMsgResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
-  &::message::_GetVerificationRequest_default_instance_._instance,
-  &::message::_GetVerificationResponse_default_instance_._instance,
   &::message::_RegisterToBalancer_default_instance_._instance,
   &::message::_GetAllocatedChattingServer_default_instance_._instance,
   &::message::_LoginChattingServer_default_instance_._instance,
@@ -509,45 +461,37 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\rmessage.proto\022\007message\"\'\n\026GetVerificat"
-  "ionRequest\022\r\n\005email\030\001 \001(\t\"H\n\027GetVerifica"
-  "tionResponse\022\r\n\005error\030\001 \001(\005\022\r\n\005email\030\002 \001"
-  "(\t\022\017\n\007message\030\003 \001(\t\"\"\n\022RegisterToBalance"
-  "r\022\014\n\004uuid\030\001 \001(\005\"V\n\032GetAllocatedChattingS"
-  "erver\022\r\n\005error\030\001 \001(\005\022\014\n\004host\030\002 \001(\t\022\014\n\004po"
-  "rt\030\003 \001(\t\022\r\n\005token\030\004 \001(\t\"2\n\023LoginChatting"
-  "Server\022\014\n\004uuid\030\001 \001(\005\022\r\n\005token\030\002 \001(\t\"&\n\025L"
-  "oginChattingResponse\022\r\n\005error\030\001 \001(\005\"6\n\nS"
-  "erverInfo\022\014\n\004name\030\001 \001(\t\022\014\n\004host\030\002 \001(\t\022\014\n"
-  "\004port\030\003 \001(\t\"&\n\020PeerListsRequest\022\022\n\ncur_s"
-  "erver\030\001 \001(\t\"A\n\014PeerResponse\022\r\n\005error\030\001 \001"
-  "(\005\022\"\n\005lists\030\002 \003(\0132\023.message.ServerInfo\"8"
-  "\n\023GrpcRegisterRequest\022!\n\004info\030\001 \001(\0132\023.me"
-  "ssage.ServerInfo\")\n\023GrpcShutdownRequest\022"
-  "\022\n\ncur_server\030\001 \001(\t\"#\n\022GrpcStatusRespons"
-  "e\022\r\n\005error\030\001 \001(\005\"\240\001\n\rFriendRequest\022\020\n\010sr"
-  "c_uuid\030\001 \001(\005\022\020\n\010dst_uuid\030\002 \001(\005\022\021\n\tnick_n"
-  "ame\030\003 \001(\t\022\017\n\007req_msg\030\004 \001(\t\022\023\n\013avator_pat"
-  "h\030\005 \001(\t\022\020\n\010username\030\006 \001(\t\022\023\n\013description"
-  "\030\007 \001(\t\022\013\n\003sex\030\010 \001(\005\"C\n\016FriendResponse\022\r\n"
-  "\005error\030\001 \001(\005\022\020\n\010src_uuid\030\002 \001(\005\022\020\n\010dst_uu"
-  "id\030\003 \001(\005\"6\n\020AuthoriseRequest\022\020\n\010src_uuid"
-  "\030\001 \001(\005\022\020\n\010dst_uuid\030\002 \001(\005\"F\n\021AuthoriseRes"
-  "ponse\022\r\n\005error\030\001 \001(\005\022\020\n\010src_uuid\030\002 \001(\005\022\020"
-  "\n\010dst_uuid\030\003 \001(\005\"d\n\023ChattingHistoryData\022"
-  "\022\n\nmsg_sender\030\001 \001(\t\022\024\n\014msg_receiver\030\002 \001("
-  "\t\022\016\n\006msg_id\030\003 \001(\t\022\023\n\013msg_content\030\004 \001(\t\"i"
-  "\n\026ChattingTextMsgRequest\022\020\n\010src_uuid\030\001 \001"
-  "(\005\022\020\n\010dst_uuid\030\002 \001(\005\022+\n\005lists\030\003 \003(\0132\034.me"
-  "ssage.ChattingHistoryData\"L\n\027ChattingTex"
-  "tMsgResponse\022\r\n\005error\030\001 \001(\005\022\020\n\010src_uuid\030"
-  "\002 \001(\005\022\020\n\010dst_uuid\030\003 \001(\0052q\n\023VerificationS"
-  "ervice\022Z\n\023GetVerificationCode\022\037.message."
-  "GetVerificationRequest\032 .message.GetVeri"
-  "ficationResponse\"\0002\312\005\n\017BalancerService\022X"
-  "\n\022AddNewUserToServer\022\033.message.RegisterT"
-  "oBalancer\032#.message.GetAllocatedChatting"
-  "Server\"\000\022S\n\021UserLoginToServer\022\034.message."
+  "\n\rmessage.proto\022\007message\"\"\n\022RegisterToBa"
+  "lancer\022\014\n\004uuid\030\001 \001(\005\"V\n\032GetAllocatedChat"
+  "tingServer\022\r\n\005error\030\001 \001(\005\022\014\n\004host\030\002 \001(\t\022"
+  "\014\n\004port\030\003 \001(\t\022\r\n\005token\030\004 \001(\t\"2\n\023LoginCha"
+  "ttingServer\022\014\n\004uuid\030\001 \001(\005\022\r\n\005token\030\002 \001(\t"
+  "\"&\n\025LoginChattingResponse\022\r\n\005error\030\001 \001(\005"
+  "\"6\n\nServerInfo\022\014\n\004name\030\001 \001(\t\022\014\n\004host\030\002 \001"
+  "(\t\022\014\n\004port\030\003 \001(\t\"&\n\020PeerListsRequest\022\022\n\n"
+  "cur_server\030\001 \001(\t\"A\n\014PeerResponse\022\r\n\005erro"
+  "r\030\001 \001(\005\022\"\n\005lists\030\002 \003(\0132\023.message.ServerI"
+  "nfo\"8\n\023GrpcRegisterRequest\022!\n\004info\030\001 \001(\013"
+  "2\023.message.ServerInfo\")\n\023GrpcShutdownReq"
+  "uest\022\022\n\ncur_server\030\001 \001(\t\"#\n\022GrpcStatusRe"
+  "sponse\022\r\n\005error\030\001 \001(\005\"\240\001\n\rFriendRequest\022"
+  "\020\n\010src_uuid\030\001 \001(\005\022\020\n\010dst_uuid\030\002 \001(\005\022\021\n\tn"
+  "ick_name\030\003 \001(\t\022\017\n\007req_msg\030\004 \001(\t\022\023\n\013avato"
+  "r_path\030\005 \001(\t\022\020\n\010username\030\006 \001(\t\022\023\n\013descri"
+  "ption\030\007 \001(\t\022\013\n\003sex\030\010 \001(\005\"C\n\016FriendRespon"
+  "se\022\r\n\005error\030\001 \001(\005\022\020\n\010src_uuid\030\002 \001(\005\022\020\n\010d"
+  "st_uuid\030\003 \001(\005\"6\n\020AuthoriseRequest\022\020\n\010src"
+  "_uuid\030\001 \001(\005\022\020\n\010dst_uuid\030\002 \001(\005\"F\n\021Authori"
+  "seResponse\022\r\n\005error\030\001 \001(\005\022\020\n\010src_uuid\030\002 "
+  "\001(\005\022\020\n\010dst_uuid\030\003 \001(\005\"d\n\023ChattingHistory"
+  "Data\022\022\n\nmsg_sender\030\001 \001(\t\022\024\n\014msg_receiver"
+  "\030\002 \001(\t\022\016\n\006msg_id\030\003 \001(\t\022\023\n\013msg_content\030\004 "
+  "\001(\t\"i\n\026ChattingTextMsgRequest\022\020\n\010src_uui"
+  "d\030\001 \001(\005\022\020\n\010dst_uuid\030\002 \001(\005\022+\n\005lists\030\003 \003(\013"
+  "2\034.message.ChattingHistoryData\"L\n\027Chatti"
+  "ngTextMsgResponse\022\r\n\005error\030\001 \001(\005\022\020\n\010src_"
+  "uuid\030\002 \001(\005\022\020\n\010dst_uuid\030\003 \001(\0052\360\004\n\017Balance"
+  "rService\022S\n\021UserLoginToServer\022\034.message."
   "LoginChattingServer\032\036.message.LoginChatt"
   "ingResponse\"\000\022]\n\036RegisterChattingServerI"
   "nstance\022\034.message.GrpcRegisterRequest\032\033."
@@ -575,9 +519,9 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 2496, descriptor_table_protodef_message_2eproto,
+    false, false, 2176, descriptor_table_protodef_message_2eproto,
     "message.proto",
-    &descriptor_table_message_2eproto_once, nullptr, 0, 19,
+    &descriptor_table_message_2eproto_once, nullptr, 0, 17,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
     file_level_metadata_message_2eproto, file_level_enum_descriptors_message_2eproto,
     file_level_service_descriptors_message_2eproto,
@@ -589,489 +533,6 @@ PROTOBUF_ATTRIBUTE_WEAK const ::_pbi::DescriptorTable* descriptor_table_message_
 // Force running AddDescriptors() at dynamic initialization time.
 PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_init_dummy_message_2eproto(&descriptor_table_message_2eproto);
 namespace message {
-
-// ===================================================================
-
-class GetVerificationRequest::_Internal {
- public:
-};
-
-GetVerificationRequest::GetVerificationRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:message.GetVerificationRequest)
-}
-GetVerificationRequest::GetVerificationRequest(const GetVerificationRequest& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  GetVerificationRequest* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.email_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.email_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.email_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_email().empty()) {
-    _this->_impl_.email_.Set(from._internal_email(), 
-      _this->GetArenaForAllocation());
-  }
-  // @@protoc_insertion_point(copy_constructor:message.GetVerificationRequest)
-}
-
-inline void GetVerificationRequest::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.email_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-  _impl_.email_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.email_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-}
-
-GetVerificationRequest::~GetVerificationRequest() {
-  // @@protoc_insertion_point(destructor:message.GetVerificationRequest)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
-
-inline void GetVerificationRequest::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.email_.Destroy();
-}
-
-void GetVerificationRequest::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void GetVerificationRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:message.GetVerificationRequest)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.email_.ClearToEmpty();
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* GetVerificationRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // string email = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
-          auto str = _internal_mutable_email();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "message.GetVerificationRequest.email"));
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* GetVerificationRequest::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:message.GetVerificationRequest)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // string email = 1;
-  if (!this->_internal_email().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_email().data(), static_cast<int>(this->_internal_email().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "message.GetVerificationRequest.email");
-    target = stream->WriteStringMaybeAliased(
-        1, this->_internal_email(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:message.GetVerificationRequest)
-  return target;
-}
-
-size_t GetVerificationRequest::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:message.GetVerificationRequest)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // string email = 1;
-  if (!this->_internal_email().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_email());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetVerificationRequest::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    GetVerificationRequest::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetVerificationRequest::GetClassData() const { return &_class_data_; }
-
-
-void GetVerificationRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<GetVerificationRequest*>(&to_msg);
-  auto& from = static_cast<const GetVerificationRequest&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:message.GetVerificationRequest)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (!from._internal_email().empty()) {
-    _this->_internal_set_email(from._internal_email());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void GetVerificationRequest::CopyFrom(const GetVerificationRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:message.GetVerificationRequest)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool GetVerificationRequest::IsInitialized() const {
-  return true;
-}
-
-void GetVerificationRequest::InternalSwap(GetVerificationRequest* other) {
-  using std::swap;
-  auto* lhs_arena = GetArenaForAllocation();
-  auto* rhs_arena = other->GetArenaForAllocation();
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.email_, lhs_arena,
-      &other->_impl_.email_, rhs_arena
-  );
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata GetVerificationRequest::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[0]);
-}
-
-// ===================================================================
-
-class GetVerificationResponse::_Internal {
- public:
-};
-
-GetVerificationResponse::GetVerificationResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:message.GetVerificationResponse)
-}
-GetVerificationResponse::GetVerificationResponse(const GetVerificationResponse& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  GetVerificationResponse* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.email_){}
-    , decltype(_impl_.message_){}
-    , decltype(_impl_.error_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.email_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.email_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_email().empty()) {
-    _this->_impl_.email_.Set(from._internal_email(), 
-      _this->GetArenaForAllocation());
-  }
-  _impl_.message_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.message_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_message().empty()) {
-    _this->_impl_.message_.Set(from._internal_message(), 
-      _this->GetArenaForAllocation());
-  }
-  _this->_impl_.error_ = from._impl_.error_;
-  // @@protoc_insertion_point(copy_constructor:message.GetVerificationResponse)
-}
-
-inline void GetVerificationResponse::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.email_){}
-    , decltype(_impl_.message_){}
-    , decltype(_impl_.error_){0}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-  _impl_.email_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.email_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.message_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.message_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-}
-
-GetVerificationResponse::~GetVerificationResponse() {
-  // @@protoc_insertion_point(destructor:message.GetVerificationResponse)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
-
-inline void GetVerificationResponse::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.email_.Destroy();
-  _impl_.message_.Destroy();
-}
-
-void GetVerificationResponse::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void GetVerificationResponse::Clear() {
-// @@protoc_insertion_point(message_clear_start:message.GetVerificationResponse)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.email_.ClearToEmpty();
-  _impl_.message_.ClearToEmpty();
-  _impl_.error_ = 0;
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* GetVerificationResponse::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // int32 error = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.error_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // string email = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
-          auto str = _internal_mutable_email();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "message.GetVerificationResponse.email"));
-        } else
-          goto handle_unusual;
-        continue;
-      // string message = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          auto str = _internal_mutable_message();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "message.GetVerificationResponse.message"));
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* GetVerificationResponse::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:message.GetVerificationResponse)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // int32 error = 1;
-  if (this->_internal_error() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_error(), target);
-  }
-
-  // string email = 2;
-  if (!this->_internal_email().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_email().data(), static_cast<int>(this->_internal_email().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "message.GetVerificationResponse.email");
-    target = stream->WriteStringMaybeAliased(
-        2, this->_internal_email(), target);
-  }
-
-  // string message = 3;
-  if (!this->_internal_message().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_message().data(), static_cast<int>(this->_internal_message().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "message.GetVerificationResponse.message");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_message(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:message.GetVerificationResponse)
-  return target;
-}
-
-size_t GetVerificationResponse::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:message.GetVerificationResponse)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // string email = 2;
-  if (!this->_internal_email().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_email());
-  }
-
-  // string message = 3;
-  if (!this->_internal_message().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_message());
-  }
-
-  // int32 error = 1;
-  if (this->_internal_error() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_error());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetVerificationResponse::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    GetVerificationResponse::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetVerificationResponse::GetClassData() const { return &_class_data_; }
-
-
-void GetVerificationResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<GetVerificationResponse*>(&to_msg);
-  auto& from = static_cast<const GetVerificationResponse&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:message.GetVerificationResponse)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (!from._internal_email().empty()) {
-    _this->_internal_set_email(from._internal_email());
-  }
-  if (!from._internal_message().empty()) {
-    _this->_internal_set_message(from._internal_message());
-  }
-  if (from._internal_error() != 0) {
-    _this->_internal_set_error(from._internal_error());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void GetVerificationResponse::CopyFrom(const GetVerificationResponse& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:message.GetVerificationResponse)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool GetVerificationResponse::IsInitialized() const {
-  return true;
-}
-
-void GetVerificationResponse::InternalSwap(GetVerificationResponse* other) {
-  using std::swap;
-  auto* lhs_arena = GetArenaForAllocation();
-  auto* rhs_arena = other->GetArenaForAllocation();
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.email_, lhs_arena,
-      &other->_impl_.email_, rhs_arena
-  );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.message_, lhs_arena,
-      &other->_impl_.message_, rhs_arena
-  );
-  swap(_impl_.error_, other->_impl_.error_);
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata GetVerificationResponse::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[1]);
-}
 
 // ===================================================================
 
@@ -1248,7 +709,7 @@ void RegisterToBalancer::InternalSwap(RegisterToBalancer* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RegisterToBalancer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[2]);
+      file_level_metadata_message_2eproto[0]);
 }
 
 // ===================================================================
@@ -1578,7 +1039,7 @@ void GetAllocatedChattingServer::InternalSwap(GetAllocatedChattingServer* other)
 ::PROTOBUF_NAMESPACE_ID::Metadata GetAllocatedChattingServer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[3]);
+      file_level_metadata_message_2eproto[1]);
 }
 
 // ===================================================================
@@ -1808,7 +1269,7 @@ void LoginChattingServer::InternalSwap(LoginChattingServer* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata LoginChattingServer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[4]);
+      file_level_metadata_message_2eproto[2]);
 }
 
 // ===================================================================
@@ -1986,7 +1447,7 @@ void LoginChattingResponse::InternalSwap(LoginChattingResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata LoginChattingResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[5]);
+      file_level_metadata_message_2eproto[3]);
 }
 
 // ===================================================================
@@ -2289,7 +1750,7 @@ void ServerInfo::InternalSwap(ServerInfo* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ServerInfo::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[6]);
+      file_level_metadata_message_2eproto[4]);
 }
 
 // ===================================================================
@@ -2492,7 +1953,7 @@ void PeerListsRequest::InternalSwap(PeerListsRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PeerListsRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[7]);
+      file_level_metadata_message_2eproto[5]);
 }
 
 // ===================================================================
@@ -2704,7 +2165,7 @@ void PeerResponse::InternalSwap(PeerResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PeerResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[8]);
+      file_level_metadata_message_2eproto[6]);
 }
 
 // ===================================================================
@@ -2897,7 +2358,7 @@ void GrpcRegisterRequest::InternalSwap(GrpcRegisterRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GrpcRegisterRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[9]);
+      file_level_metadata_message_2eproto[7]);
 }
 
 // ===================================================================
@@ -3100,7 +2561,7 @@ void GrpcShutdownRequest::InternalSwap(GrpcShutdownRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GrpcShutdownRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[10]);
+      file_level_metadata_message_2eproto[8]);
 }
 
 // ===================================================================
@@ -3278,7 +2739,7 @@ void GrpcStatusResponse::InternalSwap(GrpcStatusResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GrpcStatusResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[11]);
+      file_level_metadata_message_2eproto[9]);
 }
 
 // ===================================================================
@@ -3765,7 +3226,7 @@ void FriendRequest::InternalSwap(FriendRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata FriendRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[12]);
+      file_level_metadata_message_2eproto[10]);
 }
 
 // ===================================================================
@@ -4000,7 +3461,7 @@ void FriendResponse::InternalSwap(FriendResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata FriendResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[13]);
+      file_level_metadata_message_2eproto[11]);
 }
 
 // ===================================================================
@@ -4211,7 +3672,7 @@ void AuthoriseRequest::InternalSwap(AuthoriseRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AuthoriseRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[14]);
+      file_level_metadata_message_2eproto[12]);
 }
 
 // ===================================================================
@@ -4446,7 +3907,7 @@ void AuthoriseResponse::InternalSwap(AuthoriseResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AuthoriseResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[15]);
+      file_level_metadata_message_2eproto[13]);
 }
 
 // ===================================================================
@@ -4799,7 +4260,7 @@ void ChattingHistoryData::InternalSwap(ChattingHistoryData* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ChattingHistoryData::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[16]);
+      file_level_metadata_message_2eproto[14]);
 }
 
 // ===================================================================
@@ -5044,7 +4505,7 @@ void ChattingTextMsgRequest::InternalSwap(ChattingTextMsgRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ChattingTextMsgRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[17]);
+      file_level_metadata_message_2eproto[15]);
 }
 
 // ===================================================================
@@ -5279,20 +4740,12 @@ void ChattingTextMsgResponse::InternalSwap(ChattingTextMsgResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ChattingTextMsgResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
-      file_level_metadata_message_2eproto[18]);
+      file_level_metadata_message_2eproto[16]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace message
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::message::GetVerificationRequest*
-Arena::CreateMaybeMessage< ::message::GetVerificationRequest >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::message::GetVerificationRequest >(arena);
-}
-template<> PROTOBUF_NOINLINE ::message::GetVerificationResponse*
-Arena::CreateMaybeMessage< ::message::GetVerificationResponse >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::message::GetVerificationResponse >(arena);
-}
 template<> PROTOBUF_NOINLINE ::message::RegisterToBalancer*
 Arena::CreateMaybeMessage< ::message::RegisterToBalancer >(Arena* arena) {
   return Arena::CreateMessageInternal< ::message::RegisterToBalancer >(arena);

@@ -69,12 +69,6 @@ extern FriendResponseDefaultTypeInternal _FriendResponse_default_instance_;
 class GetAllocatedChattingServer;
 struct GetAllocatedChattingServerDefaultTypeInternal;
 extern GetAllocatedChattingServerDefaultTypeInternal _GetAllocatedChattingServer_default_instance_;
-class GetVerificationRequest;
-struct GetVerificationRequestDefaultTypeInternal;
-extern GetVerificationRequestDefaultTypeInternal _GetVerificationRequest_default_instance_;
-class GetVerificationResponse;
-struct GetVerificationResponseDefaultTypeInternal;
-extern GetVerificationResponseDefaultTypeInternal _GetVerificationResponse_default_instance_;
 class GrpcRegisterRequest;
 struct GrpcRegisterRequestDefaultTypeInternal;
 extern GrpcRegisterRequestDefaultTypeInternal _GrpcRegisterRequest_default_instance_;
@@ -112,8 +106,6 @@ template<> ::message::ChattingTextMsgResponse* Arena::CreateMaybeMessage<::messa
 template<> ::message::FriendRequest* Arena::CreateMaybeMessage<::message::FriendRequest>(Arena*);
 template<> ::message::FriendResponse* Arena::CreateMaybeMessage<::message::FriendResponse>(Arena*);
 template<> ::message::GetAllocatedChattingServer* Arena::CreateMaybeMessage<::message::GetAllocatedChattingServer>(Arena*);
-template<> ::message::GetVerificationRequest* Arena::CreateMaybeMessage<::message::GetVerificationRequest>(Arena*);
-template<> ::message::GetVerificationResponse* Arena::CreateMaybeMessage<::message::GetVerificationResponse>(Arena*);
 template<> ::message::GrpcRegisterRequest* Arena::CreateMaybeMessage<::message::GrpcRegisterRequest>(Arena*);
 template<> ::message::GrpcShutdownRequest* Arena::CreateMaybeMessage<::message::GrpcShutdownRequest>(Arena*);
 template<> ::message::GrpcStatusResponse* Arena::CreateMaybeMessage<::message::GrpcStatusResponse>(Arena*);
@@ -127,339 +119,6 @@ PROTOBUF_NAMESPACE_CLOSE
 namespace message {
 
 // ===================================================================
-
-class GetVerificationRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.GetVerificationRequest) */ {
- public:
-  inline GetVerificationRequest() : GetVerificationRequest(nullptr) {}
-  ~GetVerificationRequest() override;
-  explicit PROTOBUF_CONSTEXPR GetVerificationRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  GetVerificationRequest(const GetVerificationRequest& from);
-  GetVerificationRequest(GetVerificationRequest&& from) noexcept
-    : GetVerificationRequest() {
-    *this = ::std::move(from);
-  }
-
-  inline GetVerificationRequest& operator=(const GetVerificationRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline GetVerificationRequest& operator=(GetVerificationRequest&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const GetVerificationRequest& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const GetVerificationRequest* internal_default_instance() {
-    return reinterpret_cast<const GetVerificationRequest*>(
-               &_GetVerificationRequest_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    0;
-
-  friend void swap(GetVerificationRequest& a, GetVerificationRequest& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(GetVerificationRequest* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(GetVerificationRequest* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  GetVerificationRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<GetVerificationRequest>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const GetVerificationRequest& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const GetVerificationRequest& from) {
-    GetVerificationRequest::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(GetVerificationRequest* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "message.GetVerificationRequest";
-  }
-  protected:
-  explicit GetVerificationRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kEmailFieldNumber = 1,
-  };
-  // string email = 1;
-  void clear_email();
-  const std::string& email() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_email(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_email();
-  PROTOBUF_NODISCARD std::string* release_email();
-  void set_allocated_email(std::string* email);
-  private:
-  const std::string& _internal_email() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_email(const std::string& value);
-  std::string* _internal_mutable_email();
-  public:
-
-  // @@protoc_insertion_point(class_scope:message.GetVerificationRequest)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr email_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_message_2eproto;
-};
-// -------------------------------------------------------------------
-
-class GetVerificationResponse final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.GetVerificationResponse) */ {
- public:
-  inline GetVerificationResponse() : GetVerificationResponse(nullptr) {}
-  ~GetVerificationResponse() override;
-  explicit PROTOBUF_CONSTEXPR GetVerificationResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  GetVerificationResponse(const GetVerificationResponse& from);
-  GetVerificationResponse(GetVerificationResponse&& from) noexcept
-    : GetVerificationResponse() {
-    *this = ::std::move(from);
-  }
-
-  inline GetVerificationResponse& operator=(const GetVerificationResponse& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline GetVerificationResponse& operator=(GetVerificationResponse&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const GetVerificationResponse& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const GetVerificationResponse* internal_default_instance() {
-    return reinterpret_cast<const GetVerificationResponse*>(
-               &_GetVerificationResponse_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    1;
-
-  friend void swap(GetVerificationResponse& a, GetVerificationResponse& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(GetVerificationResponse* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(GetVerificationResponse* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  GetVerificationResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<GetVerificationResponse>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const GetVerificationResponse& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const GetVerificationResponse& from) {
-    GetVerificationResponse::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(GetVerificationResponse* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "message.GetVerificationResponse";
-  }
-  protected:
-  explicit GetVerificationResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kEmailFieldNumber = 2,
-    kMessageFieldNumber = 3,
-    kErrorFieldNumber = 1,
-  };
-  // string email = 2;
-  void clear_email();
-  const std::string& email() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_email(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_email();
-  PROTOBUF_NODISCARD std::string* release_email();
-  void set_allocated_email(std::string* email);
-  private:
-  const std::string& _internal_email() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_email(const std::string& value);
-  std::string* _internal_mutable_email();
-  public:
-
-  // string message = 3;
-  void clear_message();
-  const std::string& message() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_message(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_message();
-  PROTOBUF_NODISCARD std::string* release_message();
-  void set_allocated_message(std::string* message);
-  private:
-  const std::string& _internal_message() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(const std::string& value);
-  std::string* _internal_mutable_message();
-  public:
-
-  // int32 error = 1;
-  void clear_error();
-  int32_t error() const;
-  void set_error(int32_t value);
-  private:
-  int32_t _internal_error() const;
-  void _internal_set_error(int32_t value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:message.GetVerificationResponse)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr email_;
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
-    int32_t error_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_message_2eproto;
-};
-// -------------------------------------------------------------------
 
 class RegisterToBalancer final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.RegisterToBalancer) */ {
@@ -509,7 +168,7 @@ class RegisterToBalancer final :
                &_RegisterToBalancer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    0;
 
   friend void swap(RegisterToBalancer& a, RegisterToBalancer& b) {
     a.Swap(&b);
@@ -657,7 +316,7 @@ class GetAllocatedChattingServer final :
                &_GetAllocatedChattingServer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    1;
 
   friend void swap(GetAllocatedChattingServer& a, GetAllocatedChattingServer& b) {
     a.Swap(&b);
@@ -853,7 +512,7 @@ class LoginChattingServer final :
                &_LoginChattingServer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    2;
 
   friend void swap(LoginChattingServer& a, LoginChattingServer& b) {
     a.Swap(&b);
@@ -1017,7 +676,7 @@ class LoginChattingResponse final :
                &_LoginChattingResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    3;
 
   friend void swap(LoginChattingResponse& a, LoginChattingResponse& b) {
     a.Swap(&b);
@@ -1165,7 +824,7 @@ class ServerInfo final :
                &_ServerInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    4;
 
   friend void swap(ServerInfo& a, ServerInfo& b) {
     a.Swap(&b);
@@ -1350,7 +1009,7 @@ class PeerListsRequest final :
                &_PeerListsRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    5;
 
   friend void swap(PeerListsRequest& a, PeerListsRequest& b) {
     a.Swap(&b);
@@ -1503,7 +1162,7 @@ class PeerResponse final :
                &_PeerResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    6;
 
   friend void swap(PeerResponse& a, PeerResponse& b) {
     a.Swap(&b);
@@ -1671,7 +1330,7 @@ class GrpcRegisterRequest final :
                &_GrpcRegisterRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    7;
 
   friend void swap(GrpcRegisterRequest& a, GrpcRegisterRequest& b) {
     a.Swap(&b);
@@ -1828,7 +1487,7 @@ class GrpcShutdownRequest final :
                &_GrpcShutdownRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    8;
 
   friend void swap(GrpcShutdownRequest& a, GrpcShutdownRequest& b) {
     a.Swap(&b);
@@ -1981,7 +1640,7 @@ class GrpcStatusResponse final :
                &_GrpcStatusResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    9;
 
   friend void swap(GrpcStatusResponse& a, GrpcStatusResponse& b) {
     a.Swap(&b);
@@ -2129,7 +1788,7 @@ class FriendRequest final :
                &_FriendRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    10;
 
   friend void swap(FriendRequest& a, FriendRequest& b) {
     a.Swap(&b);
@@ -2379,7 +2038,7 @@ class FriendResponse final :
                &_FriendResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    11;
 
   friend void swap(FriendResponse& a, FriendResponse& b) {
     a.Swap(&b);
@@ -2549,7 +2208,7 @@ class AuthoriseRequest final :
                &_AuthoriseRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    12;
 
   friend void swap(AuthoriseRequest& a, AuthoriseRequest& b) {
     a.Swap(&b);
@@ -2708,7 +2367,7 @@ class AuthoriseResponse final :
                &_AuthoriseResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    13;
 
   friend void swap(AuthoriseResponse& a, AuthoriseResponse& b) {
     a.Swap(&b);
@@ -2878,7 +2537,7 @@ class ChattingHistoryData final :
                &_ChattingHistoryData_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    14;
 
   friend void swap(ChattingHistoryData& a, ChattingHistoryData& b) {
     a.Swap(&b);
@@ -3079,7 +2738,7 @@ class ChattingTextMsgRequest final :
                &_ChattingTextMsgRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    15;
 
   friend void swap(ChattingTextMsgRequest& a, ChattingTextMsgRequest& b) {
     a.Swap(&b);
@@ -3258,7 +2917,7 @@ class ChattingTextMsgResponse final :
                &_ChattingTextMsgResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    16;
 
   friend void swap(ChattingTextMsgResponse& a, ChattingTextMsgResponse& b) {
     a.Swap(&b);
@@ -3387,184 +3046,6 @@ class ChattingTextMsgResponse final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
-// GetVerificationRequest
-
-// string email = 1;
-inline void GetVerificationRequest::clear_email() {
-  _impl_.email_.ClearToEmpty();
-}
-inline const std::string& GetVerificationRequest::email() const {
-  // @@protoc_insertion_point(field_get:message.GetVerificationRequest.email)
-  return _internal_email();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void GetVerificationRequest::set_email(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.email_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message.GetVerificationRequest.email)
-}
-inline std::string* GetVerificationRequest::mutable_email() {
-  std::string* _s = _internal_mutable_email();
-  // @@protoc_insertion_point(field_mutable:message.GetVerificationRequest.email)
-  return _s;
-}
-inline const std::string& GetVerificationRequest::_internal_email() const {
-  return _impl_.email_.Get();
-}
-inline void GetVerificationRequest::_internal_set_email(const std::string& value) {
-  
-  _impl_.email_.Set(value, GetArenaForAllocation());
-}
-inline std::string* GetVerificationRequest::_internal_mutable_email() {
-  
-  return _impl_.email_.Mutable(GetArenaForAllocation());
-}
-inline std::string* GetVerificationRequest::release_email() {
-  // @@protoc_insertion_point(field_release:message.GetVerificationRequest.email)
-  return _impl_.email_.Release();
-}
-inline void GetVerificationRequest::set_allocated_email(std::string* email) {
-  if (email != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.email_.SetAllocated(email, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.email_.IsDefault()) {
-    _impl_.email_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message.GetVerificationRequest.email)
-}
-
-// -------------------------------------------------------------------
-
-// GetVerificationResponse
-
-// int32 error = 1;
-inline void GetVerificationResponse::clear_error() {
-  _impl_.error_ = 0;
-}
-inline int32_t GetVerificationResponse::_internal_error() const {
-  return _impl_.error_;
-}
-inline int32_t GetVerificationResponse::error() const {
-  // @@protoc_insertion_point(field_get:message.GetVerificationResponse.error)
-  return _internal_error();
-}
-inline void GetVerificationResponse::_internal_set_error(int32_t value) {
-  
-  _impl_.error_ = value;
-}
-inline void GetVerificationResponse::set_error(int32_t value) {
-  _internal_set_error(value);
-  // @@protoc_insertion_point(field_set:message.GetVerificationResponse.error)
-}
-
-// string email = 2;
-inline void GetVerificationResponse::clear_email() {
-  _impl_.email_.ClearToEmpty();
-}
-inline const std::string& GetVerificationResponse::email() const {
-  // @@protoc_insertion_point(field_get:message.GetVerificationResponse.email)
-  return _internal_email();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void GetVerificationResponse::set_email(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.email_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message.GetVerificationResponse.email)
-}
-inline std::string* GetVerificationResponse::mutable_email() {
-  std::string* _s = _internal_mutable_email();
-  // @@protoc_insertion_point(field_mutable:message.GetVerificationResponse.email)
-  return _s;
-}
-inline const std::string& GetVerificationResponse::_internal_email() const {
-  return _impl_.email_.Get();
-}
-inline void GetVerificationResponse::_internal_set_email(const std::string& value) {
-  
-  _impl_.email_.Set(value, GetArenaForAllocation());
-}
-inline std::string* GetVerificationResponse::_internal_mutable_email() {
-  
-  return _impl_.email_.Mutable(GetArenaForAllocation());
-}
-inline std::string* GetVerificationResponse::release_email() {
-  // @@protoc_insertion_point(field_release:message.GetVerificationResponse.email)
-  return _impl_.email_.Release();
-}
-inline void GetVerificationResponse::set_allocated_email(std::string* email) {
-  if (email != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.email_.SetAllocated(email, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.email_.IsDefault()) {
-    _impl_.email_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message.GetVerificationResponse.email)
-}
-
-// string message = 3;
-inline void GetVerificationResponse::clear_message() {
-  _impl_.message_.ClearToEmpty();
-}
-inline const std::string& GetVerificationResponse::message() const {
-  // @@protoc_insertion_point(field_get:message.GetVerificationResponse.message)
-  return _internal_message();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void GetVerificationResponse::set_message(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.message_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message.GetVerificationResponse.message)
-}
-inline std::string* GetVerificationResponse::mutable_message() {
-  std::string* _s = _internal_mutable_message();
-  // @@protoc_insertion_point(field_mutable:message.GetVerificationResponse.message)
-  return _s;
-}
-inline const std::string& GetVerificationResponse::_internal_message() const {
-  return _impl_.message_.Get();
-}
-inline void GetVerificationResponse::_internal_set_message(const std::string& value) {
-  
-  _impl_.message_.Set(value, GetArenaForAllocation());
-}
-inline std::string* GetVerificationResponse::_internal_mutable_message() {
-  
-  return _impl_.message_.Mutable(GetArenaForAllocation());
-}
-inline std::string* GetVerificationResponse::release_message() {
-  // @@protoc_insertion_point(field_release:message.GetVerificationResponse.message)
-  return _impl_.message_.Release();
-}
-inline void GetVerificationResponse::set_allocated_message(std::string* message) {
-  if (message != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.message_.SetAllocated(message, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.message_.IsDefault()) {
-    _impl_.message_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message.GetVerificationResponse.message)
-}
-
-// -------------------------------------------------------------------
-
 // RegisterToBalancer
 
 // int32 uuid = 1;
@@ -5144,10 +4625,6 @@ inline void ChattingTextMsgResponse::set_dst_uuid(int32_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -21,69 +21,7 @@
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace message {
 
-static const char* VerificationService_method_names[] = {
-  "/message.VerificationService/GetVerificationCode",
-};
-
-std::unique_ptr< VerificationService::Stub> VerificationService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
-  (void)options;
-  std::unique_ptr< VerificationService::Stub> stub(new VerificationService::Stub(channel, options));
-  return stub;
-}
-
-VerificationService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_GetVerificationCode_(VerificationService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  {}
-
-::grpc::Status VerificationService::Stub::GetVerificationCode(::grpc::ClientContext* context, const ::message::GetVerificationRequest& request, ::message::GetVerificationResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GetVerificationRequest, ::message::GetVerificationResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetVerificationCode_, context, request, response);
-}
-
-void VerificationService::Stub::async::GetVerificationCode(::grpc::ClientContext* context, const ::message::GetVerificationRequest* request, ::message::GetVerificationResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GetVerificationRequest, ::message::GetVerificationResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetVerificationCode_, context, request, response, std::move(f));
-}
-
-void VerificationService::Stub::async::GetVerificationCode(::grpc::ClientContext* context, const ::message::GetVerificationRequest* request, ::message::GetVerificationResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetVerificationCode_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GetVerificationResponse>* VerificationService::Stub::PrepareAsyncGetVerificationCodeRaw(::grpc::ClientContext* context, const ::message::GetVerificationRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GetVerificationResponse, ::message::GetVerificationRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetVerificationCode_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GetVerificationResponse>* VerificationService::Stub::AsyncGetVerificationCodeRaw(::grpc::ClientContext* context, const ::message::GetVerificationRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncGetVerificationCodeRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-VerificationService::Service::Service() {
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      VerificationService_method_names[0],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< VerificationService::Service, ::message::GetVerificationRequest, ::message::GetVerificationResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](VerificationService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::GetVerificationRequest* req,
-             ::message::GetVerificationResponse* resp) {
-               return service->GetVerificationCode(ctx, req, resp);
-             }, this)));
-}
-
-VerificationService::Service::~Service() {
-}
-
-::grpc::Status VerificationService::Service::GetVerificationCode(::grpc::ServerContext* context, const ::message::GetVerificationRequest* request, ::message::GetVerificationResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-
 static const char* BalancerService_method_names[] = {
-  "/message.BalancerService/AddNewUserToServer",
   "/message.BalancerService/UserLoginToServer",
   "/message.BalancerService/RegisterChattingServerInstance",
   "/message.BalancerService/RegisterChattingGrpcServer",
@@ -100,38 +38,14 @@ std::unique_ptr< BalancerService::Stub> BalancerService::NewStub(const std::shar
 }
 
 BalancerService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_AddNewUserToServer_(BalancerService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_UserLoginToServer_(BalancerService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterChattingServerInstance_(BalancerService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterChattingGrpcServer_(BalancerService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChattingServerShutDown_(BalancerService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChattingGrpcServerShutDown_(BalancerService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerChattingServerInfo_(BalancerService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerGrpcServerInfo_(BalancerService_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  : channel_(channel), rpcmethod_UserLoginToServer_(BalancerService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RegisterChattingServerInstance_(BalancerService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RegisterChattingGrpcServer_(BalancerService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ChattingServerShutDown_(BalancerService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ChattingGrpcServerShutDown_(BalancerService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetPeerChattingServerInfo_(BalancerService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetPeerGrpcServerInfo_(BalancerService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
-
-::grpc::Status BalancerService::Stub::AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::message::GetAllocatedChattingServer* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_AddNewUserToServer_, context, request, response);
-}
-
-void BalancerService::Stub::async::AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_AddNewUserToServer_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_AddNewUserToServer_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>* BalancerService::Stub::PrepareAsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GetAllocatedChattingServer, ::message::RegisterToBalancer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_AddNewUserToServer_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>* BalancerService::Stub::AsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncAddNewUserToServerRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
 
 ::grpc::Status BalancerService::Stub::UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::message::LoginChattingResponse* response) {
   return ::grpc::internal::BlockingUnaryCall< ::message::LoginChattingServer, ::message::LoginChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_UserLoginToServer_, context, request, response);
@@ -298,16 +212,6 @@ BalancerService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BalancerService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::RegisterToBalancer* req,
-             ::message::GetAllocatedChattingServer* resp) {
-               return service->AddNewUserToServer(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[1],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::LoginChattingServer, ::message::LoginChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
              ::grpc::ServerContext* ctx,
@@ -316,7 +220,7 @@ BalancerService::Service::Service() {
                return service->UserLoginToServer(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[2],
+      BalancerService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -326,7 +230,7 @@ BalancerService::Service::Service() {
                return service->RegisterChattingServerInstance(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[3],
+      BalancerService_method_names[2],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -336,7 +240,7 @@ BalancerService::Service::Service() {
                return service->RegisterChattingGrpcServer(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[4],
+      BalancerService_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -346,7 +250,7 @@ BalancerService::Service::Service() {
                return service->ChattingServerShutDown(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[5],
+      BalancerService_method_names[4],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -356,7 +260,7 @@ BalancerService::Service::Service() {
                return service->ChattingGrpcServerShutDown(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[6],
+      BalancerService_method_names[5],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -366,7 +270,7 @@ BalancerService::Service::Service() {
                return service->GetPeerChattingServerInfo(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[7],
+      BalancerService_method_names[6],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -378,13 +282,6 @@ BalancerService::Service::Service() {
 }
 
 BalancerService::Service::~Service() {
-}
-
-::grpc::Status BalancerService::Service::AddNewUserToServer(::grpc::ServerContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
 ::grpc::Status BalancerService::Service::UserLoginToServer(::grpc::ServerContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response) {

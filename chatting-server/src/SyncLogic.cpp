@@ -314,7 +314,8 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
                          ServiceStatus::LOGIN_INFO_ERROR, session);
     return;
 
-  } else {
+  }
+  
     /*bind uuid with a session*/
     session->setUUID(uuid);
 
@@ -391,7 +392,6 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
       spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
                    ServerConfig::get_instance()->GrpcServerName);
     }
-  }
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,
@@ -470,6 +470,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
 
   std::optional<std::unique_ptr<UserNameCard>> card_op =
       getUserBasicInfo(std::to_string(uuid_op.value()));
+
   /*when user info not found!*/
   if (!card_op.has_value()) {
     spdlog::warn("[UUID = {}] No User Profile Found!", uuid_op.value());
@@ -477,16 +478,17 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::SEARCHING_USERNAME_NOT_FOUND, session);
     return;
-  } else {
-    std::unique_ptr<UserNameCard> info = std::move(card_op.value());
-    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-    dst_root["uuid"] = info->m_uuid;
-    dst_root["sex"] = static_cast<uint8_t>(info->m_sex);
-    dst_root["avator"] = info->m_avatorPath;
-    dst_root["username"] = info->m_username;
-    dst_root["nickname"] = info->m_nickname;
-    dst_root["description"] = info->m_description;
-  }
+  } 
+
+  std::unique_ptr<UserNameCard> info = std::move(card_op.value());
+  dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+  dst_root["uuid"] = info->m_uuid;
+  dst_root["sex"] = static_cast<uint8_t>(info->m_sex);
+  dst_root["avator"] = info->m_avatorPath;
+  dst_root["username"] = info->m_username;
+  dst_root["nickname"] = info->m_nickname;
+  dst_root["description"] = info->m_description;
+
   session->sendMessage(ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                        boost::json::serialize(dst_root));
 }

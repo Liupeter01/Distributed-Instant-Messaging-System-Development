@@ -1,58 +1,30 @@
 syntax = "proto3";
 package message;
 
-/*prepared for balance service*/
-service BalancerService {
-  // pass user's uuid parameter to the server, and returns available server
-  // address to user
-  rpc AddNewUserToServer(RegisterToBalancer)
-      returns (GetAllocatedChattingServer) {}
+service ResourceService {
 
-  // user send SERVICE_LOGINSERVER request
-  rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
-
-  // register current chatting server to balance server
-  rpc RegisterChattingServerInstance(GrpcRegisterRequest)
+  // register current resources server to chatting server
+  rpc RegisterResourceServerInstance(GrpcRegisterRequest)
       returns (GrpcStatusResponse) {}
 
-  // register current grpc server which belongs to chattingserver to balance
-  // server
-  rpc RegisterChattingGrpcServer(GrpcRegisterRequest)
+  // register current grpc server which belongs to chattingserver to chatting server
+  rpc RegisterResourceGrpcServer(GrpcRegisterRequest)
       returns (GrpcStatusResponse) {}
 
-  // when chatting server shutdown delete its existance in balance server
-  rpc ChattingServerShutDown(GrpcShutdownRequest) returns (GrpcStatusResponse) {
+  // when Resource server shutdown delete its existance in chatting server
+  rpc ResourceServerShutDown(GrpcShutdownRequest) returns (GrpcStatusResponse) {
   }
 
-  // when chatting grpc server shutdown delete its existance in balance server
-  rpc ChattingGrpcServerShutDown(GrpcShutdownRequest)
+  // when resources grpc server shutdown delete its existance in chatting server
+  rpc ResourceGrpcServerShutDown(GrpcShutdownRequest)
       returns (GrpcStatusResponse) {}
 
-  // chatting server acquires other servers info through this service
-  rpc GetPeerChattingServerInfo(PeerListsRequest) returns (PeerResponse) {}
+  // resources server acquires other servers info through this service
+  rpc GetPeerResourceServerInfo(PeerListsRequest) returns (PeerResponse) {}
 
-  // chatting server acquires other chatting servers' grpc connection info
-  rpc GetPeerGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
+  //resourcesserver acquires other resources servers' grpc connection info
+  rpc GetPeerResourceGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
 }
-
-// register new uuid to balance and ask for chatting server allocation
-message RegisterToBalancer { int32 uuid = 1; }
-
-// get server host & port & token of one chatting server
-message GetAllocatedChattingServer {
-  int32 error = 1;
-  string host = 2;
-  string port = 3;
-  string token = 4;
-}
-
-// transfer uuid and token to balanceserver to check validation
-message LoginChattingServer {
-  int32 uuid = 1;
-  string token = 2;
-}
-
-message LoginChattingResponse { int32 error = 1; }
 
 message ServerInfo {
   string name = 1;

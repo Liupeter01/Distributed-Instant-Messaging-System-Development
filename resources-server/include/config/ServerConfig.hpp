@@ -7,6 +7,8 @@ struct ServerConfig : public Singleton<ServerConfig> {
   friend class Singleton<ServerConfig>;
 
 public:
+          std::string outputPath;
+
   std::string GrpcServerName;
   std::string GrpcServerHost;
   unsigned short GrpcServerPort;
@@ -40,6 +42,11 @@ private:
     loadRedisInfo();
     loadBalanceService();
     loadResourcesServer();
+    loadOutputPath();
+  }
+
+  void loadOutputPath() {
+          outputPath = m_ini["Output"]["path"].as<std::string>();
   }
 
   void loadBalanceService() {

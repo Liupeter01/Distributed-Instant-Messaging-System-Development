@@ -11,6 +11,7 @@
 #include <service/ConnectionPool.hpp>
 #include <redis/RedisManager.hpp>
 #include <server/UserNameCard.hpp>
+#include <filesystem>
 
 /*redis*/
 std::string SyncLogic::redis_server_login = "redis_server";
@@ -281,6 +282,10 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto cur_size = cur_size_op.value();
   auto total_size = total_size_op.value();
 
+  /*final pathname*/
+  auto target_path = std::filesystem::canonical(
+            std::filesystem::path(ServerConfig::get_instance()->outputPath) / std::filesystem::path(filename));
+
   /*if it is first package then we should create a new file*/
   bool isFirstPackage = (boost::json::value_to<std::string>(
                              src_obj["cur_seq"]) == std::string("1"));
@@ -294,13 +299,10 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   std::string block_data;
   absl::Base64Unescape(src_obj["block"].as_string(), &block_data);
 
-  if (isFirstPackage) {
-    /*if this is the first package*/
-    out.open(filename, std::ios::binary | std::ios::trunc);
-  } else {
-    /*append mode*/
-    out.open(filename, std::ios::binary | std::ios::app);
-  }
+  out.open(target_path, isFirstPackage ? 
+            /*if this is the first package*/ std::ios::binary | std::ios::trunc :
+            /*append mode*/std::ios::binary | std::ios::app);
+
 
   if (!out.is_open()) {
     spdlog::warn("Uploading File [{}] {} Error!", filename,

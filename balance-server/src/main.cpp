@@ -1,6 +1,7 @@
 #include <boost/asio.hpp>
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcBalancerImpl.hpp>
+#include <grpc/GrpcResourcesImpl.hpp>
 #include <redis/RedisManager.hpp>
 #include <thread>
 
@@ -11,17 +12,22 @@ int main() {
       fmt::format("{}:{}", ServerConfig::get_instance()->BalanceServiceAddress,
                   ServerConfig::get_instance()->BalanceServicePort);
 
-  spdlog::info("Balance RPC Server Started Running On {}", address);
+  spdlog::info("[Balance Server]: RPC Server Started Running On {}", address);
 
   /*gRPC server*/
   grpc::ServerBuilder builder;
-  grpc::GrpcBalancerImpl impl;
+  grpc::GrpcBalancerImpl balance_impl;
+  grpc::GrpcResourcesImpl resource_impl;
 
   /*binding ports and establish service*/
   builder.AddListeningPort(address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&impl);
+  builder.RegisterService(&balance_impl);
+  builder.RegisterService(&resource_impl);
 
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+
+  /*execute grpc server in another thread*/
+  std::thread grpc_server_thread([&server]() { server->Wait(); });
 
   try {
     /*setting up signal*/

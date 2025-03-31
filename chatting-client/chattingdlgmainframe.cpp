@@ -486,29 +486,29 @@ void ChattingDlgMainFrame::slot_search_list_item_clicked(
   }
 }
 
-void ChattingDlgMainFrame::slot_chat_list_item_clicked(QListWidgetItem *clicked_item){
-      qDebug() << "chat list item clicked! ";
+void ChattingDlgMainFrame::slot_chat_list_item_clicked(
+    QListWidgetItem *clicked_item) {
+  qDebug() << "chat list item clicked! ";
 
-    /*get clicked customlized widget object*/
-    QWidget *widget = ui->chat_list->itemWidget(clicked_item);
-    if (widget == nullptr) {
-        qDebug() << "invalid click item! ";
-        return;
-    }
-    auto item = reinterpret_cast<ListItemWidgetBase *>(widget);
+  /*get clicked customlized widget object*/
+  QWidget *widget = ui->chat_list->itemWidget(clicked_item);
+  if (widget == nullptr) {
+    qDebug() << "invalid click item! ";
+    return;
+  }
+  auto item = reinterpret_cast<ListItemWidgetBase *>(widget);
 
-    if (item->getItemType() == ListItemType::Default) {
-        qDebug() << "[ListItemType::Default]:list item base class!";
-        return;
-    }
-    else if (item->getItemType() == ListItemType::ChattingHistory) {
-        qDebug() << "[ListItemType::ChattingHistory]:Switching To ChattingDlg Page "
-                    "With Friends Identity!";
+  if (item->getItemType() == ListItemType::Default) {
+    qDebug() << "[ListItemType::Default]:list item base class!";
+    return;
+  } else if (item->getItemType() == ListItemType::ChattingHistory) {
+    qDebug() << "[ListItemType::ChattingHistory]:Switching To ChattingDlg Page "
+                "With Friends Identity!";
 
-        slot_switch_chattingdlg_page(
-            reinterpret_cast<ChattingHistoryWidget *>(widget)
-                ->getChattingContext());
-    }
+    slot_switch_chattingdlg_page(
+        reinterpret_cast<ChattingHistoryWidget *>(widget)
+            ->getChattingContext());
+  }
 }
 
 void ChattingDlgMainFrame::slot_load_more_contact_list() {
@@ -624,7 +624,7 @@ void ChattingDlgMainFrame::slot_sync_chat_msg_on_local(
         return;
       }
 
-       chatItem->updateLastMsg();
+      chatItem->updateLastMsg();
       ui->chattingpage->setChattingDlgHistory(history_op.value());
     }
     return;

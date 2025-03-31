@@ -6,7 +6,7 @@
 enum class ListItemType {
   Default,            // current nothing being set
   ChattingHistory,    // display on chatting list
-  MyContact,     // display on contact list
+  MyContact,          // display on contact list
   ShowContactByGroup, // seperate contact by group
   SearchUserId,       // search user clickable widget
   AddUserWidget,      // show a add user widget on contact list

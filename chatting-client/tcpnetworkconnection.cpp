@@ -6,14 +6,14 @@
 #include <QDataStream>
 #include <QDebug>
 #include <QJsonDocument>
-#include <msgtextedit.h>
 #include <logicmethod.h>
+#include <msgtextedit.h>
 #include <qjsonarray.h>
 #include <resourcestoragemanager.h>
 
 TCPNetworkConnection::TCPNetworkConnection()
-    : m_chatting_buffer([](auto x) { return qFromBigEndian(x); })
-    , m_resources_buffer([](auto x) { return qFromBigEndian(x); }){
+    : m_chatting_buffer([](auto x) { return qFromBigEndian(x); }),
+      m_resources_buffer([](auto x) { return qFromBigEndian(x); }) {
 
   /*callbacks should be registered at first(before signal)*/
   registerCallback();
@@ -30,27 +30,26 @@ TCPNetworkConnection::TCPNetworkConnection()
 
 TCPNetworkConnection::~TCPNetworkConnection() {
 
-    if(m_chatting_server_socket.isOpen()){
-        m_chatting_server_socket.close();
-    }
-    if(m_resources_server_socket.isOpen()){
-        m_resources_server_socket.close();
-    }
-
+  if (m_chatting_server_socket.isOpen()) {
+    m_chatting_server_socket.close();
+  }
+  if (m_resources_server_socket.isOpen()) {
+    m_resources_server_socket.close();
+  }
 }
 
 void TCPNetworkConnection::registerNetworkEvent() {
   connect(this, &TCPNetworkConnection::signal_connect2_chatting_server, this,
           &TCPNetworkConnection::slot_connect2_chatting_server);
 
-    connect(this, &TCPNetworkConnection::signal_connect2_resources_server, this,
-            &TCPNetworkConnection::slot_connect2_resources_server);
+  connect(this, &TCPNetworkConnection::signal_connect2_resources_server, this,
+          &TCPNetworkConnection::slot_connect2_resources_server);
 
   connect(this, &TCPNetworkConnection::signal_terminate_resources_server, this,
           &TCPNetworkConnection::slot_terminate_resources_server);
 
-    connect(this, &TCPNetworkConnection::signal_send_message, this,
-            &TCPNetworkConnection::slot_send_message);
+  connect(this, &TCPNetworkConnection::signal_send_message, this,
+          &TCPNetworkConnection::slot_send_message);
 }
 
 void TCPNetworkConnection::registerSocketSignal() {
@@ -60,10 +59,10 @@ void TCPNetworkConnection::registerSocketSignal() {
     emit signal_connection_status(true);
   });
 
-    connect(&m_resources_server_socket, &QTcpSocket::connected, [this]() {
-        qDebug() << "connected to resources server successfully";
-        emit signal_connection_status(true);
-    });
+  connect(&m_resources_server_socket, &QTcpSocket::connected, [this]() {
+    qDebug() << "connected to resources server successfully";
+    emit signal_connection_status(true);
+  });
 
   /*server disconnected*/
   connect(&m_chatting_server_socket, &QTcpSocket::disconnected, [this]() {
@@ -71,18 +70,20 @@ void TCPNetworkConnection::registerSocketSignal() {
     emit signal_connection_status(false);
   });
 
-    connect(&m_resources_server_socket, &QTcpSocket::disconnected, [this]() {
-        qDebug() << "server resources disconnected";
-        emit signal_connection_status(false);
-    });
+  connect(&m_resources_server_socket, &QTcpSocket::disconnected, [this]() {
+    qDebug() << "server resources disconnected";
+    emit signal_connection_status(false);
+  });
 
   connect(this, &TCPNetworkConnection::signal_resources_logic_handler,
-            LogicMethod::get_instance().get(),&LogicMethod::signal_resources_logic_handler);
-
+          LogicMethod::get_instance().get(),
+          &LogicMethod::signal_resources_logic_handler);
 
   /*receive data from server*/
-    setupChattingDataRetrieveEvent(m_chatting_server_socket, m_chatting_info, m_chatting_buffer);
-    setupResourcesDataRetrieveEvent(m_resources_server_socket, m_resource_info, m_resources_buffer);
+  setupChattingDataRetrieveEvent(m_chatting_server_socket, m_chatting_info,
+                                 m_chatting_buffer);
+  setupResourcesDataRetrieveEvent(m_resources_server_socket, m_resource_info,
+                                  m_resources_buffer);
 }
 
 void TCPNetworkConnection::registerErrorHandling() {
@@ -90,188 +91,192 @@ void TCPNetworkConnection::registerErrorHandling() {
       &m_chatting_server_socket,
       QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
       [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
-        qDebug() << "Connection To chatting server Tcp error: " << m_chatting_server_socket.errorString();
+        qDebug() << "Connection To chatting server Tcp error: "
+                 << m_chatting_server_socket.errorString();
         emit signal_connection_status(false);
       });
 
-    connect(
-        &m_resources_server_socket,
-        QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
-        [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
-            qDebug() << "Connection To resources server Tcp error: " << m_resources_server_socket.errorString();
-            emit signal_connection_status(false);
-        });
+  connect(
+      &m_resources_server_socket,
+      QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
+      [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
+        qDebug() << "Connection To resources server Tcp error: "
+                 << m_resources_server_socket.errorString();
+        emit signal_connection_status(false);
+      });
 }
 
-void TCPNetworkConnection::setupChattingDataRetrieveEvent(QTcpSocket &socket,
-                                                  RecvInfo &received,
-                                                  RecvNode<QByteArray, std::function<uint16_t (uint16_t)> > &buffer)
-{
+void TCPNetworkConnection::setupChattingDataRetrieveEvent(
+    QTcpSocket &socket, RecvInfo &received,
+    RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer) {
 
-    connect(&socket, &QTcpSocket::readyRead, [&socket, &received, &buffer, this]() {
-        while (socket.bytesAvailable() > 0) {
-            QByteArray array = socket.readAll(); // Read all available data
+  connect(&socket, &QTcpSocket::readyRead,
+          [&socket, &received, &buffer, this]() {
+            while (socket.bytesAvailable() > 0) {
+              QByteArray array = socket.readAll(); // Read all available data
 
-            /*
-       * Ensure the received data is large enough to include the header
-       * if no enough data, then continue waiting
-       */
-            while (array.size() >= buffer.get_header_length()) {
+              /*
+               * Ensure the received data is large enough to include the header
+               * if no enough data, then continue waiting
+               */
+              while (array.size() >= buffer.get_header_length()) {
 
                 // Check if we are still receiving the header
                 if (buffer.check_header_remaining()) {
 
-                    /*
-           * Take the necessary portion from the array for the header
-           * Insert the header data into the buffer
-           */
-                    buffer._buffer = array.left(buffer.get_header_length());
-                    buffer.update_pointer_pos(buffer.get_header_length());
+                  /*
+                   * Take the necessary portion from the array for the header
+                   * Insert the header data into the buffer
+                   */
+                  buffer._buffer = array.left(buffer.get_header_length());
+                  buffer.update_pointer_pos(buffer.get_header_length());
 
-                    received._id = buffer.get_id().value();
-                    received._length = buffer.get_length().value();
+                  received._id = buffer.get_id().value();
+                  received._length = buffer.get_length().value();
 
-                    // Clear the header part from the array
-                    array.remove(0, buffer.get_header_length());
+                  // Clear the header part from the array
+                  array.remove(0, buffer.get_header_length());
                 }
 
                 if (array.size() < received._length) {
-                    return;
+                  return;
                 }
 
                 // If we have remaining data in array, treat it as body
                 if (buffer.check_body_remaining()) {
 
-                    std::memcpy(buffer.get_body_base(), array.data(),
-                                received._length);
+                  std::memcpy(buffer.get_body_base(), array.data(),
+                              received._length);
 
-                    buffer.update_pointer_pos(received._length);
+                  buffer.update_pointer_pos(received._length);
 
-                    /*
-           * Clear the body part from the array
-           * Maybe there are some other data inside
-           */
-                    array.remove(0, received._length);
+                  /*
+                   * Clear the body part from the array
+                   * Maybe there are some other data inside
+                   */
+                  array.remove(0, received._length);
                 }
-            }
+              }
 
-            // Now, both the header and body are fully received
-            received._msg = buffer.get_msg_body().value();
+              // Now, both the header and body are fully received
+              received._msg = buffer.get_msg_body().value();
 
-            // Debug output to show the received message
-            qDebug() << "msg_id = " << received._id << "\n"
-                     << "msg_length = " << received._length << "\n"
-                     << "msg_data = " << received._msg << "\n";
+              // Debug output to show the received message
+              qDebug() << "msg_id = " << received._id << "\n"
+                       << "msg_length = " << received._length << "\n"
+                       << "msg_data = " << received._msg << "\n";
 
-            // Clear the buffer for the next message
-            buffer.clear();
+              // Clear the buffer for the next message
+              buffer.clear();
 
-            /*parse it as json*/
-            QJsonDocument json_obj = QJsonDocument::fromJson(received._msg);
-            if (json_obj.isNull()) { // converting failed
+              /*parse it as json*/
+              QJsonDocument json_obj = QJsonDocument::fromJson(received._msg);
+              if (json_obj.isNull()) { // converting failed
                 // journal log system
                 qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
                 emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
                 return;
-            }
+              }
 
-            if (!json_obj.isObject()) {
+              if (!json_obj.isObject()) {
                 // journal log system
                 qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
                 emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
                 return;
-            }
+              }
 
-            try {
+              try {
                 m_callbacks[static_cast<ServiceType>(received._id)](
                     std::move(json_obj.object()));
-            } catch (const std::exception &e) {
+              } catch (const std::exception &e) {
                 qDebug() << e.what();
+              }
             }
-        }
-    });
+          });
 }
 
-void TCPNetworkConnection::setupResourcesDataRetrieveEvent(QTcpSocket &socket, RecvInfo &received, RecvNode<QByteArray, std::function<uint16_t (uint16_t)> > &buffer)
-{
-    connect(&socket, &QTcpSocket::readyRead, [&socket, &received, &buffer, this]() {
+void TCPNetworkConnection::setupResourcesDataRetrieveEvent(
+    QTcpSocket &socket, RecvInfo &received,
+    RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer) {
+  connect(
+      &socket, &QTcpSocket::readyRead, [&socket, &received, &buffer, this]() {
         while (socket.bytesAvailable() > 0) {
-            QByteArray array = socket.readAll(); // Read all available data
+          QByteArray array = socket.readAll(); // Read all available data
 
-            /*
-       * Ensure the received data is large enough to include the header
-       * if no enough data, then continue waiting
-       */
-            while (array.size() >= buffer.get_header_length()) {
-
-                // Check if we are still receiving the header
-                if (buffer.check_header_remaining()) {
-
-                    /*
-           * Take the necessary portion from the array for the header
-           * Insert the header data into the buffer
+          /*
+           * Ensure the received data is large enough to include the header
+           * if no enough data, then continue waiting
            */
-                    buffer._buffer = array.left(buffer.get_header_length());
-                    buffer.update_pointer_pos(buffer.get_header_length());
+          while (array.size() >= buffer.get_header_length()) {
 
-                    received._id = buffer.get_id().value();
-                    received._length = buffer.get_length().value();
+            // Check if we are still receiving the header
+            if (buffer.check_header_remaining()) {
 
-                    // Clear the header part from the array
-                    array.remove(0, buffer.get_header_length());
-                }
+              /*
+               * Take the necessary portion from the array for the header
+               * Insert the header data into the buffer
+               */
+              buffer._buffer = array.left(buffer.get_header_length());
+              buffer.update_pointer_pos(buffer.get_header_length());
 
-                if (array.size() < received._length) {
-                    return;
-                }
+              received._id = buffer.get_id().value();
+              received._length = buffer.get_length().value();
 
-                // If we have remaining data in array, treat it as body
-                if (buffer.check_body_remaining()) {
-
-                    std::memcpy(buffer.get_body_base(), array.data(),
-                                received._length);
-
-                    buffer.update_pointer_pos(received._length);
-
-                    /*
-           * Clear the body part from the array
-           * Maybe there are some other data inside
-           */
-                    array.remove(0, received._length);
-                }
+              // Clear the header part from the array
+              array.remove(0, buffer.get_header_length());
             }
 
-            // Now, both the header and body are fully received
-            received._msg = buffer.get_msg_body().value();
-
-            // Debug output to show the received message
-            qDebug() << "msg_id = " << received._id << "\n"
-                     << "msg_length = " << received._length << "\n"
-                     << "msg_data = " << received._msg << "\n";
-
-            // Clear the buffer for the next message
-            buffer.clear();
-
-            /*parse it as json*/
-            QJsonDocument json_obj = QJsonDocument::fromJson(received._msg);
-            if (json_obj.isNull()) { // converting failed
-                // journal log system
-                qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
-                emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
-                return;
+            if (array.size() < received._length) {
+              return;
             }
 
-            if (!json_obj.isObject()) {
-                // journal log system
-                qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
-                emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
-                return;
-            }
+            // If we have remaining data in array, treat it as body
+            if (buffer.check_body_remaining()) {
 
-            /*forward resources server's message to a standlone logic thread*/
-            emit signal_resources_logic_handler(received._id, json_obj.object());
+              std::memcpy(buffer.get_body_base(), array.data(),
+                          received._length);
+
+              buffer.update_pointer_pos(received._length);
+
+              /*
+               * Clear the body part from the array
+               * Maybe there are some other data inside
+               */
+              array.remove(0, received._length);
+            }
+          }
+
+          // Now, both the header and body are fully received
+          received._msg = buffer.get_msg_body().value();
+
+          // Debug output to show the received message
+          qDebug() << "msg_id = " << received._id << "\n"
+                   << "msg_length = " << received._length << "\n"
+                   << "msg_data = " << received._msg << "\n";
+
+          // Clear the buffer for the next message
+          buffer.clear();
+
+          /*parse it as json*/
+          QJsonDocument json_obj = QJsonDocument::fromJson(received._msg);
+          if (json_obj.isNull()) { // converting failed
+            // journal log system
+            qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
+            emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
+            return;
+          }
+
+          if (!json_obj.isObject()) {
+            // journal log system
+            qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
+            emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
+            return;
+          }
+
+          /*forward resources server's message to a standlone logic thread*/
+          emit signal_resources_logic_handler(received._id, json_obj.object());
         }
-    });
+      });
 }
 
 void TCPNetworkConnection::registerCallback() {
@@ -536,48 +541,46 @@ void TCPNetworkConnection::slot_connect2_chatting_server() {
       UserAccountManager::get_instance()->get_port().toUShort());
 }
 
-void TCPNetworkConnection::slot_connect2_resources_server(){
-    qDebug() << "Connecting to Resources Server"
-             << "\nuuid = " << ResourceStorageManager::get_instance()->get_uuid()
-             << "\nhost = " << ResourceStorageManager::get_instance()->get_host()
-             << "\nport = " << ResourceStorageManager::get_instance()->get_port()
-             << '\n';
+void TCPNetworkConnection::slot_connect2_resources_server() {
+  qDebug() << "Connecting to Resources Server"
+           << "\nuuid = " << ResourceStorageManager::get_instance()->get_uuid()
+           << "\nhost = " << ResourceStorageManager::get_instance()->get_host()
+           << "\nport = " << ResourceStorageManager::get_instance()->get_port()
+           << '\n';
 
-    m_resources_server_socket.connectToHost(
-        ResourceStorageManager::get_instance()->get_host(),
-        ResourceStorageManager::get_instance()->get_port().toUShort());
+  m_resources_server_socket.connectToHost(
+      ResourceStorageManager::get_instance()->get_host(),
+      ResourceStorageManager::get_instance()->get_port().toUShort());
 }
 
-void TCPNetworkConnection::slot_terminate_resources_server(){
-    qDebug() << "Terminate From Resources Server\n";
+void TCPNetworkConnection::slot_terminate_resources_server() {
+  qDebug() << "Terminate From Resources Server\n";
 
-    m_resources_server_socket.close();
+  m_resources_server_socket.close();
 }
 
-void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data, TargetServer tar)
-{
-    if(tar == TargetServer::CHATTINGSERVER){
-        m_chatting_server_socket.write(data->get_buffer());
-    }
-    else if(tar == TargetServer::RESOURCESSERVER){
-        m_resources_server_socket.write(data->get_buffer());
-    }
+void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
+                                             TargetServer tar) {
+  if (tar == TargetServer::CHATTINGSERVER) {
+    m_chatting_server_socket.write(data->get_buffer());
+  } else if (tar == TargetServer::RESOURCESSERVER) {
+    m_resources_server_socket.write(data->get_buffer());
+  }
 }
 
-void TCPNetworkConnection::send_data(
-    SendNodeType &&data, TargetServer tar) {
+void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
 
-    if(tar == TargetServer::CHATTINGSERVER){
-        m_chatting_server_socket.write(data.get_buffer());
-    }
-    else if(tar == TargetServer::RESOURCESSERVER){
-        m_resources_server_socket.write(data.get_buffer());
-    }
+  if (tar == TargetServer::CHATTINGSERVER) {
+    m_chatting_server_socket.write(data.get_buffer());
+  } else if (tar == TargetServer::RESOURCESSERVER) {
+    m_resources_server_socket.write(data.get_buffer());
+  }
 }
 
 /*Send signals to a unified slot function for processing,
-   * implementing a queue mechanism and ensuring thread safety.
-   */
-void TCPNetworkConnection::send_sequential_data_f(std::shared_ptr<SendNodeType> data, TargetServer tar){
-    emit signal_send_message(data, tar);
+ * implementing a queue mechanism and ensuring thread safety.
+ */
+void TCPNetworkConnection::send_sequential_data_f(
+    std::shared_ptr<SendNodeType> data, TargetServer tar) {
+  emit signal_send_message(data, tar);
 }

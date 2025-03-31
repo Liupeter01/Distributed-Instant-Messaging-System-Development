@@ -75,9 +75,7 @@ private:
 
 private:
   struct ChattingServerInfo {
-    ChattingServerInfo()
-          :uuid(), host(), port(), token()
-    {}
+    ChattingServerInfo() : uuid(), host(), port(), token() {}
     QString uuid;
     QString host;
     QString port;

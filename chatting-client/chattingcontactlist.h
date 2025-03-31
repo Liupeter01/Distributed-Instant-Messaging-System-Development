@@ -1,10 +1,10 @@
 #ifndef CHATTINGCONTACTLIST_H
 #define CHATTINGCONTACTLIST_H
 
-#include <QEvent>
-#include <optional>
-#include <QListWidget>
 #include "mainframeshowlists.h"
+#include <QEvent>
+#include <QListWidget>
+#include <optional>
 
 /*declaration*/
 class QListWidgetItem;
@@ -46,10 +46,11 @@ private slots:
   void slot_init_auth_friend_list();
 
   /*
- * another user send friend request to this user
- * and this user is about to confirm/deny the request
- */
-  void slot_add_authenticate_friend(std::optional<std::shared_ptr<UserNameCard>> info);
+   * another user send friend request to this user
+   * and this user is about to confirm/deny the request
+   */
+  void slot_add_authenticate_friend(
+      std::optional<std::shared_ptr<UserNameCard>> info);
 
 private:
   /*define how many contact are going to show up on contact list*/

@@ -74,7 +74,7 @@ void MainWindow::swithcingToChattingInf() {
 
   /*when service disconnected, then goes back to login dialog*/
   connect(m_chattingMainFrame, &ChattingDlgMainFrame::signal_log_out, this,
-       &MainWindow::switchingToLoginDialog);
+          &MainWindow::switchingToLoginDialog);
 
   setFixedSize(m_chattingMainFrame->maximumSize());
 

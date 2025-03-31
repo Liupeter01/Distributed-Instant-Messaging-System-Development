@@ -11,6 +11,9 @@ public:
   std::string GrpcServerHost;
   unsigned short GrpcServerPort;
 
+  std::string BalanceServiceAddress;
+  std::string BalanceServicePort;
+
   std::string ResourceServeAddress;
   unsigned short ResourceServerPort;
   std::size_t ResourceQueueSize;
@@ -35,7 +38,14 @@ private:
     loadGrpcServerInfo();
     loadMySQLInfo();
     loadRedisInfo();
+    loadBalanceService();
     loadResourcesServer();
+  }
+
+  void loadBalanceService() {
+            BalanceServiceAddress = m_ini["BalanceService"]["host"].as<std::string>();
+            BalanceServicePort =
+                      std::to_string(m_ini["BalanceService"]["port"].as<unsigned short>());
   }
 
   void loadResourcesServer() {

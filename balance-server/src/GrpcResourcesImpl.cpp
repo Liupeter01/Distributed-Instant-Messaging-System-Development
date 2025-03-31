@@ -8,8 +8,6 @@
 #include <redis/RedisManager.hpp>
 
 grpc::GrpcResourcesImpl::GrpcResourcesImpl() {
-  spdlog::info(
-      "[Balance Server]: Start to receive Chatting Grpc Server Configrations");
 }
 
 grpc::GrpcResourcesImpl::~GrpcResourcesImpl() {}

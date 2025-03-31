@@ -1,154 +1,154 @@
+#include <grpc/GrpcResourcesService.hpp>
+#include <grpc/ResourcesServicePool.hpp>
 #include <network/def.hpp>
 #include <service/ConnectionPool.hpp>
-#include <grpc/ResourcesServicePool.hpp>
-#include <grpc/GrpcResourcesService.hpp>
 
 message::PeerResponse
-gRPCResourcesService::getPeerResourcesServerLists(const std::string& cur_name) {
-          
-          grpc::ClientContext context;
-          message::PeerListsRequest request;
-          message::PeerResponse response;
+gRPCResourcesService::getPeerResourcesServerLists(const std::string &cur_name) {
 
-          request.set_cur_server(cur_name);
+  grpc::ClientContext context;
+  message::PeerListsRequest request;
+  message::PeerResponse response;
 
-          connection::ConnectionRAII<stubpool::ResourcesServicePool,
-                    message::ResourceService::Stub>
-                    raii;
-          
-          grpc::Status status = 
-                    raii->get()->GetPeerResourceServerInfo(&context, request, &response);
+  request.set_cur_server(cur_name);
 
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
-          return response;
+  connection::ConnectionRAII<stubpool::ResourcesServicePool,
+                             message::ResourceService::Stub>
+      raii;
+
+  grpc::Status status =
+      raii->get()->GetPeerResourceServerInfo(&context, request, &response);
+
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
+  return response;
 }
 
-message::PeerResponse
-gRPCResourcesService::getPeerResourcesGrpcServerLists(const std::string& cur_name){
+message::PeerResponse gRPCResourcesService::getPeerResourcesGrpcServerLists(
+    const std::string &cur_name) {
 
-          grpc::ClientContext context;
-          message::PeerListsRequest request;
-          message::PeerResponse response;
+  grpc::ClientContext context;
+  message::PeerListsRequest request;
+  message::PeerResponse response;
 
-          request.set_cur_server(cur_name);
+  request.set_cur_server(cur_name);
 
-          connection::ConnectionRAII<stubpool::ResourcesServicePool,
-                    message::ResourceService::Stub>
-                    raii;
+  connection::ConnectionRAII<stubpool::ResourcesServicePool,
+                             message::ResourceService::Stub>
+      raii;
 
-          grpc::Status status = raii->get()->GetPeerResourceGrpcServerInfo(&context, request, &response);
+  grpc::Status status =
+      raii->get()->GetPeerResourceGrpcServerInfo(&context, request, &response);
 
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
-          return response;
-}
-
-message::GrpcStatusResponse
-gRPCResourcesService::registerResourcesServerInstance(const std::string& name,
-          const std::string& host,
-          const std::string& port){
-
-          grpc::ClientContext context;
-          message::GrpcRegisterRequest request;
-          message::GrpcStatusResponse response;
-
-          message::ServerInfo info;
-          info.set_name(name);
-          info.set_host(host);
-          info.set_port(port);
-
-          *request.mutable_info() = info;
-
-          connection::ConnectionRAII<stubpool::ResourcesServicePool,
-                    message::ResourceService::Stub>
-                    raii;
-
-          grpc::Status status = 
-                    raii->get()->RegisterResourceServerInstance(&context, request, &response);
-
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
-          return response;
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
+  return response;
 }
 
 message::GrpcStatusResponse
-gRPCResourcesService::registerResourcesGrpcServer(const std::string& name, const std::string& host,
-          const std::string& port){
+gRPCResourcesService::registerResourcesServerInstance(const std::string &name,
+                                                      const std::string &host,
+                                                      const std::string &port) {
 
-          grpc::ClientContext context;
-          message::GrpcRegisterRequest request;
-          message::GrpcStatusResponse response;
+  grpc::ClientContext context;
+  message::GrpcRegisterRequest request;
+  message::GrpcStatusResponse response;
 
-          message::ServerInfo info;
-          info.set_name(name);
-          info.set_host(host);
-          info.set_port(port);
+  message::ServerInfo info;
+  info.set_name(name);
+  info.set_host(host);
+  info.set_port(port);
 
-          *request.mutable_info() = info;
+  *request.mutable_info() = info;
 
-          connection::ConnectionRAII<stubpool::ResourcesServicePool,
-                    message::ResourceService::Stub>
-                    raii;
+  connection::ConnectionRAII<stubpool::ResourcesServicePool,
+                             message::ResourceService::Stub>
+      raii;
 
-          grpc::Status status = 
-                    raii->get()->RegisterResourceGrpcServer(&context, request, &response);
+  grpc::Status status =
+      raii->get()->RegisterResourceServerInstance(&context, request, &response);
 
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
-          return response;
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
+  return response;
+}
+
+message::GrpcStatusResponse gRPCResourcesService::registerResourcesGrpcServer(
+    const std::string &name, const std::string &host, const std::string &port) {
+
+  grpc::ClientContext context;
+  message::GrpcRegisterRequest request;
+  message::GrpcStatusResponse response;
+
+  message::ServerInfo info;
+  info.set_name(name);
+  info.set_host(host);
+  info.set_port(port);
+
+  *request.mutable_info() = info;
+
+  connection::ConnectionRAII<stubpool::ResourcesServicePool,
+                             message::ResourceService::Stub>
+      raii;
+
+  grpc::Status status =
+      raii->get()->RegisterResourceGrpcServer(&context, request, &response);
+
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
+  return response;
 }
 
 message::GrpcStatusResponse
-gRPCResourcesService::resourcesServerShutdown(const std::string& name){
+gRPCResourcesService::resourcesServerShutdown(const std::string &name) {
 
-          grpc::ClientContext context;
-          message::GrpcShutdownRequest request;
-          message::GrpcStatusResponse response;
+  grpc::ClientContext context;
+  message::GrpcShutdownRequest request;
+  message::GrpcStatusResponse response;
 
-          request.set_cur_server(name);
+  request.set_cur_server(name);
 
-          connection::ConnectionRAII<stubpool::ResourcesServicePool,
-                    message::ResourceService::Stub>
-                    raii;
+  connection::ConnectionRAII<stubpool::ResourcesServicePool,
+                             message::ResourceService::Stub>
+      raii;
 
-          grpc::Status status = 
-                    raii->get()->ResourceServerShutDown(&context, request, &response);
+  grpc::Status status =
+      raii->get()->ResourceServerShutDown(&context, request, &response);
 
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
-          return response;
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
+  return response;
 }
 
 message::GrpcStatusResponse
-gRPCResourcesService::grpcResourcesServerShutdown(const std::string& name){
+gRPCResourcesService::grpcResourcesServerShutdown(const std::string &name) {
 
-          grpc::ClientContext context;
-          message::GrpcShutdownRequest request;
-          message::GrpcStatusResponse response;
+  grpc::ClientContext context;
+  message::GrpcShutdownRequest request;
+  message::GrpcStatusResponse response;
 
-          request.set_cur_server(name);
+  request.set_cur_server(name);
 
-          connection::ConnectionRAII<stubpool::ResourcesServicePool,
-                    message::ResourceService::Stub>
-                    raii;
+  connection::ConnectionRAII<stubpool::ResourcesServicePool,
+                             message::ResourceService::Stub>
+      raii;
 
-          grpc::Status status = 
-                    raii->get()->ResourceGrpcServerShutDown(&context, request, &response);
+  grpc::Status status =
+      raii->get()->ResourceGrpcServerShutDown(&context, request, &response);
 
-          ///*error occured*/
-          if (!status.ok()) {
-                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-          }
-          return response;
+  ///*error occured*/
+  if (!status.ok()) {
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+  }
+  return response;
 }

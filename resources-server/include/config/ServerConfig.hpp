@@ -43,16 +43,16 @@ private:
   }
 
   void loadBalanceService() {
-            BalanceServiceAddress = m_ini["BalanceService"]["host"].as<std::string>();
-            BalanceServicePort =
-                      std::to_string(m_ini["BalanceService"]["port"].as<unsigned short>());
+    BalanceServiceAddress = m_ini["BalanceService"]["host"].as<std::string>();
+    BalanceServicePort =
+        std::to_string(m_ini["BalanceService"]["port"].as<unsigned short>());
   }
 
   void loadResourcesServer() {
-            ResourceServeAddress = m_ini["ResourcesServer"]["host"].as<std::string>();
-            ResourceServerPort =
-                m_ini["ResourcesServer"]["port"].as<unsigned short>();
-            ResourceQueueSize = m_ini["ResourcesServer"]["send_queue_size"].as<unsigned long>();
+    ResourceServeAddress = m_ini["ResourcesServer"]["host"].as<std::string>();
+    ResourceServerPort = m_ini["ResourcesServer"]["port"].as<unsigned short>();
+    ResourceQueueSize =
+        m_ini["ResourcesServer"]["send_queue_size"].as<unsigned long>();
   }
 
   void loadGrpcServerInfo() {
@@ -62,9 +62,9 @@ private:
   }
 
   void loadRedisInfo() {
-            Redis_port = m_ini["Redis"]["port"].as<unsigned short>();
-            Redis_ip_addr = m_ini["Redis"]["host"].as<std::string>();
-            Redis_passwd = m_ini["Redis"]["password"].as<std::string>();
+    Redis_port = m_ini["Redis"]["port"].as<unsigned short>();
+    Redis_ip_addr = m_ini["Redis"]["host"].as<std::string>();
+    Redis_passwd = m_ini["Redis"]["password"].as<std::string>();
   }
 
   void loadMySQLInfo() {

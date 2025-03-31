@@ -313,85 +313,84 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
                          ServiceType::SERVICE_LOGINRESPONSE,
                          ServiceStatus::LOGIN_INFO_ERROR, session);
     return;
-
   }
-  
-    /*bind uuid with a session*/
-    session->setUUID(uuid);
 
-    /* add user uuid and session as a pair and store it inside usermanager */
-    UserManager::get_instance()->alterUserSession(uuid, session);
+  /*bind uuid with a session*/
+  session->setUUID(uuid);
 
-    /*returning info to client*/
-    std::shared_ptr<UserNameCard> info = info_str.value();
-    redis_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-    redis_root["uuid"] = uuid;
-    redis_root["sex"] = static_cast<uint8_t>(info->m_sex);
-    redis_root["avator"] = info->m_avatorPath;
-    redis_root["username"] = info->m_username;
-    redis_root["nickname"] = info->m_nickname;
-    redis_root["description"] = info->m_description;
+  /* add user uuid and session as a pair and store it inside usermanager */
+  UserManager::get_instance()->alterUserSession(uuid, session);
 
-    /*
-     * get friend request list from the database
-     * The default startpos = 0, interval = 10
-     */
-    std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
-        requestlist_op = getFriendRequestInfo(uuid);
+  /*returning info to client*/
+  std::shared_ptr<UserNameCard> info = info_str.value();
+  redis_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+  redis_root["uuid"] = uuid;
+  redis_root["sex"] = static_cast<uint8_t>(info->m_sex);
+  redis_root["avator"] = info->m_avatorPath;
+  redis_root["username"] = info->m_username;
+  redis_root["nickname"] = info->m_nickname;
+  redis_root["description"] = info->m_description;
 
-    if (requestlist_op.has_value()) {
-      for (auto &req : requestlist_op.value()) {
-        boost::json::object obj;
-        obj["src_uuid"] = req->m_uuid;
-        obj["dst_uuid"] = req->dst_uuid;
-        obj["username"] = req->m_username;
-        obj["avator"] = req->m_avatorPath;
-        obj["nickname"] = req->m_nickname;
-        obj["description"] = req->m_description;
-        obj["message"] = req->message;
-        obj["sex"] = static_cast<uint8_t>(req->m_sex);
-        // redis_root["FriendRequestList"]
-        friendreq.push_back(std::move(obj));
-      }
+  /*
+   * get friend request list from the database
+   * The default startpos = 0, interval = 10
+   */
+  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
+      requestlist_op = getFriendRequestInfo(uuid);
+
+  if (requestlist_op.has_value()) {
+    for (auto &req : requestlist_op.value()) {
+      boost::json::object obj;
+      obj["src_uuid"] = req->m_uuid;
+      obj["dst_uuid"] = req->dst_uuid;
+      obj["username"] = req->m_username;
+      obj["avator"] = req->m_avatorPath;
+      obj["nickname"] = req->m_nickname;
+      obj["description"] = req->m_description;
+      obj["message"] = req->message;
+      obj["sex"] = static_cast<uint8_t>(req->m_sex);
+      // redis_root["FriendRequestList"]
+      friendreq.push_back(std::move(obj));
     }
+  }
 
-    /*acquire Friend List*/
-    std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op =
-        getAuthFriendsInfo(uuid);
-    if (friendlist_op.has_value()) {
-      for (auto &req : friendlist_op.value()) {
-        boost::json::object obj;
-        obj["uuid"] = req->m_uuid;
-        obj["username"] = req->m_username;
-        obj["avator"] = req->m_avatorPath;
-        obj["nickname"] = req->m_nickname;
-        obj["description"] = req->m_description;
-        obj["sex"] = static_cast<uint8_t>(req->m_sex);
-        // redis_root["AuthFriendList"].append(obj);
-        authfriend.push_back(std::move(obj));
-      }
+  /*acquire Friend List*/
+  std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op =
+      getAuthFriendsInfo(uuid);
+  if (friendlist_op.has_value()) {
+    for (auto &req : friendlist_op.value()) {
+      boost::json::object obj;
+      obj["uuid"] = req->m_uuid;
+      obj["username"] = req->m_username;
+      obj["avator"] = req->m_avatorPath;
+      obj["nickname"] = req->m_nickname;
+      obj["description"] = req->m_description;
+      obj["sex"] = static_cast<uint8_t>(req->m_sex);
+      // redis_root["AuthFriendList"].append(obj);
+      authfriend.push_back(std::move(obj));
     }
+  }
 
-    redis_root["FriendRequestList"] = std::move(friendreq);
-    redis_root["AuthFriendList"] = std::move(authfriend);
+  redis_root["FriendRequestList"] = std::move(friendreq);
+  redis_root["AuthFriendList"] = std::move(authfriend);
 
-    /*send it back*/
-    session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                         boost::json::serialize(redis_root));
+  /*send it back*/
+  session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
+                       boost::json::serialize(redis_root));
 
-    /*
-     * add user connection counter for current server
-     * 1. HGET not exist: Current Chatting server didn't setting up connection
-     * counter
-     * 2. HGET exist: Increment by 1
-     */
-    incrementConnection();
+  /*
+   * add user connection counter for current server
+   * 1. HGET not exist: Current Chatting server didn't setting up connection
+   * counter
+   * 2. HGET exist: Increment by 1
+   */
+  incrementConnection();
 
-    /*store this user belonged server into redis*/
-    if (!tagCurrentUser(uuid)) {
-      spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
-                   ServerConfig::get_instance()->GrpcServerName);
-    }
+  /*store this user belonged server into redis*/
+  if (!tagCurrentUser(uuid)) {
+    spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
+                 ServerConfig::get_instance()->GrpcServerName);
+  }
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,
@@ -478,7 +477,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::SEARCHING_USERNAME_NOT_FOUND, session);
     return;
-  } 
+  }
 
   std::unique_ptr<UserNameCard> info = std::move(card_op.value());
   dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);

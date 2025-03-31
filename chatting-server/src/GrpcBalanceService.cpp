@@ -1,6 +1,6 @@
-#include <network/def.hpp>
-#include <grpc/GrpcBalanceService.hpp>
 #include <grpc/BalanceServicePool.hpp>
+#include <grpc/GrpcBalanceService.hpp>
+#include <network/def.hpp>
 #include <service/ConnectionPool.hpp>
 
 message::LoginChattingResponse

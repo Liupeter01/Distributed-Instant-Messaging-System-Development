@@ -37,8 +37,8 @@ enum class MySQLSelection : uint8_t {
   CREATE_FRIENDING_REQUEST,     // User A send friend request to B, status = 0
   UPDATE_FRIEND_REQUEST_STATUS, // User A agreed with B's request, then change
                                 // status = 1
-  CREATE_AUTH_FRIEND_ENTRY, // After update status, add user A & B's info to
-                            // AuthFriend Table
+  CREATE_AUTH_FRIEND_ENTRY,     // After update status, add user A & B's info to
+                                // AuthFriend Table
 
   GET_FRIEND_REQUEST_LIST, // Get User's Request List
   GET_AUTH_FRIEND_LIST,    // Get User's Auth Friend List

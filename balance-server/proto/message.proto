@@ -74,7 +74,8 @@ service ResourceService {
   rpc RegisterResourceServerInstance(GrpcRegisterRequest)
       returns (GrpcStatusResponse) {}
 
-  // register current grpc server which belongs to chattingserver to chatting server
+  // register current grpc server which belongs to chattingserver to chatting
+  // server
   rpc RegisterResourceGrpcServer(GrpcRegisterRequest)
       returns (GrpcStatusResponse) {}
 
@@ -89,7 +90,7 @@ service ResourceService {
   // resources server acquires other servers info through this service
   rpc GetPeerResourceServerInfo(PeerListsRequest) returns (PeerResponse) {}
 
-  //resourcesserver acquires other resources servers' grpc connection info
+  // resourcesserver acquires other resources servers' grpc connection info
   rpc GetPeerResourceGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
 }
 

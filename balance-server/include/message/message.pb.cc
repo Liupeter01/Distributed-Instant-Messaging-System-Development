@@ -354,11 +354,25 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\031.message.PeerListsRequest\032\025.message.Pee"
   "rResponse\"\000\022K\n\025GetPeerGrpcServerInfo\022\031.m"
   "essage.PeerListsRequest\032\025.message.PeerRe"
-  "sponse\"\000b\006proto3"
+  "sponse\"\0002\243\004\n\017ResourceService\022]\n\036Register"
+  "ResourceServerInstance\022\034.message.GrpcReg"
+  "isterRequest\032\033.message.GrpcStatusRespons"
+  "e\"\000\022Y\n\032RegisterResourceGrpcServer\022\034.mess"
+  "age.GrpcRegisterRequest\032\033.message.GrpcSt"
+  "atusResponse\"\000\022U\n\026ResourceServerShutDown"
+  "\022\034.message.GrpcShutdownRequest\032\033.message"
+  ".GrpcStatusResponse\"\000\022Y\n\032ResourceGrpcSer"
+  "verShutDown\022\034.message.GrpcShutdownReques"
+  "t\032\033.message.GrpcStatusResponse\"\000\022O\n\031GetP"
+  "eerResourceServerInfo\022\031.message.PeerList"
+  "sRequest\032\025.message.PeerResponse\"\000\022S\n\035Get"
+  "PeerResourceGrpcServerInfo\022\031.message.Pee"
+  "rListsRequest\032\025.message.PeerResponse\"\000b\006"
+  "proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 1496, descriptor_table_protodef_message_2eproto,
+    false, false, 2046, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 12,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,

@@ -68,6 +68,31 @@ message LoginChattingServer {
 
 message LoginChattingResponse { int32 error = 1; }
 
+service ResourceService {
+
+  // register current resources server to chatting server
+  rpc RegisterResourceServerInstance(GrpcRegisterRequest)
+      returns (GrpcStatusResponse) {}
+
+  // register current grpc server which belongs to chattingserver to chatting server
+  rpc RegisterResourceGrpcServer(GrpcRegisterRequest)
+      returns (GrpcStatusResponse) {}
+
+  // when Resource server shutdown delete its existance in chatting server
+  rpc ResourceServerShutDown(GrpcShutdownRequest) returns (GrpcStatusResponse) {
+  }
+
+  // when resources grpc server shutdown delete its existance in chatting server
+  rpc ResourceGrpcServerShutDown(GrpcShutdownRequest)
+      returns (GrpcStatusResponse) {}
+
+  // resources server acquires other servers info through this service
+  rpc GetPeerResourceServerInfo(PeerListsRequest) returns (PeerResponse) {}
+
+  //resourcesserver acquires other resources servers' grpc connection info
+  rpc GetPeerResourceGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
+}
+
 message ServerInfo {
   string name = 1;
   string host = 2;

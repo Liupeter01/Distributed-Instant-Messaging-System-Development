@@ -37,8 +37,9 @@ int main() {
         fmt::format("{}:{}", ServerConfig::get_instance()->GrpcServerHost,
                     ServerConfig::get_instance()->GrpcServerPort);
 
-    spdlog::info("Current Chatting RPC Server Started Running On {}", address);
+    spdlog::info("[Chatting Server]: RPC Server Started Running On {}", address);
 
+    /*Distributed Chatting Server Impl*/
     grpc::ServerBuilder builder;
     grpc::GrpcDistributedChattingImpl impl;
 
@@ -67,7 +68,7 @@ int main() {
     }
 
     spdlog::info(
-        "[Chatting Service {}] Register Chatting Server Instance Successful");
+        "[Chatting Server] Register Chatting Server Instance Successful");
 
     /*register grpc server to balance-server lists*/
     response = gRPCBalancerService::registerGrpcServer(
@@ -86,7 +87,7 @@ int main() {
     }
 
     spdlog::info(
-        "[Chatting Service {}] Register Chatting Grpc Server Successful");
+        "[Chatting Service] Register Chatting Grpc Server Successful");
 
     /*setting up signal*/
     boost::asio::io_context ioc;
@@ -96,7 +97,7 @@ int main() {
       if (ec) {
         return;
       }
-      spdlog::critical("chatting server exit due to control-c input!");
+      spdlog::critical("[Chatting Service] chatting server exit due to control-c input!");
       ioc.stop();
       service_pool->shutdown();
       server->Shutdown();
@@ -165,7 +166,7 @@ int main() {
     }
 
     spdlog::info(
-        "[Chatting Service {}] Unregister Chatting Grpc Server Successful");
+        "[Chatting Server] Unregister Chatting Grpc Server Successful");
 
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());

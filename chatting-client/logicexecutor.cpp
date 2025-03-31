@@ -26,6 +26,7 @@ void LogicExecutor::registerCallbacks() {
         [[maybe_unused]] auto curr_size = json["curr_size"].toInt();
         [[maybe_unused]] auto total_size = json["total_size"].toInt();
 
+        /*notifying the main UI interface to update progress bar!*/
         emit signal_data_transmission_status(filename, curr_seq, curr_size,
                                              total_size);
       }));

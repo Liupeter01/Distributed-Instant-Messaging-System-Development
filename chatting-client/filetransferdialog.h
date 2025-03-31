@@ -29,10 +29,12 @@ public:
 
 protected:
   bool validateFile(const QString &file);
-  void updateProgressBar(const std::size_t fileSize);
+  void initProgressBar(const std::size_t fileSize);
 
 private:
   void registerNetworkEvent();
+  void registerSignals();
+  void updateProgrssBar(const std::size_t cur_size);
 
 public:
   static std::size_t calculateBlockNumber(const std::size_t totalSize,

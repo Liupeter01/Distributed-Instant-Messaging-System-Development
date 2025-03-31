@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <def.hpp>
 #include <resourcestoragemanager.h>
+#include <logicmethod.h>
 #include <tcpnetworkconnection.h>
 
 FileTransferDialog::FileTransferDialog(std::shared_ptr<UserNameCard> id,
@@ -27,6 +28,8 @@ FileTransferDialog::FileTransferDialog(std::shared_ptr<UserNameCard> id,
 
   /*register network event*/
   registerNetworkEvent();
+
+  registerSignals();
 
   /*set userinfo to current user for validation*/
   ResourceStorageManager::get_instance()->setUserInfo(id);
@@ -48,6 +51,23 @@ void FileTransferDialog::registerNetworkEvent() {
           &TCPNetworkConnection::signal_terminate_resources_server);
 }
 
+void FileTransferDialog::registerSignals()
+{
+    connect(LogicMethod::get_instance().get(), &LogicMethod::signal_data_transmission_status,
+            this, [this](const QString &filename,
+                         const std::size_t curr_seq,
+                         const std::size_t curr_size,
+                         const std::size_t total_size){
+
+        ui->progressBar->setValue(curr_size);    //update progress bar
+
+        /*transmission finished!*/
+        if(curr_size >= ui->progressBar->maximum()){
+              ui->send_button->setDisabled(false);
+        }
+    });
+}
+
 bool FileTransferDialog::validateFile(const QString &file) {
   QFileInfo info(file);
 
@@ -65,7 +85,7 @@ bool FileTransferDialog::validateFile(const QString &file) {
   return true;
 }
 
-void FileTransferDialog::updateProgressBar(const std::size_t fileSize) {
+void FileTransferDialog::initProgressBar(const std::size_t fileSize) {
   ui->progressBar->setRange(0, fileSize);
   ui->progressBar->setValue(0);
 }
@@ -101,7 +121,7 @@ void FileTransferDialog::on_open_file_button_clicked() {
   }
 
   /*init progress bar*/
-  updateProgressBar(m_fileSize);
+  initProgressBar(m_fileSize);
 
   /*update ui display*/
   ui->file_path->setText(m_filePath);
@@ -114,16 +134,22 @@ void FileTransferDialog::on_send_button_clicked() {
 
   ui->send_button->setDisabled(true);
 
+    QFile file(m_filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot User ReadOnly To Open File";
+        return;
+    }
+
+    auto original_pos = file.pos();
+
   /*use md5 to mark this file*/
   QCryptographicHash hash(QCryptographicHash::Md5);
 
-  QFile file(m_filePath);
-  if (!file.open(QIODevice::ReadOnly)) {
-    qDebug() << "Cannot User ReadOnly To Open File";
-    return;
-  }
-
-  /*try to hash the whole file and generate a unique record*/
+  /*
+   * try to hash the whole file and generate a unique record
+   * WARNING: after call addData, the file pointer will move to
+   * another position rather than current pos
+   */
   if (!hash.addData(&file)) {
     qDebug() << "Hashing File Failed!";
     return;
@@ -134,11 +160,11 @@ void FileTransferDialog::on_send_button_clicked() {
   /*there is how many blocks(loops) we need to parse the file*/
   m_blockNumber = calculateBlockNumber(m_fileSize, m_fileChunk);
 
-  /*seek head of the file*/
-  file.seek(SEEK_SET);
-
   /*record current msg seq*/
-  std::size_t cur_seq = 1;
+  std::size_t cur_seq = 0;
+
+  /*seek head of the file, before processing file!*/
+  file.seek(original_pos);
 
   /*start to parse the file*/
   while (!file.atEnd()) {

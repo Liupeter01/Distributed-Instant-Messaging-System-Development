@@ -62,8 +62,11 @@ private:
   void registerErrorHandling();
 
 protected:
-  void setupDataRetrieveEvent(QTcpSocket& socket, RecvInfo& received,
+  void setupChattingDataRetrieveEvent(QTcpSocket& socket, RecvInfo& received,
                               RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> & buffer);
+
+    void setupResourcesDataRetrieveEvent(QTcpSocket& socket, RecvInfo& received,
+                                        RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> & buffer);
 
 private slots:
   void slot_connect2_chatting_server();
@@ -80,6 +83,9 @@ signals:
   void signal_connect2_chatting_server();
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
+
+  /*forward resources server's message to a standlone logic thread*/
+  void signal_resources_logic_handler(const uint16_t id, const QJsonObject obj);
 
   /*Send signals to a unified slot function for processing,
    * implementing a queue mechanism and ensuring thread safety.

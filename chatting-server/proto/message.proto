@@ -49,27 +49,6 @@ message LoginChattingServer {
 
 message LoginChattingResponse { int32 error = 1; }
 
-message ServerInfo {
-  string name = 1;
-  string host = 2;
-  string port = 3;
-}
-
-message PeerListsRequest {
-  // current server's name
-  string cur_server = 1;
-}
-
-// return a array of servers ip address through balancer services
-message PeerResponse {
-  int32 error = 1;
-  repeated ServerInfo lists = 2;
-}
-
-message GrpcRegisterRequest { ServerInfo info = 1; }
-message GrpcShutdownRequest { string cur_server = 1; }
-message GrpcStatusResponse { int32 error = 1; }
-
 /*prepared for distributed chatting service*/
 service DistributedChattingService {
 
@@ -147,3 +126,49 @@ message ChattingTextMsgResponse {
   int32 src_uuid = 2; // request from who
   int32 dst_uuid = 3; // target
 }
+
+service ResourceService {
+
+  // register current resources server to chatting server
+  rpc RegisterResourceServerInstance(GrpcRegisterRequest)
+      returns (GrpcStatusResponse) {}
+
+  // register current grpc server which belongs to chattingserver to chatting server
+  rpc RegisterResourceGrpcServer(GrpcRegisterRequest)
+      returns (GrpcStatusResponse) {}
+
+  // when Resource server shutdown delete its existance in chatting server
+  rpc ResourceServerShutDown(GrpcShutdownRequest) returns (GrpcStatusResponse) {
+  }
+
+  // when resources grpc server shutdown delete its existance in chatting server
+  rpc ResourceGrpcServerShutDown(GrpcShutdownRequest)
+      returns (GrpcStatusResponse) {}
+
+  // resources server acquires other servers info through this service
+  rpc GetPeerResourceServerInfo(PeerListsRequest) returns (PeerResponse) {}
+
+  //resourcesserver acquires other resources servers' grpc connection info
+  rpc GetPeerResourceGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
+}
+
+message ServerInfo {
+  string name = 1;
+  string host = 2;
+  string port = 3;
+}
+
+message PeerListsRequest {
+  // current server's name
+  string cur_server = 1;
+}
+
+// return a array of servers ip address through balancer services
+message PeerResponse {
+  int32 error = 1;
+  repeated ServerInfo lists = 2;
+}
+
+message GrpcRegisterRequest { ServerInfo info = 1; }
+message GrpcShutdownRequest { string cur_server = 1; }
+message GrpcStatusResponse { int32 error = 1; }

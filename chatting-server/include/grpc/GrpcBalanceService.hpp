@@ -1,13 +1,10 @@
 #pragma once
 #ifndef GRPCBALANCESERVICE_HPP_
 #define GRPCBALANCESERVICE_HPP_
-#include <grpc/BalanceServicePool.hpp>
 #include <grpcpp/client_context.h>
 #include <grpcpp/support/status.h>
 #include <message/message.grpc.pb.h>
 #include <message/message.pb.h>
-#include <network/def.hpp>
-#include <service/ConnectionPool.hpp>
 #include <string_view>
 
 struct gRPCBalancerService {

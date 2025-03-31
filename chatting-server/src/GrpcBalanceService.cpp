@@ -1,4 +1,7 @@
+#include <network/def.hpp>
 #include <grpc/GrpcBalanceService.hpp>
+#include <grpc/BalanceServicePool.hpp>
+#include <service/ConnectionPool.hpp>
 
 message::LoginChattingResponse
 gRPCBalancerService::userLoginToServer(std::size_t uuid,

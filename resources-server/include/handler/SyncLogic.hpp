@@ -44,7 +44,23 @@ private:
   void registerCallbacks();
   void execute(pair &&node);
 
+  /*client enter current server*/
+  void incrementConnection();
+  void decrementConnection();
+
+  /*store this user belonged server into redis*/
+  bool tagCurrentUser(const std::string& uuid);
+
+  /*delete user belonged server in redis*/
+  bool untagCurrentUser(const std::string& uuid);
+
 protected:
+  void handlingLogin(ServiceType srv_type,
+            std::shared_ptr<Session> session, NodePtr recv);
+
+  void handlingLogout(ServiceType srv_type,
+            std::shared_ptr<Session> session, NodePtr recv);
+
   void handlingFileUploading(ServiceType srv_type,
                              std::shared_ptr<Session> session, NodePtr recv);
 

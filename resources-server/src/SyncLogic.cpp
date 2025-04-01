@@ -290,7 +290,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   /*if it is first package then we should create a new file*/
   bool isFirstPackage = (boost::json::value_to<std::string>(
-                             src_obj["cur_seq"]) == std::string("0"));
+                             src_obj["cur_seq"]) == std::string("1"));
 
   /*End of Transmission*/
   if (src_obj.contains("EOF")) {

@@ -161,7 +161,7 @@ void FileTransferDialog::on_send_button_clicked() {
   m_blockNumber = calculateBlockNumber(m_fileSize, m_fileChunk);
 
   /*record current msg seq*/
-  std::size_t cur_seq = 0;
+  std::size_t cur_seq = 1;
 
   /*seek head of the file, before processing file!*/
   file.seek(original_pos);

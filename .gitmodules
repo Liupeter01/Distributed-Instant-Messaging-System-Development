@@ -7,3 +7,6 @@
 [submodule "external/inifile"]
 	path = external/inifile
 	url = https://github.com/Rookfighter/inifile-cpp.git
+[submodule "external/oneTBB"]
+	path = external/oneTBB
+	url = https://github.com/uxlfoundation/oneTBB

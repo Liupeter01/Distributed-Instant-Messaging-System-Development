@@ -95,6 +95,7 @@ target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql
 add_subdirectory(external/inifile)
 add_subdirectory(external/spdlog)
 add_subdirectory(external/hiredis)
+add_subdirectory(external/oneTBB)
 
 # Add submodules (servers)
 add_subdirectory(gateway-server)

@@ -5,6 +5,7 @@
 #include <QByteArray>
 #include <QDialog>
 #include <memory>
+#include <ByteOrderConverter.hpp>
 
 #define GB_TO_BYTES(gb) ((gb) * 1024LL * 1024 * 1024)
 #define FOUR_GB GB_TO_BYTES(4)
@@ -18,7 +19,7 @@ class FileTransferDialog;
 class FileTransferDialog : public QDialog {
   Q_OBJECT
 
-  using SendNodeType = SendNode<QByteArray, std::function<uint16_t(uint16_t)>>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit FileTransferDialog(std::shared_ptr<UserNameCard> id,
@@ -40,6 +41,9 @@ public:
                                           const std::size_t chunkSize);
 
 signals:
+  /*return connection status to login class*/
+  void signal_connection_status(bool status);
+
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
 
@@ -52,6 +56,8 @@ private slots:
 
   /*connect to server*/
   void on_connect_server_clicked();
+
+  void slot_connection_status(bool status);
 
 private:
   Ui::FileTransferDialog *ui;

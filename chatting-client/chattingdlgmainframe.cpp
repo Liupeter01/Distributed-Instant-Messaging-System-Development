@@ -466,9 +466,9 @@ void ChattingDlgMainFrame::slot_search_list_item_clicked(
      * it!*/
     auto json_data = doc.toJson(QJsonDocument::Compact);
 
-    SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+    SendNodeType send_buffer(
         static_cast<uint16_t>(ServiceType::SERVICE_SEARCHUSERNAME), json_data,
-        [](auto x) { return qToBigEndian(x); });
+        ByteOrderConverterReverse{});
 
     /*after connection to server, send TCP request*/
     TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));

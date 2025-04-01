@@ -12,8 +12,10 @@
 #include <resourcestoragemanager.h>
 
 TCPNetworkConnection::TCPNetworkConnection()
-    : m_chatting_buffer([](auto x) { return qFromBigEndian(x); }),
-      m_resources_buffer([](auto x) { return qFromBigEndian(x); }) {
+    : m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
+    m_resources_buffer(std::make_unique<RecvNodeType>(
+          ByteOrderConverter{},
+          MsgNodeType::MSGNODE_FILE_TRANSFER)) {
 
   /*callbacks should be registered at first(before signal)*/
   registerCallback();
@@ -81,9 +83,9 @@ void TCPNetworkConnection::registerSocketSignal() {
 
   /*receive data from server*/
   setupChattingDataRetrieveEvent(m_chatting_server_socket, m_chatting_info,
-                                 m_chatting_buffer);
+                                 *m_chatting_buffer);
   setupResourcesDataRetrieveEvent(m_resources_server_socket, m_resource_info,
-                                  m_resources_buffer);
+                                  *m_resources_buffer);
 }
 
 void TCPNetworkConnection::registerErrorHandling() {
@@ -108,7 +110,7 @@ void TCPNetworkConnection::registerErrorHandling() {
 
 void TCPNetworkConnection::setupChattingDataRetrieveEvent(
     QTcpSocket &socket, RecvInfo &received,
-    RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer) {
+    RecvNodeType &buffer) {
 
   connect(&socket, &QTcpSocket::readyRead,
           [&socket, &received, &buffer, this]() {
@@ -197,7 +199,7 @@ void TCPNetworkConnection::setupChattingDataRetrieveEvent(
 
 void TCPNetworkConnection::setupResourcesDataRetrieveEvent(
     QTcpSocket &socket, RecvInfo &received,
-    RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer) {
+    RecvNodeType &buffer) {
   connect(
       &socket, &QTcpSocket::readyRead, [&socket, &received, &buffer, this]() {
         while (socket.bytesAvailable() > 0) {

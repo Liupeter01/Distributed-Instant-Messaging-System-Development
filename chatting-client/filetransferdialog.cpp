@@ -49,6 +49,10 @@ void FileTransferDialog::registerNetworkEvent() {
   connect(this, &FileTransferDialog::signal_terminate_resources_server,
           TCPNetworkConnection::get_instance().get(),
           &TCPNetworkConnection::signal_terminate_resources_server);
+
+  connect(TCPNetworkConnection::get_instance().get(),
+          &TCPNetworkConnection::signal_connection_status,
+          this, &FileTransferDialog::signal_connection_status);
 }
 
 void FileTransferDialog::registerSignals()
@@ -66,6 +70,9 @@ void FileTransferDialog::registerSignals()
               ui->send_button->setDisabled(false);
         }
     });
+
+    connect(this, &FileTransferDialog::signal_connection_status,
+            this,  &FileTransferDialog::slot_connection_status);
 }
 
 bool FileTransferDialog::validateFile(const QString &file) {
@@ -214,7 +221,7 @@ void FileTransferDialog::on_send_button_clicked() {
 
     std::shared_ptr<SendNodeType> send_buffer = std::make_shared<SendNodeType>(
         static_cast<uint16_t>(ServiceType::SERVICE_FILEUPLOADREQUEST),
-        json_data, [](auto x) { return qToBigEndian(x); });
+        json_data, ByteOrderConverterReverse{});
 
     TCPNetworkConnection::get_instance()->send_sequential_data_f(
         send_buffer, TargetServer::RESOURCESSERVER);
@@ -233,7 +240,7 @@ void FileTransferDialog::on_connect_server_clicked() {
   auto ip = ui->server_addr->text();
   auto port = ui->server_port->text();
 
-  if (!ip.isEmpty() || !port.isEmpty()) {
+  if (ip.isEmpty() || port.isEmpty()) {
     qDebug() << "Invalid Ip and Port!";
     return;
   }
@@ -245,4 +252,39 @@ void FileTransferDialog::on_connect_server_clicked() {
 
   ui->connect_server->setDisabled(true);
   ui->send_button->setDisabled(false);
+}
+
+void FileTransferDialog::slot_connection_status(bool status){
+    if (status) {
+        qDebug() << "Resources Server Connected!\n";
+
+        /*
+        Tools::setWidgetAttribute(ui->status_label_3,
+                                  QString("Connection Established, Connecting..."),
+                                  true);
+
+        QJsonObject json_obj;
+        json_obj["uuid"] = UserAccountManager::get_instance()->get_uuid();
+        json_obj["token"] = UserAccountManager::get_instance()->get_token();
+
+        QJsonDocument json_doc(json_obj);
+
+        //it should be store as a temporary object, because send_buffer will modify it!
+        auto json_data = json_doc.toJson(QJsonDocument::Compact);
+
+        SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+            static_cast<uint16_t>(ServiceType::SERVICE_LOGINSERVER), json_data,
+            [](auto x) { return qToBigEndian(x); });
+
+        //after connection to server, send TCP request
+        TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+        */
+
+    } else {
+        // Tools::setWidgetAttribute(ui->status_label_3, QString("Network error!"),
+        //                           false);
+
+        // /*restore button input*/
+        // ui->login_button->setEnabled(true);
+    }
 }

@@ -7,6 +7,8 @@
 #include <QDialog>
 #include <functional>
 #include <map>
+#include <MsgNode.hpp>
+#include <ByteOrderConverter.hpp>
 
 /*declaration of network events*/
 enum class ServiceType : uint8_t;
@@ -20,6 +22,7 @@ class LoginInterface : public QDialog {
   Q_OBJECT
 
   using CallBackFunc = std::function<void(QJsonObject &&json)>;
+ using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit LoginInterface(QWidget *parent = nullptr);

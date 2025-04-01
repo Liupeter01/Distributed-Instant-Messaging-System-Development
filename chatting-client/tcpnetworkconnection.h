@@ -2,7 +2,6 @@
 #define TCPNETWORKCONNECTION_H
 
 #include "def.hpp"
-#include <MsgNode.hpp>
 #include <QJsonObject>
 #include <QObject> //connect
 #include <QString>
@@ -12,6 +11,8 @@
 #include <functional>
 #include <optional>
 #include <singleton.hpp>
+#include <MsgNode.hpp>
+#include <ByteOrderConverter.hpp>
 
 struct UserNameCard;
 struct UserFriendRequest;
@@ -26,9 +27,11 @@ class TCPNetworkConnection
       public std::enable_shared_from_this<TCPNetworkConnection> {
 
   Q_OBJECT
+
   friend class Singleton<TCPNetworkConnection>;
   using Callbackfunction = std::function<void(QJsonObject &&)>;
-  using SendNodeType = SendNode<QByteArray, std::function<uint16_t(uint16_t)>>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
+  using RecvNodeType = RecvNode<QByteArray, ByteOrderConverter>;
 
   struct RecvInfo {
     uint16_t _id = 0;
@@ -61,11 +64,11 @@ private:
 protected:
   void setupChattingDataRetrieveEvent(
       QTcpSocket &socket, RecvInfo &received,
-      RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer);
+      RecvNodeType &buffer);
 
   void setupResourcesDataRetrieveEvent(
       QTcpSocket &socket, RecvInfo &received,
-      RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer);
+      RecvNodeType &buffer);
 
 private slots:
   void slot_connect2_chatting_server();
@@ -148,8 +151,8 @@ private:
   RecvInfo m_chatting_info;
   RecvInfo m_resource_info;
 
-  RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> m_chatting_buffer;
-  RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> m_resources_buffer;
+  std::unique_ptr<RecvNodeType> m_chatting_buffer;
+  std::unique_ptr<RecvNodeType> m_resources_buffer;
 
   /*according to service type to execute callback*/
   std::map<ServiceType, Callbackfunction> m_callbacks;

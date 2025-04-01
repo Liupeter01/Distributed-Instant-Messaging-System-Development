@@ -43,7 +43,8 @@ class ResourceService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncRegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterResourceServerInstanceRaw(context, request, cq));
     }
-    // register current grpc server which belongs to chattingserver to chatting server
+    // register current grpc server which belongs to chattingserver to chatting
+    // server
     virtual ::grpc::Status RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncRegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncRegisterResourceGrpcServerRaw(context, request, cq));
@@ -89,7 +90,8 @@ class ResourceService final {
       // register current resources server to chatting server
       virtual void RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // register current grpc server which belongs to chattingserver to chatting server
+      // register current grpc server which belongs to chattingserver to chatting
+      // server
       virtual void RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // when Resource server shutdown delete its existance in chatting server
@@ -220,7 +222,8 @@ class ResourceService final {
     virtual ~Service();
     // register current resources server to chatting server
     virtual ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response);
-    // register current grpc server which belongs to chattingserver to chatting server
+    // register current grpc server which belongs to chattingserver to chatting
+    // server
     virtual ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response);
     // when Resource server shutdown delete its existance in chatting server
     virtual ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response);

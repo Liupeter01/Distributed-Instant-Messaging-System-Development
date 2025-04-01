@@ -166,22 +166,6 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     return;
   }
 
-  // auto response =
-  //           gRPCBalancerService::userLoginToServer(uuid_value_op.value(),
-  //           token);
-  // result["error"] = response.error();
-
-  // if (response.error() !=
-  //           static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
-  //           spdlog::error("[UUID = {}] Trying to login to ResourcesServer
-  //           Failed!",
-  //                     uuid);
-  //           generateErrorMessage("Internel Server Error",
-  //                     ServiceType::SERVICE_LOGINRESPONSE,
-  //                     ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-  //           return;
-  // }
-
   /*
    * add user connection counter for current server
    * 1. HGET not exist: Current Chatting server didn't setting up connection
@@ -299,7 +283,8 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   /*convert base64 to binary*/
   std::string block_data;
-  absl::Base64Unescape(src_obj["block"].as_string(), &block_data);
+  absl::Base64Unescape(boost::json::value_to<std::string>(src_obj["block"]),
+                       &block_data);
 
   out.open(target_path, isFirstPackage
                             ?

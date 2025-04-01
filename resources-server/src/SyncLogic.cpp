@@ -219,30 +219,34 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
+    spdlog::warn("[Resources Server]: Msg Body Parse Error!");
     return;
   }
 
   // prevent parse error
   try {
     src_obj = boost::json::parse(body.value()).as_object();
-
   } catch (const boost::json::system_error &e) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
-
+    spdlog::warn("[Resources Server]: Json Obj Parse Error! Reason = {}", e.what());
     return;
   }
 
-  // Parsing failed
-  if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
-        src_obj.contains("block") && src_obj.contains("cur_sql"))) {
+  // Parsing json object
+  if (!(src_obj.contains("filename") && 
+          src_obj.contains("checksum") &&
+            src_obj.contains("file_size") &&
+           src_obj.contains("block") && 
+            src_obj.contains("cur_seq") &&
+            src_obj.contains("last_seq"))) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    spdlog::warn("[Resources Server]: Json Obj Does Not Contains Specific Field!");
     return;
   }
 
@@ -267,8 +271,8 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto cur_size = cur_size_op.value();
   auto total_size = total_size_op.value();
 
-  /*final pathname*/
-  auto target_path = std::filesystem::canonical(
+  /*final pathname, and this path might not exist!!*/
+  auto target_path = std::filesystem::weakly_canonical(
       std::filesystem::path(ServerConfig::get_instance()->outputPath) /
       std::filesystem::path(filename));
 

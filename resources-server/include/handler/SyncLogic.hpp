@@ -13,6 +13,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <server/ByteOrderConverter.hpp>
 
 class SyncLogic : public Singleton<SyncLogic> {
   friend class Singleton<SyncLogic>;
@@ -20,7 +21,7 @@ class SyncLogic : public Singleton<SyncLogic> {
 public:
   using Convertor = std::function<unsigned short(unsigned short)>;
   using SessionPtr = std::shared_ptr<Session>;
-  using NodePtr = std::unique_ptr<RecvNode<std::string, Convertor>>;
+  using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
   using pair = std::pair<SessionPtr, NodePtr>;
 
 private:

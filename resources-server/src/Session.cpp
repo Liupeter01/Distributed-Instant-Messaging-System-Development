@@ -9,9 +9,9 @@
 
 Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
     : s_closed(false), s_socket(_ioc), s_gate(my_gate),
-      m_recv_buffer(std::make_unique<Recv>([](auto x) {
-        return boost::asio::detail::socket_ops::network_to_host_short(x);
-      })) /*init header buffer init*/
+      m_recv_buffer(std::make_unique<Recv>(
+                ByteOrderConverter{},
+                 MsgNodeType::MSGNODE_FILE_TRANSFER)) /*init header buffer init*/
 {
   /*generate the session id*/
   boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
@@ -56,9 +56,9 @@ void Session::sendMessage(ServiceType srv_type, const std::string &message) {
     std::string temporary = message;
 
     m_send_queue.push(std::make_unique<Send>(
-        static_cast<uint16_t>(srv_type), temporary, [](auto x) {
-          return boost::asio::detail::socket_ops::host_to_network_short(x);
-        }));
+              static_cast<uint16_t>(srv_type), temporary, 
+              ByteOrderConverterReverse{})
+    );
 
     /*currently, there is no task inside queue*/
     if (!m_send_queue.empty()) {
@@ -156,7 +156,7 @@ void Session::handle_header(std::shared_ptr<Session> session,
       return;
     }
 
-    std::optional<uint16_t> length = m_recv_buffer->get_length();
+    auto length = m_recv_buffer->get_length();
     if (!length.has_value()) {
       session->s_gate->terminateConnection(session->s_session_id);
       session->closeSession();
@@ -165,8 +165,7 @@ void Session::handle_header(std::shared_ptr<Session> session,
       return;
     }
 
-    uint16_t msg_length = length.value();
-
+    std::size_t msg_length = length.value();
     if (msg_length > MAX_LENGTH) {
       session->s_gate->terminateConnection(session->s_session_id);
       session->closeSession();
@@ -224,9 +223,9 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
      * Warning: m_header has already been init(cleared)
      * RecvNode<std::string>: only create a Header
      */
-    m_recv_buffer.reset(new Recv([](auto x) {
-      return boost::asio::detail::socket_ops::network_to_host_short(x);
-    }));
+    m_recv_buffer.reset(new Recv(
+              ByteOrderConverter{},
+              MsgNodeType::MSGNODE_FILE_TRANSFER));
 
     boost::asio::async_read(
         session->s_socket,

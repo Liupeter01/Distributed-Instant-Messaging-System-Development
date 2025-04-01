@@ -8,6 +8,7 @@
 #include <network/def.hpp>
 #include <queue>
 #include <server/MsgNode.hpp>
+#include <server/ByteOrderConverter.hpp>
 
 class AsyncServer;
 class SyncLogic;
@@ -16,9 +17,8 @@ class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
 
-  using Convertor = std::function<unsigned short(unsigned short)>;
-  using Recv = RecvNode<std::string, Convertor>;
-  using Send = SendNode<std::string, Convertor>;
+  using Recv = RecvNode<std::string, ByteOrderConverter>;
+  using Send = SendNode<std::string, ByteOrderConverterReverse>;
   using RecvPtr = std::unique_ptr<Recv>;
   using SendPtr = std::unique_ptr<Send>;
 
@@ -71,9 +71,7 @@ private:
   /* the length of the header
    * the max length of receiving buffer
    */
-  static constexpr std::size_t HEADER_LENGTH =
-      sizeof(uint16_t) + sizeof(uint16_t);
-  static constexpr std::size_t MAX_LENGTH = 2048;
+  static constexpr std::size_t MAX_LENGTH = 4096;
 };
 
 #endif

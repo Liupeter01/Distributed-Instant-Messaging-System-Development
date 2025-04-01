@@ -3,12 +3,11 @@
 #ifndef _MSGNODE_H_
 #define _MSGNODE_H_
 #include <cstdint>
-#include <functional>
 #include <iterator>
 #include <optional>
-#include <string>
 #include <type_traits> //SFINAE
 #include <utility>     // for std::declval
+#include <ByteOrderConverter.hpp>
 
 class QString;
 class TCPNetworkConnection;
@@ -122,7 +121,7 @@ template <typename Container> struct MsgHeader {
    * please be aware, it should be network sequence, please convert network
    * sequence to host
    */
-    virtual std::optional<uint16_t> get_length() {
+    virtual std::optional<std::size_t> get_length() {
         if (check_header_remaining()) { /*not OK*/
             return std::nullopt;
         }
@@ -170,7 +169,7 @@ template <typename Container> struct MsgHeader {
         return Container(get_body_base(), _length - this->get_header_length());
     }
 
-    void update_pointer_pos(const uint16_t increment) {
+    void update_pointer_pos(const std::size_t increment) {
         _cur_length += increment;
     }
 
@@ -248,7 +247,7 @@ public:
     /*
    * when user deploy gen_length, it will ONLY return the size of message!
    */
-    virtual std::optional<uint16_t> get_length() {
+    virtual std::optional<std::size_t> get_length() {
         if (this->check_header_remaining()) { /*not OK*/
             return std::nullopt;
         }

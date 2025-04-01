@@ -105,7 +105,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     ::grpc::ServerContext *context, const ::message::PeerListsRequest *request,
     ::message::PeerResponse *response) {
 
-  spdlog::info("[Chatting Server]: Remote Resources Server {0} Request To "
+  spdlog::info("[Balance Server]: Remote Resources Server {0} Request To "
                "GetPeerResourcesServerInfo",
                request->cur_server());
 
@@ -126,7 +126,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
             }
           });
     }
-    spdlog::info("[Chatting Server]: Remote Resources Server {0} Request To "
+    spdlog::info("[Balance Server]: Remote Resources Server {0} Request To "
                  "GetPeerResourcesServerInfo Successful!",
                  request->cur_server());
 
@@ -137,7 +137,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
 
   /*we didn't find cur_server in unordered_map*/
   spdlog::warn(
-      "[Chatting Server]: Remote Resources Server {0} Request To "
+      "[Balance Server]: Remote Resources Server {0} Request To "
       "Retrieve Data From GetPeerResourcesServerInfo Failed! Because of {1}",
       request->cur_server(), "No Current Resources Server Found!");
 
@@ -150,7 +150,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     ::grpc::ServerContext *context, const ::message::PeerListsRequest *request,
     ::message::PeerResponse *response) {
 
-  spdlog::info("[Chatting Server]: Remote Resources Server {0} Request To "
+  spdlog::info("[Balance Server]: Remote Resources Server {0} Request To "
                "GetPeerResourceGrpcServerInfo",
                request->cur_server());
 
@@ -171,7 +171,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
             }
           });
     }
-    spdlog::info("[Chatting Server]: Remote Resources Server {0} Request To "
+    spdlog::info("[Balance Server]: Remote Resources Server {0} Request To "
                  "GetPeerResourceGrpcServerInfo Successful!",
                  request->cur_server());
 
@@ -182,7 +182,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
 
   /*we didn't find cur_server in unordered_map*/
   spdlog::warn(
-      "[Chatting Server]: Remote Resources Server {0} Request To "
+      "[Balance Server]: Remote Resources Server {0} Request To "
       "Retrieve Data From GetPeerResourceGrpcServerInfo Failed! Because of {1}",
       request->cur_server(), "No Current GRPCServer Found!");
 
@@ -196,7 +196,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     const ::message::GrpcRegisterRequest *request,
     ::message::GrpcStatusResponse *response) {
 
-  spdlog::info("[Chatting Server]: Remote Resources Server {0} Request To "
+  spdlog::info("[Balance Server]: Remote Resources Server {0} Request To "
                "Register ResourcesServerInstance.",
                request->info().name());
 
@@ -216,7 +216,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
               request->info().name(), std::move(chatting_peer)));
 
       spdlog::info(
-          "[Chatting Server]: Remote Resources Server {0} Register Host "
+          "[Balance Server]: Remote Resources Server {0} Register Host "
           "= {1}, Port = {2} Successful",
           request->info().name(), request->info().host(),
           request->info().port());
@@ -228,7 +228,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
   }
   /*server has already exists*/
   spdlog::warn(
-      "[Chatting Server]: Remote Resources Server {0} Register Instance "
+      "[Balance Server]: Remote Resources Server {0} Register Instance "
       "To ResourcesServerInstance Failed"
       "Because of {1}",
       request->info().host(), " Resources Server Already Exists!");
@@ -243,7 +243,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     const ::message::GrpcRegisterRequest *request,
     ::message::GrpcStatusResponse *response) {
 
-  spdlog::info("[Chatting Server]: Remote Resources GRPC Server {0} Request To "
+  spdlog::info("[Balance Server]: Remote Resources GRPC Server {0} Request To "
                "Register ResourcesGrpcInstance.",
                request->info().name());
 
@@ -263,7 +263,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
               request->info().name(), std::move(grpc_peer)));
 
       spdlog::info(
-          "[Chatting Server]: Remote Resources GRPC Server {0} Register Host "
+          "[Balance Server]: Remote Resources GRPC Server {0} Register Host "
           "= {1}, Port = {2} Successful",
           request->info().name(), request->info().host(),
           request->info().port());
@@ -276,7 +276,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
 
   /*server has already exists*/
   spdlog::warn(
-      "[Chatting Server]: Remote Resources GRPC Server {0} Register Instance "
+      "[Balance Server]: Remote Resources GRPC Server {0} Register Instance "
       "To ResourcesGRPCServerInstance Failed"
       "Because of {1}",
       request->info().host(), " Resources Server Already Exists!");
@@ -300,14 +300,14 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     if (target == this->resources_servers.end()) {
       status = false;
       spdlog::warn(
-          "[Chatting Server]: Resource GRPC Peer Server {} Remove Failed",
+          "[Balance Server]: Resource GRPC Peer Server {} Remove Failed",
           request->cur_server());
     } else {
       this->resources_servers.erase(target);
     }
   }
 
-  spdlog::info("[Chatting Server]: Remote Resources Server {} Removing "
+  spdlog::info("[Balance Server]: Remote Resources Server {} Removing "
                "ResourcesServer Instance Successful",
                request->cur_server());
 
@@ -330,14 +330,14 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     if (target == this->grpc_servers.end()) {
       status = false;
       spdlog::warn(
-          "[Chatting Server]: Resource GRPC Peer Server {} Remove Failed",
+          "[Balance Server]: Resource GRPC Peer Server {} Remove Failed",
           request->cur_server());
     } else {
       this->grpc_servers.erase(target);
     }
   }
 
-  spdlog::info("[Chatting Server]: Remote Resource Grpc Server {} "
+  spdlog::info("[Balance Server]: Remote Resource Grpc Server {} "
                "Instance Successful",
                request->cur_server());
 

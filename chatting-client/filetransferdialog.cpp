@@ -132,6 +132,12 @@ void FileTransferDialog::on_open_file_button_clicked() {
 
 void FileTransferDialog::on_send_button_clicked() {
 
+    //accumulate transferred size(from seq = 1 to n)
+    std::size_t accumulate_transferred{0};
+
+    //transfered size for a single seq(maybe seq =1, or seq = 2)
+    std::size_t bytes_transferred_curr_sequence{0};
+
   ui->send_button->setDisabled(true);
 
     QFile file(m_filePath);
@@ -170,29 +176,37 @@ void FileTransferDialog::on_send_button_clicked() {
   while (!file.atEnd()) {
     QJsonObject obj;
 
-    auto bytes_transferr = (cur_seq != m_blockNumber)
+    /*it is not the final package(sometime, the final package size could not divided by m_fileChunk)*/
+      bytes_transferred_curr_sequence =
+        (cur_seq != m_blockNumber)
                                ? m_fileChunk
                                : m_fileSize - (cur_seq - 1) * m_fileChunk;
 
-    if (!bytes_transferr) {
+    if (!bytes_transferred_curr_sequence) {
+          qDebug() << "transferred bytes = 0 in seq = " << cur_seq << "\n";
       break;
     }
 
     /*get a chunk size*/
-    QByteArray buffer(file.read(bytes_transferr));
+    QByteArray buffer(file.read(bytes_transferred_curr_sequence));
 
     obj["filename"] = m_fileName;
     obj["checksum"] = QString(m_fileCheckSum);
+
+    /*consist of pervious transmission size and this newest sequence size*/
     obj["cur_size"] =
-        QString::number(bytes_transferr + (cur_seq - 1) * m_fileChunk);
+        QString::number(accumulate_transferred + bytes_transferred_curr_sequence);
     obj["file_size"] = QString::number(m_fileSize);
     obj["block"] = QString(buffer.toBase64());
     obj["cur_seq"] = QString::number(cur_seq);
     obj["last_seq"] = QString::number(m_blockNumber);
 
     /*End of Transmission*/
-    if (cur_seq == m_blockNumber) {
+    if (accumulate_transferred + bytes_transferred_curr_sequence >= m_fileSize) {
       obj["EOF"] = QString::number(1);
+    }
+    else{
+        obj["EOF"] = QString::number(0);
     }
 
     QJsonDocument doc(obj);
@@ -205,7 +219,9 @@ void FileTransferDialog::on_send_button_clicked() {
     TCPNetworkConnection::get_instance()->send_sequential_data_f(
         send_buffer, TargetServer::RESOURCESSERVER);
 
+    /*update seq and accumulate size*/
     ++cur_seq;
+    accumulate_transferred += bytes_transferred_curr_sequence;
   }
 
   file.close();

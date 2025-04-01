@@ -53,7 +53,8 @@ file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
 file(GLOB_RECURSE header_file CONFIGURE_DEPENDS include/*.hpp include/*.h)
 file(GLOB_RECURSE proto_file CONFIGURE_DEPENDS proto/*.proto)
 
-add_executable(ResourcesServer ${source_file} ${header_file}      ${GENERATED_PROTOBUF_FILES})
+add_executable(ResourcesServer ${source_file} ${header_file}
+                               ${GENERATED_PROTOBUF_FILES})
 target_include_directories(ResourcesServer PUBLIC include ${Boost_INCLUDE_DIR})
 
 target_link_libraries(ResourcesServer PUBLIC boost_resources grpc++ inicpp

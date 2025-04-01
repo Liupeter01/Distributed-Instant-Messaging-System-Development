@@ -7,18 +7,17 @@
 #include <mutex>
 #include <redis/RedisManager.hpp>
 
-grpc::GrpcResourcesImpl::GrpcResourcesImpl() {
-}
+grpc::GrpcResourcesImpl::GrpcResourcesImpl() {}
 
 grpc::GrpcResourcesImpl::~GrpcResourcesImpl() {}
 
 std::optional<std::shared_ptr<grpc::GrpcResourcesImpl::ResourcesServerConfig>>
 grpc::GrpcResourcesImpl::serverLoadBalancer() {
 
-          /*Currently, No resources server connected!*/
-          if (!resources_servers.size()) {
-                    return std::nullopt;
-          }
+  /*Currently, No resources server connected!*/
+  if (!resources_servers.size()) {
+    return std::nullopt;
+  }
 
   std::lock_guard<std::mutex> _lckg(resources_mtx);
 
@@ -41,8 +40,8 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
       !counter.has_value() ? INT_MAX : std::stoi(counter.value());
 
   /*for loop all the servers(including peer server)*/
-  for (auto server = resources_servers.begin(); server != resources_servers.end();
-       ++server) {
+  for (auto server = resources_servers.begin();
+       server != resources_servers.end(); ++server) {
 
     /*ignore current */
     if (server->first != min_server->first) {
@@ -67,40 +66,40 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
       min_server->second->_name);
 }
 
-//std::optional<std::string>
-//grpc::GrpcResourcesImpl::getUserToken(std::size_t uuid) {
+// std::optional<std::string>
+// grpc::GrpcResourcesImpl::getUserToken(std::size_t uuid) {
 //
-//  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-//      raii;
+//   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+//       raii;
 //
-//  /*find key = token_predix + uuid in redis, GET*/
-//  std::optional<std::string> counter =
-//      raii->get()->checkValue(token_prefix + std::to_string(uuid));
+//   /*find key = token_predix + uuid in redis, GET*/
+//   std::optional<std::string> counter =
+//       raii->get()->checkValue(token_prefix + std::to_string(uuid));
 //
-//  return counter;
-//}
+//   return counter;
+// }
 //
-//ServiceStatus
-//grpc::GrpcResourcesImpl::verifyUserToken(std::size_t uuid,
-//                                        const std::string &tokens) {
-//  auto target = getUserToken(uuid);
-//  if (!target.has_value()) {
-//    return ServiceStatus::LOGIN_UNSUCCESSFUL;
-//  }
+// ServiceStatus
+// grpc::GrpcResourcesImpl::verifyUserToken(std::size_t uuid,
+//                                         const std::string &tokens) {
+//   auto target = getUserToken(uuid);
+//   if (!target.has_value()) {
+//     return ServiceStatus::LOGIN_UNSUCCESSFUL;
+//   }
 //
-//  return (target.value() == tokens ? ServiceStatus::SERVICE_SUCCESS
-//                                   : ServiceStatus::LOGIN_INFO_ERROR);
-//}
+//   return (target.value() == tokens ? ServiceStatus::SERVICE_SUCCESS
+//                                    : ServiceStatus::LOGIN_INFO_ERROR);
+// }
 //
-//void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
-//                                              std::string &&tokens) {
-//  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-//      raii;
+// void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
+//                                               std::string &&tokens) {
+//   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+//       raii;
 //
-//  /*find key = token_predix + uuid in redis, GET*/
-//  if (!raii->get()->setValue(token_prefix + std::to_string(uuid), tokens)) {
-//  }
-//}
+//   /*find key = token_predix + uuid in redis, GET*/
+//   if (!raii->get()->setValue(token_prefix + std::to_string(uuid), tokens)) {
+//   }
+// }
 
 ::grpc::Status grpc::GrpcResourcesImpl::GetPeerResourceServerInfo(
     ::grpc::ServerContext *context, const ::message::PeerListsRequest *request,
@@ -216,10 +215,11 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
               std::unique_ptr<grpc::GrpcResourcesImpl::ResourcesServerConfig>>(
               request->info().name(), std::move(chatting_peer)));
 
-      spdlog::info("[Chatting Server]: Remote Resources Server {0} Register Host "
-                   "= {1}, Port = {2} Successful",
-                   request->info().name(), request->info().host(),
-                   request->info().port());
+      spdlog::info(
+          "[Chatting Server]: Remote Resources Server {0} Register Host "
+          "= {1}, Port = {2} Successful",
+          request->info().name(), request->info().host(),
+          request->info().port());
 
       response->set_error(
           static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS));
@@ -227,10 +227,11 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     }
   }
   /*server has already exists*/
-  spdlog::warn("[Chatting Server]: Remote Resources Server {0} Register Instance "
-               "To ResourcesServerInstance Failed"
-               "Because of {1}",
-               request->info().host(), " Resources Server Already Exists!");
+  spdlog::warn(
+      "[Chatting Server]: Remote Resources Server {0} Register Instance "
+      "To ResourcesServerInstance Failed"
+      "Because of {1}",
+      request->info().host(), " Resources Server Already Exists!");
 
   response->set_error(
       static_cast<std::size_t>(ServiceStatus::CHATTING_SERVER_ALREADY_EXISTS));
@@ -298,8 +299,9 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     auto target = this->resources_servers.find(request->cur_server());
     if (target == this->resources_servers.end()) {
       status = false;
-      spdlog::warn("[Chatting Server]: Resource GRPC Peer Server {} Remove Failed",
-                   request->cur_server());
+      spdlog::warn(
+          "[Chatting Server]: Resource GRPC Peer Server {} Remove Failed",
+          request->cur_server());
     } else {
       this->resources_servers.erase(target);
     }
@@ -327,8 +329,9 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
     auto target = this->grpc_servers.find(request->cur_server());
     if (target == this->grpc_servers.end()) {
       status = false;
-      spdlog::warn("[Chatting Server]: Resource GRPC Peer Server {} Remove Failed",
-                   request->cur_server());
+      spdlog::warn(
+          "[Chatting Server]: Resource GRPC Peer Server {} Remove Failed",
+          request->cur_server());
     } else {
       this->grpc_servers.erase(target);
     }
@@ -344,7 +347,7 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
   return grpc::Status::OK;
 }
 
-//std::string grpc::GrpcBalancerImpl::userTokenGenerator() {
-//  boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
-//  return boost::uuids::to_string(uuid_gen);
-//}
+// std::string grpc::GrpcBalancerImpl::userTokenGenerator() {
+//   boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
+//   return boost::uuids::to_string(uuid_gen);
+// }

@@ -7,7 +7,7 @@ struct ServerConfig : public Singleton<ServerConfig> {
   friend class Singleton<ServerConfig>;
 
 public:
-          std::string outputPath;
+  std::string outputPath;
 
   std::string GrpcServerName;
   std::string GrpcServerHost;
@@ -46,7 +46,7 @@ private:
   }
 
   void loadOutputPath() {
-          outputPath = m_ini["Output"]["path"].as<std::string>();
+    outputPath = m_ini["Output"]["path"].as<std::string>();
   }
 
   void loadBalanceService() {

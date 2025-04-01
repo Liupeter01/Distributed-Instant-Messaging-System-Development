@@ -3,15 +3,15 @@
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
 #include <config/ServerConfig.hpp>
+#include <filesystem>
 #include <fstream>
 #include <handler/SyncLogic.hpp>
+#include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
+#include <server/UserNameCard.hpp>
+#include <service/ConnectionPool.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
-#include <service/ConnectionPool.hpp>
-#include <redis/RedisManager.hpp>
-#include <server/UserNameCard.hpp>
-#include <filesystem>
 
 /*redis*/
 std::string SyncLogic::redis_server_login = "redis_server";
@@ -34,20 +34,20 @@ SyncLogic::~SyncLogic() { shutdown(); }
 
 void SyncLogic::registerCallbacks() {
 
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_LOGINSERVER,
-                    std::bind(&SyncLogic::handlingLogin, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_LOGINSERVER,
+      std::bind(&SyncLogic::handlingLogin, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_LOGOUTSERVER,
-                    std::bind(&SyncLogic::handlingLogout, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_LOGOUTSERVER,
+      std::bind(&SyncLogic::handlingLogout, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_FILEUPLOADREQUEST,
-                    std::bind(&SyncLogic::handlingFileUploading, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_FILEUPLOADREQUEST,
+      std::bind(&SyncLogic::handlingFileUploading, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 }
 
 void SyncLogic::commit(pair recv_node) {
@@ -120,102 +120,103 @@ void SyncLogic::shutdown() {
 }
 
 void SyncLogic::handlingLogin(ServiceType srv_type,
-          std::shared_ptr<Session> session, NodePtr recv) {
+                              std::shared_ptr<Session> session, NodePtr recv) {
 
-          boost::json::object src_obj;
-          boost::json::object result;
+  boost::json::object src_obj;
+  boost::json::object result;
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_LOGINRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          // prevent parse error
-          try {
-                    src_obj = boost::json::parse(body.value()).as_object();
-          }
-          catch (const boost::json::system_error& e) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_LOGINRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  // prevent parse error
+  try {
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          // Parsing failed
-          if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_LOGINRESPONSE,
-                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-                    return;
-          }
+  // Parsing failed
+  if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
 
-          std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
-          std::string token = boost::json::value_to<std::string>(src_obj["token"]);
+  std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
+  std::string token = boost::json::value_to<std::string>(src_obj["token"]);
 
-          spdlog::info("[UUID = {}] Trying to login to ResourcesServer with Token {}",
-                    uuid, token);
+  spdlog::info("[UUID = {}] Trying to login to ResourcesServer with Token {}",
+               uuid, token);
 
-          auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
-          if (!uuid_value_op.has_value()) {
-                    generateErrorMessage("Failed to convert string to number",
-                              ServiceType::SERVICE_LOGINRESPONSE,
-                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-                    return;
-          }
+  auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
+  if (!uuid_value_op.has_value()) {
+    generateErrorMessage("Failed to convert string to number",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
 
-          //auto response =
-          //          gRPCBalancerService::userLoginToServer(uuid_value_op.value(), token);
-          //result["error"] = response.error();
+  // auto response =
+  //           gRPCBalancerService::userLoginToServer(uuid_value_op.value(),
+  //           token);
+  // result["error"] = response.error();
 
-          //if (response.error() !=
-          //          static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
-          //          spdlog::error("[UUID = {}] Trying to login to ResourcesServer Failed!",
-          //                    uuid);
-          //          generateErrorMessage("Internel Server Error",
-          //                    ServiceType::SERVICE_LOGINRESPONSE,
-          //                    ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-          //          return;
-          //}
+  // if (response.error() !=
+  //           static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
+  //           spdlog::error("[UUID = {}] Trying to login to ResourcesServer
+  //           Failed!",
+  //                     uuid);
+  //           generateErrorMessage("Internel Server Error",
+  //                     ServiceType::SERVICE_LOGINRESPONSE,
+  //                     ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+  //           return;
+  // }
 
-          /*
-           * add user connection counter for current server
-           * 1. HGET not exist: Current Chatting server didn't setting up connection
-           * counter
-           * 2. HGET exist: Increment by 1
-           */
-          incrementConnection();
+  /*
+   * add user connection counter for current server
+   * 1. HGET not exist: Current Chatting server didn't setting up connection
+   * counter
+   * 2. HGET exist: Increment by 1
+   */
+  incrementConnection();
 
-          /*store this user belonged server into redis*/
-          if (!tagCurrentUser(uuid)) {
-                    spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
-                              ServerConfig::get_instance()->GrpcServerName);
-          }
+  /*store this user belonged server into redis*/
+  if (!tagCurrentUser(uuid)) {
+    spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
+                 ServerConfig::get_instance()->GrpcServerName);
+  }
 
-          /*send it back*/
-          session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                    boost::json::serialize(result));
+  /*send it back*/
+  session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
+                       boost::json::serialize(result));
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,
-          std::shared_ptr<Session> session, NodePtr recv) {
+                               std::shared_ptr<Session> session, NodePtr recv) {
 
-          /*
-           * sub user connection counter for current server
-           * 1. HGET not exist: Current Chatting server didn't setting up connection
-           * counter
-           * 2. HGET exist: Decrement by 1
-           */
-          decrementConnection();
+  /*
+   * sub user connection counter for current server
+   * 1. HGET not exist: Current Chatting server didn't setting up connection
+   * counter
+   * 2. HGET exist: Decrement by 1
+   */
+  decrementConnection();
 
-          /*delete user belonged server in redis*/
-          if (!untagCurrentUser(session->s_uuid)) {
-                    spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
-                              session->s_uuid, ServerConfig::get_instance()->GrpcServerName);
-          }
+  /*delete user belonged server in redis*/
+  if (!untagCurrentUser(session->s_uuid)) {
+    spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
+                 session->s_uuid, ServerConfig::get_instance()->GrpcServerName);
+  }
 }
 
 void SyncLogic::handlingFileUploading(ServiceType srv_type,
@@ -284,7 +285,8 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   /*final pathname*/
   auto target_path = std::filesystem::canonical(
-            std::filesystem::path(ServerConfig::get_instance()->outputPath) / std::filesystem::path(filename));
+      std::filesystem::path(ServerConfig::get_instance()->outputPath) /
+      std::filesystem::path(filename));
 
   /*if it is first package then we should create a new file*/
   bool isFirstPackage = (boost::json::value_to<std::string>(
@@ -299,10 +301,12 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   std::string block_data;
   absl::Base64Unescape(src_obj["block"].as_string(), &block_data);
 
-  out.open(target_path, isFirstPackage ? 
-            /*if this is the first package*/ std::ios::binary | std::ios::trunc :
-            /*append mode*/std::ios::binary | std::ios::app);
-
+  out.open(target_path, isFirstPackage
+                            ?
+                            /*if this is the first package*/ std::ios::binary |
+                                std::ios::trunc
+                            :
+                            /*append mode*/ std::ios::binary | std::ios::app);
 
   if (!out.is_open()) {
     spdlog::warn("Uploading File [{}] {} Error!", filename,
@@ -346,24 +350,24 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
  * 2. HGET exist: Increment by 1
  */
 void SyncLogic::incrementConnection() {
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-                    raii;
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
 
-          /*try to acquire value from redis*/
-          std::optional<std::string> counter = raii->get()->getValueFromHash(
-                    redis_server_login, ServerConfig::get_instance()->GrpcServerName);
+  /*try to acquire value from redis*/
+  std::optional<std::string> counter = raii->get()->getValueFromHash(
+      redis_server_login, ServerConfig::get_instance()->GrpcServerName);
 
-          std::size_t new_number(0);
+  std::size_t new_number(0);
 
-          /* redis has this value then read it from redis*/
-          if (counter.has_value()) {
-                    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
-          }
+  /* redis has this value then read it from redis*/
+  if (counter.has_value()) {
+    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
+  }
 
-          /*incerment and set value to hash by using HSET*/
-          raii->get()->setValue2Hash(redis_server_login,
-                    ServerConfig::get_instance()->GrpcServerName,
-                    std::to_string(++new_number));
+  /*incerment and set value to hash by using HSET*/
+  raii->get()->setValue2Hash(redis_server_login,
+                             ServerConfig::get_instance()->GrpcServerName,
+                             std::to_string(++new_number));
 }
 
 /*
@@ -373,35 +377,35 @@ void SyncLogic::incrementConnection() {
  * 2. HGET exist: Decrement by 1
  */
 void SyncLogic::decrementConnection() {
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-                    raii;
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
 
-          /*try to acquire value from redis*/
-          std::optional<std::string> counter = raii->get()->getValueFromHash(
-                    redis_server_login, ServerConfig::get_instance()->GrpcServerName);
+  /*try to acquire value from redis*/
+  std::optional<std::string> counter = raii->get()->getValueFromHash(
+      redis_server_login, ServerConfig::get_instance()->GrpcServerName);
 
-          std::size_t new_number(0);
+  std::size_t new_number(0);
 
-          /* redis has this value then read it from redis*/
-          if (counter.has_value()) {
-                    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
-          }
+  /* redis has this value then read it from redis*/
+  if (counter.has_value()) {
+    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
+  }
 
-          /*decerment and set value to hash by using HSET*/
-          raii->get()->setValue2Hash(redis_server_login,
-                    ServerConfig::get_instance()->GrpcServerName,
-                    std::to_string(--new_number));
+  /*decerment and set value to hash by using HSET*/
+  raii->get()->setValue2Hash(redis_server_login,
+                             ServerConfig::get_instance()->GrpcServerName,
+                             std::to_string(--new_number));
 }
 
-bool SyncLogic::tagCurrentUser(const std::string& uuid) {
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-                    raii;
-          return raii->get()->setValue(server_prefix + uuid,
-                    ServerConfig::get_instance()->GrpcServerName);
+bool SyncLogic::tagCurrentUser(const std::string &uuid) {
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
+  return raii->get()->setValue(server_prefix + uuid,
+                               ServerConfig::get_instance()->GrpcServerName);
 }
 
-bool SyncLogic::untagCurrentUser(const std::string& uuid) {
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-                    raii;
-          return raii->get()->delPair(server_prefix + uuid);
+bool SyncLogic::untagCurrentUser(const std::string &uuid) {
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
+  return raii->get()->delPair(server_prefix + uuid);
 }

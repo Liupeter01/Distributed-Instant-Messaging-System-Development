@@ -43,8 +43,13 @@ int main() {
           server->Shutdown();
         });
 
-    // ioc should not be blocked by server->wait()
-    std::thread([&ioc]() { ioc.run(); }).detach();
+    /**/
+    ioc.run();
+
+    /*join subthread*/
+    if (grpc_server_thread.joinable()) {
+              grpc_server_thread.join();
+    }
 
     server->Wait();
   } catch (const std::exception &e) {

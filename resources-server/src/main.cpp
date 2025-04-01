@@ -16,7 +16,7 @@ int main() {
     [[maybe_unused]] auto &service_pool = IOServicePool::get_instance();
     [[maybe_unused]] auto &mysql = mysql::MySQLConnectionPool::get_instance();
     [[maybe_unused]] auto &redis = redis::RedisConnectionPool::get_instance();
-    [[maybe_unsued]] auto &resources_pool =
+    [[maybe_unused]] auto &resources_pool =
         stubpool::ResourcesServicePool::get_instance();
 
     /*chatting server port and grpc server port should not be same!!*/

@@ -10,6 +10,7 @@
 #include <optional>
 #include <singleton/singleton.hpp>
 #include <thread>
+#include <queue>
 
 namespace handler {
 

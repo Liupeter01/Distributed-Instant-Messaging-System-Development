@@ -122,8 +122,18 @@ bool handler::FileProcessingNode::resetFileStream(const std::string &filename,
 
 std::optional<std::filesystem::path>
 handler::FileProcessingNode::createFile(const std::string &filename) {
+          
   std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
   std::filesystem::path full_path = output_dir / filename;
+
+  // Ensure the output directory exists
+  if (!std::filesystem::exists(output_dir)) {
+            std::error_code dir_ec;
+            if (!std::filesystem::create_directories(output_dir, dir_ec)) {
+                      spdlog::error("[Resources Server]: Failed to create directories: {}", dir_ec.message());
+                      return std::nullopt;
+            }
+  }
 
   std::error_code ec;
   std::filesystem::path target_path =
@@ -144,6 +154,7 @@ bool handler::FileProcessingNode::writeToFile(const std::string &content) {
   // safety consideration
   try {
     if (m_fileStream.is_open()) {
+              m_fileStream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
       m_fileStream.write(content.data(), content.size());
       m_fileStream.flush();
       return true;

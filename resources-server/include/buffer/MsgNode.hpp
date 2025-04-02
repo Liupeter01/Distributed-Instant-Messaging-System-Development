@@ -9,7 +9,7 @@
 #include <string>
 #include <type_traits> //SFINAE
 #include <utility>     // for std::declval
-#include <server/ByteOrderConverter.hpp>
+#include <buffer/ByteOrderConverter.hpp>
 
 class QString;
 class TCPNetworkConnection;

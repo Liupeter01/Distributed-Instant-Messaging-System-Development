@@ -11,10 +11,12 @@
 
 class AsyncServer;
 class SyncLogic;
+class RequestHandlerNode;
 
 class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
+  friend class RequestHandlerNode;
 
   using Recv = RecvNode<std::string, ByteOrderConverter>;
   using Send = SendNode<std::string, ByteOrderConverterReverse>;

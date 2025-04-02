@@ -231,22 +231,22 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
-    spdlog::warn("[Resources Server]: Json Obj Parse Error! Reason = {}", e.what());
+    spdlog::warn("[Resources Server]: Json Obj Parse Error! Reason = {}",
+                 e.what());
     return;
   }
 
   // Parsing json object
-  if (!(src_obj.contains("filename") && 
-          src_obj.contains("checksum") &&
-            src_obj.contains("file_size") &&
-           src_obj.contains("block") && 
-            src_obj.contains("cur_seq") &&
-            src_obj.contains("last_seq"))) {
+  if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
+        src_obj.contains("file_size") && src_obj.contains("block") &&
+        src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
+        src_obj.contains("last_seq"))) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
                          ServiceStatus::JSONPARSE_ERROR, session);
-    spdlog::warn("[Resources Server]: Json Obj Does Not Contains Specific Field!");
+    spdlog::warn(
+        "[Resources Server]: Json Obj Does Not Contains Specific Field!");
     return;
   }
 

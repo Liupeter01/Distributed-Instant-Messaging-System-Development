@@ -32,6 +32,7 @@ public:
   void closeSession();
   void setUUID(const std::string &uuid);
   void sendMessage(ServiceType srv_type, const std::string &message);
+  const std::string& get_user_uuid() const;
 
 private:
   /*handling sending event*/

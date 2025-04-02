@@ -237,3 +237,7 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
     spdlog::error("{}", e.what());
   }
 }
+
+const std::string& Session::get_user_uuid() const {
+          return s_uuid;
+}

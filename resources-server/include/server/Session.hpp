@@ -7,8 +7,7 @@
 #include <mutex>
 #include <network/def.hpp>
 #include <queue>
-#include <server/MsgNode.hpp>
-#include <server/ByteOrderConverter.hpp>
+#include <buffer/MsgNode.hpp>
 
 class AsyncServer;
 class SyncLogic;

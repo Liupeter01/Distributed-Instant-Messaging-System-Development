@@ -2,6 +2,7 @@
 #ifndef _SYNCLOGIC_HPP_
 #define _SYNCLOGIC_HPP_
 #include <atomic>
+#include <buffer/MsgNode.hpp>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -13,7 +14,6 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include <server/ByteOrderConverter.hpp>
 
 class SyncLogic : public Singleton<SyncLogic> {
   friend class Singleton<SyncLogic>;

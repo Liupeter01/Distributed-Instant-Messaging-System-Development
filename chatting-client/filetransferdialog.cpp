@@ -221,7 +221,7 @@ void FileTransferDialog::on_send_button_clicked() {
 
     std::shared_ptr<SendNodeType> send_buffer = std::make_shared<SendNodeType>(
         static_cast<uint16_t>(ServiceType::SERVICE_FILEUPLOADREQUEST),
-        json_data, ByteOrderConverterReverse{});
+        json_data, ByteOrderConverterReverse{}, MsgNodeType::MSGNODE_FILE_TRANSFER);
 
     TCPNetworkConnection::get_instance()->send_sequential_data_f(
         send_buffer, TargetServer::RESOURCESSERVER);

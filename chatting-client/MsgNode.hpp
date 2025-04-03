@@ -2,7 +2,7 @@
 #pragma once
 #ifndef _MSGNODE_H_
 #define _MSGNODE_H_
-#include <buffer/ByteOrderConverter.hpp>
+#include <ByteOrderConverter.hpp>
 #include <cstdint>
 #include <functional>
 #include <iterator>

@@ -8,10 +8,10 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <singleton/singleton.hpp>
-#include <thread>
 #include <queue>
 #include <server/Session.hpp>
+#include <singleton/singleton.hpp>
+#include <thread>
 
 namespace handler {
 
@@ -37,17 +37,18 @@ struct FileDescriptionBlock {
   std::size_t file_size;
 };
 
-class FileProcessingNode{
-          using SessionPtr = std::shared_ptr<Session>;
+class FileProcessingNode {
+  using SessionPtr = std::shared_ptr<Session>;
 
 public:
-          FileProcessingNode();
-          FileProcessingNode(const std::size_t id);
+  FileProcessingNode();
+  FileProcessingNode(const std::size_t id);
   virtual ~FileProcessingNode();
 
 public:
-          void shutdown();
-  void commit(std::unique_ptr<FileDescriptionBlock> block, [[maybe_unused]] SessionPtr live_extend);
+  void shutdown();
+  void commit(std::unique_ptr<FileDescriptionBlock> block,
+              [[maybe_unused]] SessionPtr live_extend);
   void commit(const std::string &filename, const std::string &block_data,
               const std::string &checksum, const std::string &curr_sequence,
               const std::string &last_sequence, std::size_t accumlated_size,
@@ -68,7 +69,7 @@ private:
   void execute(std::unique_ptr<FileDescriptionBlock> block);
 
 private:
-          std::size_t processing_id;
+  std::size_t processing_id;
 
   /*file stream*/
   std::string m_lastfile;

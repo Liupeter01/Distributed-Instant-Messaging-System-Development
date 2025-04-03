@@ -1,11 +1,11 @@
 #ifndef FILETRANSFERDIALOG_H
 #define FILETRANSFERDIALOG_H
 
+#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
 #include <QByteArray>
 #include <QDialog>
 #include <memory>
-#include <ByteOrderConverter.hpp>
 
 #define GB_TO_BYTES(gb) ((gb) * 1024LL * 1024 * 1024)
 #define FOUR_GB GB_TO_BYTES(4)

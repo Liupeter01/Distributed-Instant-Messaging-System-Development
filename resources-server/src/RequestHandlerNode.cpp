@@ -24,19 +24,16 @@ std::string handler::RequestHandlerNode::user_prefix = "user_info_";
 /*store the server name that this user belongs to*/
 std::string handler::RequestHandlerNode::server_prefix = "uuid_";
 
-handler::RequestHandlerNode::RequestHandlerNode() :RequestHandlerNode(0) 
-{}
+handler::RequestHandlerNode::RequestHandlerNode() : RequestHandlerNode(0) {}
 
-handler::RequestHandlerNode::RequestHandlerNode(const std::size_t id) 
-          :m_stop(false) 
-          , handler_id(id)
-{
+handler::RequestHandlerNode::RequestHandlerNode(const std::size_t id)
+    : m_stop(false), handler_id(id) {
 
-          /*register callbacks*/
-          registerCallbacks();
+  /*register callbacks*/
+  registerCallbacks();
 
-          /*start processing thread to process queue*/
-          m_working = std::thread(&RequestHandlerNode::processing, this);
+  /*start processing thread to process queue*/
+  m_working = std::thread(&RequestHandlerNode::processing, this);
 }
 
 handler::RequestHandlerNode::~RequestHandlerNode() { shutdown(); }
@@ -61,12 +58,13 @@ void handler::RequestHandlerNode::registerCallbacks() {
                 std::placeholders::_3)));
 }
 
-void handler::RequestHandlerNode::commit(pair recv_node, 
-                                                                        [[maybe_unused]] SessionPtr live_extend) {
+void handler::RequestHandlerNode::commit(
+    pair recv_node, [[maybe_unused]] SessionPtr live_extend) {
 
   std::lock_guard<std::mutex> _lckg(m_mtx);
   if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-            spdlog::warn("[Resources Server]: RequestHandlerNode {}'s Queue is full!", handler_id);
+    spdlog::warn("[Resources Server]: RequestHandlerNode {}'s Queue is full!",
+                 handler_id);
 
     return;
   }
@@ -76,9 +74,9 @@ void handler::RequestHandlerNode::commit(pair recv_node,
 }
 
 void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
-                                              ServiceType type,
-                                              ServiceStatus status,
-                                              SessionPtr conn) {
+                                                       ServiceType type,
+                                                       ServiceStatus status,
+                                                       SessionPtr conn) {
 
   boost::json::object obj;
   obj["error"] = static_cast<uint8_t>(status);
@@ -127,11 +125,11 @@ void handler::RequestHandlerNode::execute(pair &&node) {
 }
 
 void handler::RequestHandlerNode::setHandlerId(const std::size_t id) {
-          handler_id = id;
+  handler_id = id;
 }
 
 const std::size_t handler::RequestHandlerNode::getId() const {
-          return handler_id;
+  return handler_id;
 }
 
 void handler::RequestHandlerNode::shutdown() {
@@ -144,9 +142,8 @@ void handler::RequestHandlerNode::shutdown() {
   }
 }
 
-void handler::RequestHandlerNode::handlingLogin(ServiceType srv_type,
-                                       std::shared_ptr<Session> session,
-                                       NodePtr recv) {
+void handler::RequestHandlerNode::handlingLogin(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
   boost::json::object src_obj;
   boost::json::object result;
@@ -211,9 +208,8 @@ void handler::RequestHandlerNode::handlingLogin(ServiceType srv_type,
                        boost::json::serialize(result));
 }
 
-void handler::RequestHandlerNode::handlingLogout(ServiceType srv_type,
-                                        std::shared_ptr<Session> session,
-                                        NodePtr recv) {
+void handler::RequestHandlerNode::handlingLogout(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
   /*
    * sub user connection counter for current server
@@ -226,13 +222,13 @@ void handler::RequestHandlerNode::handlingLogout(ServiceType srv_type,
   /*delete user belonged server in redis*/
   if (!untagCurrentUser(session->get_user_uuid())) {
     spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
-                 session->get_user_uuid(), ServerConfig::get_instance()->GrpcServerName);
+                 session->get_user_uuid(),
+                 ServerConfig::get_instance()->GrpcServerName);
   }
 }
 
-void handler::RequestHandlerNode::handlingFileUploading(ServiceType srv_type,
-                                               std::shared_ptr<Session> session,
-                                               NodePtr recv) {
+void handler::RequestHandlerNode::handlingFileUploading(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
   boost::json::object src_obj;
   boost::json::object dst_root;

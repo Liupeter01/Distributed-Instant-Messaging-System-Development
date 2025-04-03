@@ -276,23 +276,27 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   std::error_code ec;
   if (!std::filesystem::exists(output_dir)) {
-            std::filesystem::create_directories(output_dir, ec);
-            if (ec) {
-                      spdlog::error("[Resources Server]: Failed to create directory '{}': {}", output_dir.string(), ec.message());
-                      generateErrorMessage("Directory Creation Failed",
-                                ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                                ServiceStatus::FILE_CREATE_ERROR, session);
-                      return;
-            }
+    std::filesystem::create_directories(output_dir, ec);
+    if (ec) {
+      spdlog::error("[Resources Server]: Failed to create directory '{}': {}",
+                    output_dir.string(), ec.message());
+      generateErrorMessage("Directory Creation Failed",
+                           ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                           ServiceStatus::FILE_CREATE_ERROR, session);
+      return;
+    }
   }
 
-  std::filesystem::path target_path = std::filesystem::weakly_canonical(full_path, ec);
+  std::filesystem::path target_path =
+      std::filesystem::weakly_canonical(full_path, ec);
   if (ec) {
-            spdlog::warn("[Resources Server]: Failed to get canonical path for '{}': {}", full_path.string(), ec.message());
-            generateErrorMessage("Path Canonicalization Error",
-                      ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                      ServiceStatus::FILE_CREATE_ERROR, session);
-            return;
+    spdlog::warn(
+        "[Resources Server]: Failed to get canonical path for '{}': {}",
+        full_path.string(), ec.message());
+    generateErrorMessage("Path Canonicalization Error",
+                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                         ServiceStatus::FILE_CREATE_ERROR, session);
+    return;
   }
 
   /*if it is first package then we should create a new file*/

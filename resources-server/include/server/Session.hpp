@@ -2,12 +2,12 @@
 #ifndef _SESSION_HPP_
 #define _SESSION_HPP_
 #include <boost/asio.hpp>
+#include <buffer/MsgNode.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <network/def.hpp>
 #include <queue>
-#include <buffer/MsgNode.hpp>
 
 class AsyncServer;
 class SyncLogic;
@@ -32,8 +32,8 @@ public:
   void closeSession();
   void setUUID(const std::string &uuid);
   void sendMessage(ServiceType srv_type, const std::string &message);
-  const std::string& get_user_uuid() const;
-  const std::string& get_session_id() const;
+  const std::string &get_user_uuid() const;
+  const std::string &get_session_id() const;
 
 private:
   /*handling sending event*/

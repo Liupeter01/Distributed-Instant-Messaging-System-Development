@@ -33,6 +33,7 @@ public:
   void setUUID(const std::string &uuid);
   void sendMessage(ServiceType srv_type, const std::string &message);
   const std::string& get_user_uuid() const;
+  const std::string& get_session_id() const;
 
 private:
   /*handling sending event*/

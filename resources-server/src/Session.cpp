@@ -6,6 +6,7 @@
 #include <server/AsyncServer.hpp>
 #include <server/Session.hpp>
 #include <spdlog/spdlog.h>
+#include <dispatcher/RequestHandlerDispatcher.hpp>
 
 Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
     : s_closed(false), s_socket(_ioc), s_gate(my_gate),
@@ -89,7 +90,9 @@ void Session::handle_write(std::shared_ptr<Session> session,
     std::lock_guard<std::mutex> _lckg(m_mtx);
 
     /*when the first element was processed, then pop it out*/
-    m_send_queue.pop();
+    if (!m_send_queue.empty()) {
+              m_send_queue.pop();
+    }
 
     /*till there is no element inside queue*/
     if (!m_send_queue.empty()) {
@@ -218,6 +221,10 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
     /*send the received data to SyncLogic to process it */
     SyncLogic::get_instance()->commit(std::make_pair(session, std::move(recv)));
 
+    /*send the received data to RequestHandlerDispatcher to process it */
+    //dispatcher::RequestHandlerDispatcher::get_instance()->commit(
+    //          std::make_pair(session, std::move(recv)), session);
+
     /*
      * if handle_msgbody is finished, then go back to header reader
      * Warning: m_header has already been init(cleared)
@@ -233,6 +240,7 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
                             m_recv_buffer->get_header_length()),
         std::bind(&Session::handle_header, this, session, std::placeholders::_1,
                   std::placeholders::_2));
+
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
   }
@@ -240,4 +248,8 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
 
 const std::string& Session::get_user_uuid() const {
           return s_uuid;
+}
+
+const std::string& Session::get_session_id() const {
+          return s_session_id;
 }

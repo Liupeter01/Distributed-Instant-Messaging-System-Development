@@ -39,6 +39,8 @@ struct FileDescriptionBlock {
 
 class FileProcessingNode {
   using SessionPtr = std::shared_ptr<Session>;
+  using NodePtr = std::unique_ptr<FileDescriptionBlock>;
+  using pair = std::pair<SessionPtr, NodePtr>;
 
 public:
   FileProcessingNode();
@@ -46,6 +48,8 @@ public:
   virtual ~FileProcessingNode();
 
 public:
+          void setProcessingId(const std::size_t id);
+          const std::size_t getProcessingId() const;
   void shutdown();
   void commit(std::unique_ptr<FileDescriptionBlock> block,
               [[maybe_unused]] SessionPtr live_extend);
@@ -66,7 +70,7 @@ protected:
 private:
   /*FileProcessingNode Class Operations*/
   void processing();
-  void execute(std::unique_ptr<FileDescriptionBlock> block);
+  void execute(pair&& block);
 
 private:
   std::size_t processing_id;
@@ -86,7 +90,7 @@ private:
   std::condition_variable m_cv;
 
   /*user commit filedescription block to this processing node!*/
-  std::queue<std::unique_ptr<FileDescriptionBlock>> m_queue;
+  std::queue<pair > m_queue;
 };
 } // namespace handler
 

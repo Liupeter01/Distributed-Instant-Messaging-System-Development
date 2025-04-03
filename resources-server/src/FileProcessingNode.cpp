@@ -14,6 +14,14 @@ handler::FileProcessingNode::FileProcessingNode(const std::size_t id)
 
 handler::FileProcessingNode::~FileProcessingNode() { shutdown(); }
 
+void handler::FileProcessingNode::setProcessingId(const std::size_t id) {
+          processing_id = id;
+}
+
+const std::size_t handler::FileProcessingNode::getProcessingId() const {
+          return processing_id;
+}
+
 void handler::FileProcessingNode::shutdown() {
 
   m_stop = true;
@@ -46,27 +54,33 @@ void handler::FileProcessingNode::processing() {
   }
 }
 
-void handler::FileProcessingNode::execute(
-    std::unique_ptr<FileDescriptionBlock> block) {
+void handler::FileProcessingNode::execute(pair&& block) {
 
   // redirect file stream
-  resetFileStream(block->filename,
-                  /*file pointer pos = */ block->accumlated_size);
+  resetFileStream(block.second->filename,
+                  /*file pointer pos = */ block.second->accumlated_size);
 
   // conduct base64 decode on block data first
-  block->block_data = base64Decode(block->block_data);
+  block.second->block_data = base64Decode(block.second->block_data);
 
   // write to file
-  writeToFile(block->block_data);
+  writeToFile(block.second->block_data);
 }
 
 void handler::FileProcessingNode::commit(
     std::unique_ptr<FileDescriptionBlock> block,
     [[maybe_unused]] SessionPtr live_extend) {
 
-  spdlog::info("[Resources Server]: Commit File: {}", block->filename);
+  std::lock_guard<std::mutex> _lckg(m_mtx);
+  if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
+            spdlog::warn("[Resources Server]: FileProcessingNode {}'s Queue is full!",
+                      processing_id);
 
-  m_queue.push(std::move(block));
+            return;
+  }
+
+  spdlog::info("[Resources Server]: Commit File: {}", block->filename);
+  m_queue.push(std::make_pair(live_extend, std::move(block)));
   m_cv.notify_one();
 }
 

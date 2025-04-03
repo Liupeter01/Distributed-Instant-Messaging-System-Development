@@ -271,10 +271,29 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto cur_size = cur_size_op.value();
   auto total_size = total_size_op.value();
 
-  /*final pathname, and this path might not exist!!*/
-  auto target_path = std::filesystem::weakly_canonical(
-      std::filesystem::path(ServerConfig::get_instance()->outputPath) /
-      std::filesystem::path(filename));
+  std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
+  std::filesystem::path full_path = output_dir / filename;
+
+  std::error_code ec;
+  if (!std::filesystem::exists(output_dir)) {
+            std::filesystem::create_directories(output_dir, ec);
+            if (ec) {
+                      spdlog::error("[Resources Server]: Failed to create directory '{}': {}", output_dir.string(), ec.message());
+                      generateErrorMessage("Directory Creation Failed",
+                                ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                                ServiceStatus::FILE_CREATE_ERROR, session);
+                      return;
+            }
+  }
+
+  std::filesystem::path target_path = std::filesystem::weakly_canonical(full_path, ec);
+  if (ec) {
+            spdlog::warn("[Resources Server]: Failed to get canonical path for '{}': {}", full_path.string(), ec.message());
+            generateErrorMessage("Path Canonicalization Error",
+                      ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                      ServiceStatus::FILE_CREATE_ERROR, session);
+            return;
+  }
 
   /*if it is first package then we should create a new file*/
   bool isFirstPackage = (boost::json::value_to<std::string>(

@@ -233,7 +233,10 @@ class RecvNode<
 public:
   RecvNode(Callable &&Network2Host,
            MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
-      : m_convertor(std::move(Network2Host)), MsgHeader<Container>(type) {}
+      : m_convertor(std::move(Network2Host)), MsgHeader<Container>(type) {
+  
+            this->_type = type;
+  }
 
   virtual std::optional<uint16_t> get_id() {
     if (this->check_header_remaining()) { /*not OK*/
@@ -308,6 +311,8 @@ struct SendNode<
            MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
       : m_convertor(std::move(Host2Network)),
         MsgHeader<Container>(msg_id, string, type) {
+
+            this->_type = type;
 
     /*we should not change the inner variables*/
     uint16_t cv_id = m_convertor(this->_id);

@@ -16,15 +16,15 @@
 #include <tools/tools.hpp>
 
 /*redis*/
-std::string RequestHandlerNode::redis_server_login = "redis_server";
+std::string handler::RequestHandlerNode::redis_server_login = "redis_server";
 
 /*store user base info in redis*/
-std::string RequestHandlerNode::user_prefix = "user_info_";
+std::string handler::RequestHandlerNode::user_prefix = "user_info_";
 
 /*store the server name that this user belongs to*/
-std::string RequestHandlerNode::server_prefix = "uuid_";
+std::string handler::RequestHandlerNode::server_prefix = "uuid_";
 
-RequestHandlerNode::RequestHandlerNode() : m_stop(false) {
+handler::RequestHandlerNode::RequestHandlerNode() : m_stop(false) {
   /*register callbacks*/
   registerCallbacks();
 
@@ -32,9 +32,9 @@ RequestHandlerNode::RequestHandlerNode() : m_stop(false) {
   m_working = std::thread(&RequestHandlerNode::processing, this);
 }
 
-RequestHandlerNode::~RequestHandlerNode() { shutdown(); }
+handler::RequestHandlerNode::~RequestHandlerNode() { shutdown(); }
 
-void RequestHandlerNode::registerCallbacks() {
+void handler::RequestHandlerNode::registerCallbacks() {
 
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
       ServiceType::SERVICE_LOGINSERVER,
@@ -54,7 +54,7 @@ void RequestHandlerNode::registerCallbacks() {
                 std::placeholders::_3)));
 }
 
-void RequestHandlerNode::commit(pair recv_node) {
+void handler::RequestHandlerNode::commit(pair recv_node) {
   std::lock_guard<std::mutex> _lckg(m_mtx);
   if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
     spdlog::warn("SyncLogic Queue is full!");
@@ -64,7 +64,7 @@ void RequestHandlerNode::commit(pair recv_node) {
   m_cv.notify_one();
 }
 
-void RequestHandlerNode::generateErrorMessage(const std::string &log,
+void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
                                               ServiceType type,
                                               ServiceStatus status,
                                               SessionPtr conn) {
@@ -75,7 +75,7 @@ void RequestHandlerNode::generateErrorMessage(const std::string &log,
   conn->sendMessage(type, boost::json::serialize(obj));
 }
 
-void RequestHandlerNode::processing() {
+void handler::RequestHandlerNode::processing() {
   for (;;) {
     std::unique_lock<std::mutex> _lckg(m_mtx);
     m_cv.wait(_lckg, [this]() { return m_stop || !m_queue.empty(); });
@@ -96,7 +96,7 @@ void RequestHandlerNode::processing() {
   }
 }
 
-void RequestHandlerNode::execute(pair &&node) {
+void handler::RequestHandlerNode::execute(pair &&node) {
   std::shared_ptr<Session> session = node.first;
 
   ServiceType type = static_cast<ServiceType>(node.second->_id);
@@ -115,7 +115,7 @@ void RequestHandlerNode::execute(pair &&node) {
   }
 }
 
-void RequestHandlerNode::shutdown() {
+void handler::RequestHandlerNode::shutdown() {
   m_stop = true;
   m_cv.notify_all();
 
@@ -125,7 +125,7 @@ void RequestHandlerNode::shutdown() {
   }
 }
 
-void RequestHandlerNode::handlingLogin(ServiceType srv_type,
+void handler::RequestHandlerNode::handlingLogin(ServiceType srv_type,
                                        std::shared_ptr<Session> session,
                                        NodePtr recv) {
 
@@ -192,7 +192,7 @@ void RequestHandlerNode::handlingLogin(ServiceType srv_type,
                        boost::json::serialize(result));
 }
 
-void RequestHandlerNode::handlingLogout(ServiceType srv_type,
+void handler::RequestHandlerNode::handlingLogout(ServiceType srv_type,
                                         std::shared_ptr<Session> session,
                                         NodePtr recv) {
 
@@ -205,13 +205,13 @@ void RequestHandlerNode::handlingLogout(ServiceType srv_type,
   decrementConnection();
 
   /*delete user belonged server in redis*/
-  if (!untagCurrentUser(session->s_uuid)) {
+  if (!untagCurrentUser(session->get_user_uuid())) {
     spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
-                 session->s_uuid, ServerConfig::get_instance()->GrpcServerName);
+                 session->get_user_uuid(), ServerConfig::get_instance()->GrpcServerName);
   }
 }
 
-void RequestHandlerNode::handlingFileUploading(ServiceType srv_type,
+void handler::RequestHandlerNode::handlingFileUploading(ServiceType srv_type,
                                                std::shared_ptr<Session> session,
                                                NodePtr recv) {
 
@@ -345,7 +345,7 @@ void RequestHandlerNode::handlingFileUploading(ServiceType srv_type,
  * counter
  * 2. HGET exist: Increment by 1
  */
-void RequestHandlerNode::incrementConnection() {
+void handler::RequestHandlerNode::incrementConnection() {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
 
@@ -372,7 +372,7 @@ void RequestHandlerNode::incrementConnection() {
  * counter
  * 2. HGET exist: Decrement by 1
  */
-void RequestHandlerNode::decrementConnection() {
+void handler::RequestHandlerNode::decrementConnection() {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
 
@@ -393,14 +393,14 @@ void RequestHandlerNode::decrementConnection() {
                              std::to_string(--new_number));
 }
 
-bool RequestHandlerNode::tagCurrentUser(const std::string &uuid) {
+bool handler::RequestHandlerNode::tagCurrentUser(const std::string &uuid) {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
   return raii->get()->setValue(server_prefix + uuid,
                                ServerConfig::get_instance()->GrpcServerName);
 }
 
-bool RequestHandlerNode::untagCurrentUser(const std::string &uuid) {
+bool handler::RequestHandlerNode::untagCurrentUser(const std::string &uuid) {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
   return raii->get()->delPair(server_prefix + uuid);

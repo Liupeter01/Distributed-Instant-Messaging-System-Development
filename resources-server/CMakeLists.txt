@@ -46,7 +46,7 @@ endif()
 
 project(
   ResourcesServer
-  VERSION 0.0.1
+  VERSION 1.1.1
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)

@@ -36,15 +36,16 @@ struct FileDescriptionBlock {
   std::size_t file_size;
 };
 
-class FileProcessingNode : public Singleton<FileProcessingNode> {
-  friend class Singleton<FileProcessingNode>;
+class FileProcessingNode : public Singleton<FileProcessingNode>{
 
-  FileProcessingNode();
+          friend class Singleton<FileProcessingNode>;
+          FileProcessingNode();
 
 public:
   virtual ~FileProcessingNode();
 
 public:
+          void shutdown();
   void commit(std::unique_ptr<FileDescriptionBlock> block);
   void commit(const std::string &filename, const std::string &block_data,
               const std::string &checksum, const std::string &curr_sequence,
@@ -62,7 +63,6 @@ protected:
 
 private:
   /*FileProcessingNode Class Operations*/
-  void shutdown();
   void processing();
   void execute(std::unique_ptr<FileDescriptionBlock> block);
 

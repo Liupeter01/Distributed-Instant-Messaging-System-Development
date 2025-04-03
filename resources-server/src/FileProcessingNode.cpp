@@ -3,9 +3,17 @@
 #include <handler/FileProcessingNode.hpp>
 #include <spdlog/spdlog.h>
 
-handler::FileProcessingNode::FileProcessingNode() : m_stop(false) {
-  /*start processing thread to process queue*/
-  m_working = std::thread(&FileProcessingNode::processing, this);
+handler::FileProcessingNode::FileProcessingNode()
+          :FileProcessingNode(0)
+{
+}
+
+handler::FileProcessingNode::FileProcessingNode(const std::size_t id) 
+          : m_stop(false) 
+          , processing_id(id){
+
+          /*start processing thread to process queue*/
+          m_working = std::thread(&FileProcessingNode::processing, this);
 }
 
 handler::FileProcessingNode::~FileProcessingNode() { shutdown(); }
@@ -56,8 +64,9 @@ void handler::FileProcessingNode::execute(
   writeToFile(block->block_data);
 }
 
-void handler::FileProcessingNode::commit(
-    std::unique_ptr<FileDescriptionBlock> block) {
+void handler::FileProcessingNode::commit(std::unique_ptr<FileDescriptionBlock> block, 
+                                                                       [[maybe_unused]] SessionPtr live_extend) {
+
   spdlog::info("[Resources Server]: Commit File: {}", block->filename);
 
   m_queue.push(std::move(block));
@@ -70,11 +79,11 @@ void handler::FileProcessingNode::commit(const std::string &filename,
                                          const std::string &curr_sequence,
                                          const std::string &last_sequence,
                                          std::size_t accumlated_size,
-                                         std::size_t file_size) {
+                                         std::size_t file_size, [[maybe_unused]] SessionPtr live_extend) {
 
-  commit(std::make_unique<FileDescriptionBlock>(filename, block_data, checksum,
-                                                curr_sequence, last_sequence,
-                                                accumlated_size, file_size));
+          commit(std::make_unique<FileDescriptionBlock>(filename, block_data, checksum,
+                    curr_sequence, last_sequence,
+                    accumlated_size, file_size), live_extend);
 }
 
 bool handler::FileProcessingNode::resetFileStream(const std::string &filename,
@@ -123,30 +132,30 @@ bool handler::FileProcessingNode::resetFileStream(const std::string &filename,
 std::optional<std::filesystem::path>
 handler::FileProcessingNode::createFile(const std::string &filename) {
           
+          std::error_code ec;
   std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
   std::filesystem::path full_path = output_dir / filename;
 
   // Ensure the output directory exists
   if (!std::filesystem::exists(output_dir)) {
-            std::error_code dir_ec;
-            if (!std::filesystem::create_directories(output_dir, dir_ec)) {
-                      spdlog::error("[Resources Server]: Failed to create directories: {}", dir_ec.message());
+            if (!std::filesystem::create_directories(output_dir, ec)) {
+                      spdlog::error("[Resources Server]: Failed to create directories '{}': {}",
+                                output_dir.string(), ec.message());
+
                       return std::nullopt;
             }
   }
 
-  std::error_code ec;
   std::filesystem::path target_path =
       std::filesystem::weakly_canonical(full_path, ec);
 
   if (ec) {
-    spdlog::warn("[Resources Server]: Error Creating User File: {}",
-                 ec.message());
+    spdlog::error("[Resources Server]: Failed to create file '{}' in directory: {}",
+              filename, ec.message());
+
     return std::nullopt;
   }
-  spdlog::info("[Resources Server]: Create User File {} Successfully",
-               filename);
-
+  spdlog::info("[Resources Server]: File path resolved successfully for '{}'", filename);
   return target_path;
 }
 

@@ -10,32 +10,29 @@
 #include <optional>
 #include <queue>
 #include <server/Session.hpp>
-#include <singleton/singleton.hpp>
 #include <thread>
 #include <unordered_map>
 
 namespace handler {
 
-          class RequestHandlerNode : public Singleton<RequestHandlerNode> {
-
-                    friend class Singleton<RequestHandlerNode>;
-
+          class RequestHandlerNode{
           public:
                     using Convertor = std::function<unsigned short(unsigned short)>;
                     using SessionPtr = std::shared_ptr<Session>;
                     using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
                     using pair = std::pair<SessionPtr, NodePtr>;
-
-          private:
                     using CallbackFunc =
                               std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
 
-                    RequestHandlerNode();
-
           public:
+                    RequestHandlerNode();
+                    RequestHandlerNode(const std::size_t id);
                     ~RequestHandlerNode();
                     void shutdown();
-                    void commit(pair recv_node);
+                    void setHandlerId(const std::size_t id);
+                    const std::size_t getId() const;
+
+                    void commit(pair recv_node, [[maybe_unused]] SessionPtr live_extend);
                     static void generateErrorMessage(const std::string& log, ServiceType type,
                               ServiceStatus status, SessionPtr conn);
 
@@ -76,6 +73,7 @@ namespace handler {
                     static std::string server_prefix;
 
           private:
+                    std::size_t handler_id;
                     std::atomic<bool> m_stop;
 
                     /*working thread, handling commited request*/

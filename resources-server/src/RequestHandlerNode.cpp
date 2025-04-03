@@ -24,12 +24,19 @@ std::string handler::RequestHandlerNode::user_prefix = "user_info_";
 /*store the server name that this user belongs to*/
 std::string handler::RequestHandlerNode::server_prefix = "uuid_";
 
-handler::RequestHandlerNode::RequestHandlerNode() : m_stop(false) {
-  /*register callbacks*/
-  registerCallbacks();
+handler::RequestHandlerNode::RequestHandlerNode() :RequestHandlerNode(0) 
+{}
 
-  /*start processing thread to process queue*/
-  m_working = std::thread(&RequestHandlerNode::processing, this);
+handler::RequestHandlerNode::RequestHandlerNode(const std::size_t id) 
+          :m_stop(false) 
+          , handler_id(id)
+{
+
+          /*register callbacks*/
+          registerCallbacks();
+
+          /*start processing thread to process queue*/
+          m_working = std::thread(&RequestHandlerNode::processing, this);
 }
 
 handler::RequestHandlerNode::~RequestHandlerNode() { shutdown(); }
@@ -54,12 +61,16 @@ void handler::RequestHandlerNode::registerCallbacks() {
                 std::placeholders::_3)));
 }
 
-void handler::RequestHandlerNode::commit(pair recv_node) {
+void handler::RequestHandlerNode::commit(pair recv_node, 
+                                                                        [[maybe_unused]] SessionPtr live_extend) {
+
   std::lock_guard<std::mutex> _lckg(m_mtx);
   if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-    spdlog::warn("SyncLogic Queue is full!");
+            spdlog::warn("[Resources Server]: RequestHandlerNode {}'s Queue is full!", handler_id);
+
     return;
   }
+
   m_queue.push(std::move(recv_node));
   m_cv.notify_one();
 }
@@ -113,6 +124,14 @@ void handler::RequestHandlerNode::execute(pair &&node) {
     spdlog::error("Excute Method Failed, Internel Server Error! Error Code {}",
                   e.what());
   }
+}
+
+void handler::RequestHandlerNode::setHandlerId(const std::size_t id) {
+          handler_id = id;
+}
+
+const std::size_t handler::RequestHandlerNode::getId() const {
+          return handler_id;
 }
 
 void handler::RequestHandlerNode::shutdown() {

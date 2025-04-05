@@ -256,9 +256,9 @@ void TCPNetworkConnection::setupResourcesDataRetrieveEvent(
           received._msg = buffer.get_msg_body().value();
 
           // Debug output to show the received message
-          qDebug() << "msg_id = " << received._id << "\n"
-                   << "msg_length = " << received._length << "\n"
-                   << "msg_data = " << received._msg << "\n";
+          // qDebug() << "msg_id = " << received._id << "\n"
+          //          << "msg_length = " << received._length << "\n"
+          //          << "msg_data = " << received._msg << "\n";
 
           // Clear the buffer for the next message
           buffer.clear();

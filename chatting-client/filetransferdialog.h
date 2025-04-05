@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <QDialog>
 #include <memory>
+#include <QThread>
 
 #define GB_TO_BYTES(gb) ((gb) * 1024LL * 1024 * 1024)
 #define FOUR_GB GB_TO_BYTES(4)
@@ -36,16 +37,15 @@ private:
   void registerNetworkEvent();
   void registerSignals();
 
-public:
-  static std::size_t calculateBlockNumber(const std::size_t totalSize,
-                                          const std::size_t chunkSize);
-
 signals:
   /*return connection status to login class*/
   void signal_connection_status(bool status);
 
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
+  void signal_start_file_transmission(const QString&fileName,
+                                     const QString&filePath,
+                                     const std::size_t fileChunk);
 
 private slots:
   /*open file*/
@@ -63,13 +63,14 @@ private:
   Ui::FileTransferDialog *ui;
 
   /*chunk size and chunk number consist of this file*/
-  std::size_t m_fileChunk = 2048;
+  std::size_t m_fileChunk = 4096;
   std::size_t m_blockNumber = 0;
 
   /*file basic info*/
   QString m_filePath;
   QString m_fileName;
   std::size_t m_fileSize;
+  std::size_t m_alreadySent;
 
   /*md5 checksum*/
   QByteArray m_fileCheckSum;

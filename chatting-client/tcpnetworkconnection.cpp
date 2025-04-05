@@ -77,9 +77,9 @@ void TCPNetworkConnection::registerSocketSignal() {
     emit signal_connection_status(false);
   });
 
-  connect(this, &TCPNetworkConnection::signal_resources_logic_handler,
-          LogicMethod::get_instance().get(),
-          &LogicMethod::signal_resources_logic_handler);
+  connect(&m_resources_server_socket, &QTcpSocket::bytesWritten, [this](qint64 bytes) {
+      emit signal_block_send(bytes);
+  });
 
   /*receive data from server*/
   setupChattingDataRetrieveEvent(m_chatting_server_socket, m_chatting_info,
@@ -565,8 +565,18 @@ void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
                                              TargetServer tar) {
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data->get_buffer());
+      //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+      //No flush, it might causing buffer full!!!!!!!!!
+      //m_resources_server_socket.flush();
+
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data->get_buffer());
+      //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+      //No flush, it might causing buffer full!!!!!!!!!
+      //m_resources_server_socket.flush();
+
+    /*return file transmission status*/
+    //emit signal_block_send(data->get_buffer().size());
   }
 }
 
@@ -574,8 +584,16 @@ void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
 
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data.get_buffer());
+
+    //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+    //No flush, it might causing buffer full!!!!!!!!!
+    //m_resources_server_socket.flush();
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data.get_buffer());
+
+      //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+      //No flush, it might causing buffer full!!!!!!!!!
+      //m_resources_server_socket.flush();
   }
 }
 

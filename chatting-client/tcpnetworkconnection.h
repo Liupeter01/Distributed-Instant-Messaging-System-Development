@@ -81,6 +81,8 @@ private slots:
   void slot_send_message(std::shared_ptr<SendNodeType> data,
                          TargetServer tar = TargetServer::CHATTINGSERVER);
 
+  //void slot_bytes_written(qint64 bytes);
+
 signals:
   void signal_connect2_chatting_server();
   void signal_connect2_resources_server();
@@ -94,6 +96,8 @@ signals:
    */
   void signal_send_message(std::shared_ptr<SendNodeType> data,
                            TargetServer tar = TargetServer::CHATTINGSERVER);
+
+  void signal_block_send(const std::size_t size);
 
   /*return connection status to login class*/
   void signal_connection_status(bool status);

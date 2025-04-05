@@ -7,7 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <network/def.hpp>
-#include <queue>
+#include <tbb/concurrent_queue.h>
 
 class AsyncServer;
 class SyncLogic;
@@ -68,8 +68,9 @@ private:
   RecvPtr m_recv_buffer;
 
   /*sending queue*/
-  std::mutex m_mtx;
-  std::queue<SendPtr> m_send_queue;
+  std::atomic<bool> m_write_in_progress = false;
+  std::unique_ptr<Send> m_current_write_msg;  
+  tbb::concurrent_queue< SendPtr> m_concurrent_sent_queue;
 
   /* the length of the header
    * the max length of receiving buffer

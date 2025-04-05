@@ -330,9 +330,10 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   }
 
   spdlog::info("[Resources Server]: Uploading {} Progress {:.2f}% ({}/{})",
-            filename, static_cast<float>(cur_size) / total_size * 100, cur_size, total_size);
+               filename, static_cast<float>(cur_size) / total_size * 100,
+               cur_size, total_size);
 
-  //out.seekp(cur_size);
+  // out.seekp(cur_size);
   out.write(block_data.data(), block_data.size());
 
   if (!out) {

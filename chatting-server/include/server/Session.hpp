@@ -2,11 +2,11 @@
 #ifndef _SESSION_HPP_
 #define _SESSION_HPP_
 #include <boost/asio.hpp>
+#include <buffer/ByteOrderConverter.hpp>
+#include <buffer/MsgNode.hpp>
 #include <memory>
 #include <network/def.hpp>
 #include <tbb/concurrent_queue.h>
-#include <buffer/MsgNode.hpp>
-#include <buffer/ByteOrderConverter.hpp>
 
 class AsyncServer;
 class SyncLogic;
@@ -29,9 +29,8 @@ public:
   void closeSession();
   void setUUID(const std::string &uuid);
   void sendMessage(ServiceType srv_type, const std::string &message);
-  const std::string& get_user_uuid() const;
-  const std::string& get_session_id() const;
-
+  const std::string &get_user_uuid() const;
+  const std::string &get_session_id() const;
 
 private:
   /*handling sending event*/
@@ -68,7 +67,7 @@ private:
   /*sending queue*/
   std::atomic<bool> m_write_in_progress = false;
   std::unique_ptr<Send> m_current_write_msg;
-  tbb::concurrent_queue< SendPtr> m_concurrent_sent_queue;
+  tbb::concurrent_queue<SendPtr> m_concurrent_sent_queue;
 
   /* the length of the header
    * the max length of receiving buffer

@@ -15,11 +15,11 @@ handler::FileProcessingNode::FileProcessingNode(const std::size_t id)
 handler::FileProcessingNode::~FileProcessingNode() { shutdown(); }
 
 void handler::FileProcessingNode::setProcessingId(const std::size_t id) {
-          processing_id = id;
+  processing_id = id;
 }
 
 const std::size_t handler::FileProcessingNode::getProcessingId() const {
-          return processing_id;
+  return processing_id;
 }
 
 void handler::FileProcessingNode::shutdown() {
@@ -54,7 +54,7 @@ void handler::FileProcessingNode::processing() {
   }
 }
 
-void handler::FileProcessingNode::execute(pair&& block) {
+void handler::FileProcessingNode::execute(pair &&block) {
 
   // redirect file stream
   resetFileStream(block.second->filename,
@@ -73,10 +73,10 @@ void handler::FileProcessingNode::commit(
 
   std::lock_guard<std::mutex> _lckg(m_mtx);
   if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-            spdlog::warn("[Resources Server]: FileProcessingNode {}'s Queue is full!",
-                      processing_id);
+    spdlog::warn("[Resources Server]: FileProcessingNode {}'s Queue is full!",
+                 processing_id);
 
-            return;
+    return;
   }
 
   spdlog::info("[Resources Server]: Commit File: {}", block->filename);

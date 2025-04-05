@@ -2,6 +2,8 @@
 #ifndef _SYNCLOGIC_HPP_
 #define _SYNCLOGIC_HPP_
 #include <atomic>
+#include <buffer/ByteOrderConverter.hpp>
+#include <buffer/MsgNode.hpp>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -13,8 +15,6 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include <buffer/MsgNode.hpp>
-#include <buffer/ByteOrderConverter.hpp>
 
 /*declaration*/
 struct UserNameCard;
@@ -24,9 +24,9 @@ class SyncLogic : public Singleton<SyncLogic> {
   friend class Singleton<SyncLogic>;
 
 public:
-          using SessionPtr = std::shared_ptr<Session>;
-          using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
-          using pair = std::pair<SessionPtr, NodePtr>;
+  using SessionPtr = std::shared_ptr<Session>;
+  using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
+  using pair = std::pair<SessionPtr, NodePtr>;
 
 private:
   using CallbackFunc =

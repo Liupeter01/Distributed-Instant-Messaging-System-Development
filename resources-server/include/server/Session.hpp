@@ -69,8 +69,8 @@ private:
 
   /*sending queue*/
   std::atomic<bool> m_write_in_progress = false;
-  std::unique_ptr<Send> m_current_write_msg;  
-  tbb::concurrent_queue< SendPtr> m_concurrent_sent_queue;
+  std::unique_ptr<Send> m_current_write_msg;
+  tbb::concurrent_queue<SendPtr> m_concurrent_sent_queue;
 
   /* the length of the header
    * the max length of receiving buffer

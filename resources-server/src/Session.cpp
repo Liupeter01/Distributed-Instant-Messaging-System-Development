@@ -9,8 +9,9 @@
 #include <spdlog/spdlog.h>
 
 Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
-    : s_closed(false), s_socket(_ioc), s_gate(my_gate), m_write_in_progress(false)
-      ,m_recv_buffer(std::make_unique<Recv>(
+    : s_closed(false), s_socket(_ioc), s_gate(my_gate),
+      m_write_in_progress(false),
+      m_recv_buffer(std::make_unique<Recv>(
           ByteOrderConverter{},
           MsgNodeType::MSGNODE_FILE_TRANSFER)) /*init header buffer init*/
 {
@@ -47,33 +48,31 @@ void Session::closeSession() {
 
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
   try {
-    //if (m_send_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-    //  spdlog::warn("Client [UUID = {}] Sending Queue is full!");
-    //  return;
-    //}
+    // if (m_send_queue.size() >
+    // ServerConfig::get_instance()->ResourceQueueSize) {
+    //   spdlog::warn("Client [UUID = {}] Sending Queue is full!");
+    //   return;
+    // }
 
     /*inside SendNode ctor, temporary must be modifiable*/
     std::string temporary = message;
 
     m_concurrent_sent_queue.push(std::make_unique<Send>(
-              static_cast<uint16_t>(srv_type),
-              temporary,
-              ByteOrderConverterReverse{},
-              MsgNodeType::MSGNODE_FILE_TRANSFER));
+        static_cast<uint16_t>(srv_type), temporary, ByteOrderConverterReverse{},
+        MsgNodeType::MSGNODE_FILE_TRANSFER));
 
     bool expected = false;
     if (m_write_in_progress.compare_exchange_strong(expected, true)) {
-              if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
-                        boost::asio::async_write(
-                                  s_socket,
-                                  boost::asio::buffer(m_current_write_msg->get_header_base(),
-                                            m_current_write_msg->get_full_length()),
-                                  std::bind(&Session::handle_write, this,
-                                            shared_from_this(), std::placeholders::_1));
-              }
-              else {
-                        m_write_in_progress = false;
-              }
+      if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
+        boost::asio::async_write(
+            s_socket,
+            boost::asio::buffer(m_current_write_msg->get_header_base(),
+                                m_current_write_msg->get_full_length()),
+            std::bind(&Session::handle_write, this, shared_from_this(),
+                      std::placeholders::_1));
+      } else {
+        m_write_in_progress = false;
+      }
     }
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
@@ -94,15 +93,14 @@ void Session::handle_write(std::shared_ptr<Session> session,
 
     /*till there is no element inside queue*/
     if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
-              boost::asio::async_write(
-                        s_socket,
-                        boost::asio::buffer(m_current_write_msg->get_header_base(),
-                                  m_current_write_msg->get_full_length()),
-                        std::bind(&Session::handle_write, this,
-                                  shared_from_this(), std::placeholders::_1));
-    }
-    else {
-              m_write_in_progress = false;
+      boost::asio::async_write(
+          s_socket,
+          boost::asio::buffer(m_current_write_msg->get_header_base(),
+                              m_current_write_msg->get_full_length()),
+          std::bind(&Session::handle_write, this, shared_from_this(),
+                    std::placeholders::_1));
+    } else {
+      m_write_in_progress = false;
     }
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());

@@ -30,8 +30,7 @@ mysql::MySQLConnectionPool::MySQLConnectionPool(
 
   m_RRThread = std::thread([this]() {
     while (!m_stop) {
-              spdlog::info("[HeartBeat Check]: Timeout Setting {}s",
-                        m_timeout);
+      spdlog::info("[HeartBeat Check]: Timeout Setting {}s", m_timeout);
 
       roundRobinChecking();
 

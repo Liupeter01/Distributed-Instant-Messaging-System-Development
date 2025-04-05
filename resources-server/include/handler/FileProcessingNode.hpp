@@ -48,8 +48,8 @@ public:
   virtual ~FileProcessingNode();
 
 public:
-          void setProcessingId(const std::size_t id);
-          const std::size_t getProcessingId() const;
+  void setProcessingId(const std::size_t id);
+  const std::size_t getProcessingId() const;
   void shutdown();
   void commit(std::unique_ptr<FileDescriptionBlock> block,
               [[maybe_unused]] SessionPtr live_extend);
@@ -70,7 +70,7 @@ protected:
 private:
   /*FileProcessingNode Class Operations*/
   void processing();
-  void execute(pair&& block);
+  void execute(pair &&block);
 
 private:
   std::size_t processing_id;
@@ -90,7 +90,7 @@ private:
   std::condition_variable m_cv;
 
   /*user commit filedescription block to this processing node!*/
-  std::queue<pair > m_queue;
+  std::queue<pair> m_queue;
 };
 } // namespace handler
 

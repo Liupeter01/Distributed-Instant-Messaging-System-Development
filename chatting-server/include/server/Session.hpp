@@ -2,12 +2,11 @@
 #ifndef _SESSION_HPP_
 #define _SESSION_HPP_
 #include <boost/asio.hpp>
-#include <functional>
 #include <memory>
-#include <mutex>
 #include <network/def.hpp>
-#include <queue>
-#include <server/MsgNode.hpp>
+#include <tbb/concurrent_queue.h>
+#include <buffer/MsgNode.hpp>
+#include <buffer/ByteOrderConverter.hpp>
 
 class AsyncServer;
 class SyncLogic;
@@ -16,9 +15,8 @@ class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
 
-  using Convertor = std::function<unsigned short(unsigned short)>;
-  using Recv = RecvNode<std::string, Convertor>;
-  using Send = SendNode<std::string, Convertor>;
+  using Recv = RecvNode<std::string, ByteOrderConverter>;
+  using Send = SendNode<std::string, ByteOrderConverterReverse>;
   using RecvPtr = std::unique_ptr<Recv>;
   using SendPtr = std::unique_ptr<Send>;
 
@@ -31,6 +29,9 @@ public:
   void closeSession();
   void setUUID(const std::string &uuid);
   void sendMessage(ServiceType srv_type, const std::string &message);
+  const std::string& get_user_uuid() const;
+  const std::string& get_session_id() const;
+
 
 private:
   /*handling sending event*/
@@ -65,14 +66,13 @@ private:
   RecvPtr m_recv_buffer;
 
   /*sending queue*/
-  std::mutex m_mtx;
-  std::queue<SendPtr> m_send_queue;
+  std::atomic<bool> m_write_in_progress = false;
+  std::unique_ptr<Send> m_current_write_msg;
+  tbb::concurrent_queue< SendPtr> m_concurrent_sent_queue;
 
   /* the length of the header
    * the max length of receiving buffer
    */
-  static constexpr std::size_t HEADER_LENGTH =
-      sizeof(uint16_t) + sizeof(uint16_t);
   static constexpr std::size_t MAX_LENGTH = 2048;
 };
 

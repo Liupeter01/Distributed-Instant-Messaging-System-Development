@@ -52,6 +52,10 @@ void TCPNetworkConnection::registerNetworkEvent() {
 
   connect(this, &TCPNetworkConnection::signal_send_message, this,
           &TCPNetworkConnection::slot_send_message);
+
+  connect(this, &TCPNetworkConnection::signal_resources_logic_handler,
+          LogicMethod::get_instance().get(),
+          &LogicMethod::signal_resources_logic_handler);
 }
 
 void TCPNetworkConnection::registerSocketSignal() {

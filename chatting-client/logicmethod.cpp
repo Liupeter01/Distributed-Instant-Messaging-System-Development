@@ -26,10 +26,6 @@ void LogicMethod::registerSignals() {
   connect(this, &LogicMethod::signal_resources_logic_handler,
           m_exec, &LogicExecutor::slot_resources_logic_handler);
 
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_resources_logic_handler,
-          this, &LogicMethod::signal_resources_logic_handler);
-
   /*
    * parse the data inside logicexecutor
    * retrieve data transmission status(propotion)

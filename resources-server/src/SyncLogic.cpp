@@ -240,7 +240,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
         src_obj.contains("file_size") && src_obj.contains("block") &&
         src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
-        src_obj.contains("last_seq"))) {
+        src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
@@ -303,11 +303,6 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   bool isFirstPackage = (boost::json::value_to<std::string>(
                              src_obj["cur_seq"]) == std::string("1"));
 
-  /*End of Transmission*/
-  if (src_obj.contains("EOF")) {
-    // src_root["EOF"].asInt();
-  }
-
   /*convert base64 to binary*/
   std::string block_data;
   absl::Base64Unescape(boost::json::value_to<std::string>(src_obj["block"]),
@@ -334,10 +329,14 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
     return;
   }
 
+  spdlog::info("[Resources Server]: Uploading {} Progress {:.2f}% ({}/{})",
+            filename, static_cast<float>(cur_size) / total_size * 100, cur_size, total_size);
+
+  //out.seekp(cur_size);
   out.write(block_data.data(), block_data.size());
+
   if (!out) {
     spdlog::warn("Uploading File [{}] Write Error!", filename);
-
     generateErrorMessage("File Write Error",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
                          ServiceStatus::FILE_WRITE_ERROR, session);

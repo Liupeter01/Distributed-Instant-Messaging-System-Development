@@ -97,7 +97,8 @@ void FileTransferThread::slot_send_next_block()
         send_buffer, TargetServer::RESOURCESSERVER);
 
     //Maybe use another computer?
-    QThread::msleep(10);
+    //No Need
+    //QThread::msleep(10);
 }
 
 void FileTransferThread::slot_start_file_transmission(const QString&fileName,

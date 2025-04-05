@@ -13,6 +13,8 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <buffer/MsgNode.hpp>
+#include <buffer/ByteOrderConverter.hpp>
 
 /*declaration*/
 struct UserNameCard;
@@ -22,10 +24,9 @@ class SyncLogic : public Singleton<SyncLogic> {
   friend class Singleton<SyncLogic>;
 
 public:
-  using Convertor = std::function<unsigned short(unsigned short)>;
-  using SessionPtr = std::shared_ptr<Session>;
-  using NodePtr = std::unique_ptr<RecvNode<std::string, Convertor>>;
-  using pair = std::pair<SessionPtr, NodePtr>;
+          using SessionPtr = std::shared_ptr<Session>;
+          using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
+          using pair = std::pair<SessionPtr, NodePtr>;
 
 private:
   using CallbackFunc =

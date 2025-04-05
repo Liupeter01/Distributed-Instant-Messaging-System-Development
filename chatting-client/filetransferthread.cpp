@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <tcpnetworkconnection.h>
+#include <logicmethod.h>
 
 FileTransferThread::FileTransferThread(QObject *parent)
     : QObject{parent}
@@ -43,12 +44,14 @@ void FileTransferThread::registerSignal()
     connect(this, &FileTransferThread::signal_send_next_block,
             this, &FileTransferThread::slot_send_next_block);
 
-    connect(TCPNetworkConnection::get_instance().get(),
-            &TCPNetworkConnection::signal_block_send,
-            this,
-            [this](std::size_t bytes_sent) {
-                m_curSeq++;
-                accumulate_transferred += bytes_sent;
+    connect(LogicMethod::get_instance().get(),
+            &LogicMethod::signal_data_transmission_status, this,
+            [this](const QString &filename, const std::size_t curr_seq,
+                   const std::size_t curr_size, const std::size_t total_size) {
+
+                m_curSeq = curr_seq + 1;
+                accumulate_transferred = curr_size;
+
                 emit signal_send_next_block();
             });
 }

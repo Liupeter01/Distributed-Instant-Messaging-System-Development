@@ -60,24 +60,35 @@ void dispatcher::FileProcessingDispatcher::commit(
 }
 
 const std::size_t dispatcher::FileProcessingDispatcher::hash_to_index(
-    std::string_view session_id) const {
-  return m_convertor(session_id) % m_nodes.size();
+    std::string_view filename) const {
+  return m_convertor(filename) % m_nodes.size();
 }
 
 dispatcher::FileProcessingDispatcher::ContainerType::iterator
 dispatcher::FileProcessingDispatcher::dispatch_to_iterator(
-    std::string_view session_id) {
+    std::string_view filename) {
   if (m_nodes.empty()) {
     return m_nodes.end(); // or throw
   }
 
-  return m_nodes.begin() + hash_to_index(session_id);
+  auto it = m_nodes.begin() + hash_to_index(filename);
+  if (it != m_nodes.end()) {
+            return it;
+  }
+  return m_nodes.end();
 }
 
 std::optional<typename dispatcher::FileProcessingDispatcher::FPTRType>
 dispatcher::FileProcessingDispatcher::dispatch_to_node(
-    std::string_view session_id) {
+    std::string_view filename) {
   if (m_nodes.empty())
     return std::nullopt;
-  return m_nodes[m_convertor(session_id) % m_nodes.size()];
+
+  try{
+           return m_nodes.at(hash_to_index(filename));
+  }
+  catch (const std::exception&e ){
+                      spdlog::error("[Resources Server]: Retrieve File Processing Node Error, Reason:{}", e.what());
+  }
+  return std::nullopt;
 }

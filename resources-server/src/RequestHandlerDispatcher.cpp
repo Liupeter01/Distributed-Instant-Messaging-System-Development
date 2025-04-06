@@ -57,7 +57,11 @@ dispatcher::RequestHandlerDispatcher::dispatch_to_iterator(
     return m_nodes.end(); // or throw
   }
 
-  return m_nodes.begin() + hash_to_index(session_id);
+  auto it = m_nodes.begin() + hash_to_index(session_id);
+  if (it != m_nodes.end()) {
+            return it;
+  }
+  return m_nodes.end();
 }
 
 std::optional<std::shared_ptr<handler::RequestHandlerNode>>
@@ -65,5 +69,12 @@ dispatcher::RequestHandlerDispatcher::dispatch_to_node(
     std::string_view session_id) {
   if (m_nodes.empty())
     return std::nullopt;
-  return m_nodes[m_convertor(session_id) % m_nodes.size()];
+
+  try {
+            return m_nodes.at(hash_to_index(session_id));
+  }
+  catch (const std::exception& e) {
+            spdlog::error("[Resources Server]: Retrieve Request Handler Node Error, Reason:{}", e.what());
+  }
+  return std::nullopt;
 }

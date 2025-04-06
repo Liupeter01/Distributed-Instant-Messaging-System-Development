@@ -32,17 +32,17 @@ public:
               std::size_t file_size, [[maybe_unused]] SessionPtr live_extend);
 
 protected:
-  const std::size_t hash_to_index(std::string_view session_id) const;
+  const std::size_t hash_to_index(std::string_view filename) const;
 
 private:
   FileProcessingDispatcher();
   FileProcessingDispatcher(std::size_t threads);
 
   [[nodiscard]] typename ContainerType::iterator
-  dispatch_to_iterator(std::string_view session_id);
+  dispatch_to_iterator(std::string_view filename);
 
   [[nodiscard]] std::optional<FPTRType>
-  dispatch_to_node(std::string_view session_id);
+  dispatch_to_node(std::string_view filename);
 
 private:
   std::hash<std::string_view> m_convertor;

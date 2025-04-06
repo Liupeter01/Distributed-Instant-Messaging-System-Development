@@ -19,6 +19,7 @@ public:
   std::string ResourceServeAddress;
   unsigned short ResourceServerPort;
   std::size_t ResourceQueueSize;
+  std::size_t ResourcesMsgLength;
 
   std::string Redis_ip_addr;
   unsigned short Redis_port;
@@ -60,6 +61,9 @@ private:
     ResourceServerPort = m_ini["ResourcesServer"]["port"].as<unsigned short>();
     ResourceQueueSize =
         m_ini["ResourcesServer"]["send_queue_size"].as<unsigned long>();
+
+    ResourcesMsgLength = 
+        m_ini["ResourcesServer"]["msg_length"].as<unsigned long>();
   }
 
   void loadGrpcServerInfo() {

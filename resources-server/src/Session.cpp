@@ -167,7 +167,7 @@ void Session::handle_header(std::shared_ptr<Session> session,
     }
 
     std::size_t msg_length = length.value();
-    if (msg_length > MAX_LENGTH) {
+    if (msg_length > ServerConfig::get_instance()->ResourcesMsgLength) {
       session->s_gate->terminateConnection(session->s_session_id);
       session->closeSession();
       spdlog::warn(

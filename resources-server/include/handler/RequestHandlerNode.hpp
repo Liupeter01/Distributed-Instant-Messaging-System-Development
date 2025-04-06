@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _SYNCLOGIC_HPP_
-#define _SYNCLOGIC_HPP_
+#ifndef _REQUEST_HANDLER_NODE_HPP_
+#define _REQUEST_HANDLER_NODE_HPP_
 #include <atomic>
 #include <buffer/MsgNode.hpp>
 #include <condition_variable>
@@ -10,37 +10,34 @@
 #include <optional>
 #include <queue>
 #include <server/Session.hpp>
-#include <singleton/singleton.hpp>
 #include <thread>
 #include <unordered_map>
-#include <vector>
 
-class SyncLogic : public Singleton<SyncLogic> {
-  friend class Singleton<SyncLogic>;
+namespace handler {
 
+class RequestHandlerNode {
 public:
   using Convertor = std::function<unsigned short(unsigned short)>;
   using SessionPtr = std::shared_ptr<Session>;
   using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
   using pair = std::pair<SessionPtr, NodePtr>;
-
-private:
   using CallbackFunc =
       std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
 
 public:
-  ~SyncLogic();
-  void commit(pair recv_node);
+  RequestHandlerNode();
+  RequestHandlerNode(const std::size_t id);
+  ~RequestHandlerNode();
+  void shutdown();
+  void setHandlerId(const std::size_t id);
+  const std::size_t getId() const;
 
-public:
+  void commit(pair recv_node, [[maybe_unused]] SessionPtr live_extend);
   static void generateErrorMessage(const std::string &log, ServiceType type,
                                    ServiceStatus status, SessionPtr conn);
 
 private:
-  SyncLogic();
-
   /*SyncLogic Class Operations*/
-  void shutdown();
   void processing();
   void registerCallbacks();
   void execute(pair &&node);
@@ -76,6 +73,7 @@ public:
   static std::string server_prefix;
 
 private:
+  std::size_t handler_id;
   std::atomic<bool> m_stop;
 
   /*working thread, handling commited request*/
@@ -91,5 +89,6 @@ private:
   /*callback list*/
   std::unordered_map<ServiceType, CallbackFunc> m_callbacks;
 };
+} // namespace handler
 
 #endif //_SYNCLOGIC_HPP_

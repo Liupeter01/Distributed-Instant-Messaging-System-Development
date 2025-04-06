@@ -243,9 +243,9 @@ void ChattingStackPage::on_send_message_clicked() {
         /*clear this counter*/
         m_text_msg_counter = 0;
 
-        SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+        SendNodeType send_buffer(
             static_cast<uint16_t>(ServiceType::SERVICE_TEXTCHATMSGREQUEST),
-            json, [](auto x) { return qToBigEndian(x); });
+            json, ByteOrderConverterReverse{});
 
         /*after connection to server, send TCP request*/
         TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
@@ -300,9 +300,9 @@ void ChattingStackPage::on_send_message_clicked() {
   /*clear this counter*/
   m_text_msg_counter = 0;
 
-  SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+  SendNodeType send_buffer(
       static_cast<uint16_t>(ServiceType::SERVICE_TEXTCHATMSGREQUEST), json,
-      [](auto x) { return qToBigEndian(x); });
+      ByteOrderConverterReverse{});
 
   /*after connection to server, send TCP request*/
   TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));

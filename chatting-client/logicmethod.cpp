@@ -1,4 +1,5 @@
 #include "logicmethod.h"
+#include <tcpnetworkconnection.h>
 
 LogicMethod::LogicMethod(QObject *parent)
     : QObject{parent}, m_thread(new QThread(this)),
@@ -22,8 +23,8 @@ LogicMethod::~LogicMethod() {
 
 void LogicMethod::registerSignals() {
   /*incoming signal from resources server*/
-  connect(this, &LogicMethod::signal_resources_logic_handler, m_exec,
-          &LogicExecutor::slot_resources_logic_handler);
+  connect(this, &LogicMethod::signal_resources_logic_handler,
+          m_exec, &LogicExecutor::slot_resources_logic_handler);
 
   /*
    * parse the data inside logicexecutor

@@ -205,7 +205,7 @@ bool redis::RedisContext::checkAuth(std::string_view sv) {
   auto status =
       m_replyDelegate->redisCommand(*this, std::string("AUTH %s"), sv.data());
   if (status) {
-            //spdlog::info("Excute command  [ AUTH ] successfully!");
+    // spdlog::info("Excute command  [ AUTH ] successfully!");
   }
   return status;
 }

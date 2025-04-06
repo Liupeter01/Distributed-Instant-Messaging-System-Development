@@ -22,13 +22,13 @@ void LogicExecutor::registerCallbacks() {
         }
 
         [[maybe_unused]] auto filename = json["filename"].toString();
-        [[maybe_unused]] auto curr_seq = json["curr_seq"].toInt();
-        [[maybe_unused]] auto curr_size = json["curr_size"].toInt();
-        [[maybe_unused]] auto total_size = json["total_size"].toInt();
+        [[maybe_unused]] auto curr_seq = json["curr_seq"].toString();
+        [[maybe_unused]] auto curr_size = json["curr_size"].toString();
+        [[maybe_unused]] auto total_size = json["total_size"].toString();
 
         /*notifying the main UI interface to update progress bar!*/
-        emit signal_data_transmission_status(filename, curr_seq, curr_size,
-                                             total_size);
+        emit signal_data_transmission_status(filename, curr_seq.toUInt(), curr_size.toUInt(),
+                                             total_size.toUInt());
       }));
 }
 

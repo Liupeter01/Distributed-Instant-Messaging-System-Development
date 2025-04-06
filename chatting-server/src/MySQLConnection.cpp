@@ -51,7 +51,7 @@ mysql::MySQLConnection::executeCommand(MySQLSelection select, Args &&...args) {
     boost::mysql::results result;
     std::string key = m_delegator.get()->m_sql[select];
     if (select != MySQLSelection::HEART_BEAT) {
-              spdlog::info("Executing MySQL Query: {}", key);
+      spdlog::info("Executing MySQL Query: {}", key);
     }
     boost::mysql::statement stmt = conn.prepare_statement(key);
     conn.execute(stmt.bind(std::forward<Args>(args)...), result);

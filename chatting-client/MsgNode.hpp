@@ -2,6 +2,7 @@
 #pragma once
 #ifndef _MSGNODE_H_
 #define _MSGNODE_H_
+#include <ByteOrderConverter.hpp>
 #include <cstdint>
 #include <functional>
 #include <iterator>
@@ -69,24 +70,6 @@ struct recv_msg_check<
                 decltype(std::declval<std::decay_t<Container>>().end())>>
     : public std::true_type {};
 
-template <typename _Ty, typename Callable, typename = void> class RecvNode {
-public:
-  RecvNode() {
-    static_assert(sizeof(_Ty) == 0,
-                  "This type does not support append() member function");
-  }
-};
-
-/*creating a SFINAE to test wheather _Ty support size() member function*/
-template <typename _Ty, typename Callable, typename = void> class SendNode {
-public:
-  SendNode() {
-    static_assert(
-        sizeof(_Ty) == 0,
-        "This type does not support size, begin and end member functions");
-  }
-};
-
 template <typename Container> struct MsgHeader {
   /*letting tcpnetwork to handle protected _buffer*/
   friend class TCPNetworkConnection;
@@ -140,19 +123,29 @@ template <typename Container> struct MsgHeader {
    * please be aware, it should be network sequence, please convert network
    * sequence to host
    */
-  virtual std::optional<uint16_t> get_length() {
+  virtual std::optional<std::size_t> get_length() {
     if (check_header_remaining()) { /*not OK*/
       return std::nullopt;
     }
 
-    uint16_t total_length = *(reinterpret_cast<uint16_t *>(get_length_base()));
+    if (_type == MsgNodeType::MSGNODE_FILE_TRANSFER) {
+      uint32_t full_length = *(reinterpret_cast<uint32_t *>(get_length_base()));
+      /*we only have the header length*/
+      if (_length < full_length) {
+        _length = full_length;
 
-    /*we only have the header length*/
-    if (_length < total_length) {
-      _length = total_length;
+        /*extend the size of buffer*/
+        _buffer.resize(_length, 0);
+      }
+    } else {
+      uint16_t full_length = *(reinterpret_cast<uint16_t *>(get_length_base()));
+      /*we only have the header length*/
+      if (_length < full_length) {
+        _length = full_length;
 
-      /*extend the size of buffer*/
-      _buffer.resize(_length, 0);
+        /*extend the size of buffer*/
+        _buffer.resize(_length, 0);
+      }
     }
     return _length - this->get_header_length();
   }
@@ -177,15 +170,13 @@ template <typename Container> struct MsgHeader {
     return Container(get_body_base(), _length - this->get_header_length());
   }
 
-  void update_pointer_pos(const uint16_t increment) {
+  void update_pointer_pos(const std::size_t increment) {
     _cur_length += increment;
   }
 
   void clear() {
     /*clean previous packet*/
-    auto ie = _buffer.begin();
-    std::advance(ie, _length);
-    _buffer.erase(_buffer.begin(), ie);
+    _buffer.clear();
 
     /*clear all the data*/
     _cur_length = 0;
@@ -217,10 +208,19 @@ protected:
    * name |  _id  |  _length  |     _buffer      |
    * size |   2B  |   2B(4B)  | _length - 4B(6B) |
    * --------------------------------------------*/
-  uint16_t _length; /*total length*/
-  uint16_t _cur_length;
+  std::size_t _length; /*total length*/
+  std::size_t _cur_length;
+
   Container _buffer;
   MsgNodeType _type = MsgNodeType::MSGNODE_NORMAL;
+};
+
+template <typename _Ty, typename Callable, typename = void> class RecvNode {
+public:
+  RecvNode() {
+    static_assert(sizeof(_Ty) == 0,
+                  "This type does not support append() member function");
+  }
 };
 
 template <typename Container, typename Callable>
@@ -232,7 +232,10 @@ class RecvNode<
 public:
   RecvNode(Callable &&Network2Host,
            MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept
-      : m_convertor(std::move(Network2Host)), MsgHeader<Container>(type) {}
+      : m_convertor(std::move(Network2Host)), MsgHeader<Container>(type) {
+
+    this->_type = type;
+  }
 
   virtual std::optional<uint16_t> get_id() {
     if (this->check_header_remaining()) { /*not OK*/
@@ -248,14 +251,19 @@ public:
   /*
    * when user deploy gen_length, it will ONLY return the size of message!
    */
-  virtual std::optional<uint16_t> get_length() {
+  virtual std::optional<std::size_t> get_length() {
     if (this->check_header_remaining()) { /*not OK*/
       return std::nullopt;
     }
 
     /*update converted full length*/
-    this->_length = *(reinterpret_cast<uint16_t *>(this->get_length_base()));
-    this->_length = m_convertor(this->_length);
+    if (this->_type == MsgNodeType::MSGNODE_FILE_TRANSFER) {
+      uint32_t len = *(reinterpret_cast<uint32_t *>(this->get_length_base()));
+      this->_length = m_convertor(len);
+    } else {
+      uint16_t len = *(reinterpret_cast<uint16_t *>(this->get_length_base()));
+      this->_length = m_convertor(len);
+    }
 
     /*don't forgot to resize*/
     this->_buffer.resize(this->_length, 0);
@@ -281,6 +289,16 @@ private:
   Callable m_convertor;
 };
 
+/*creating a SFINAE to test wheather _Ty support size() member function*/
+template <typename _Ty, typename Callable, typename = void> class SendNode {
+public:
+  SendNode() {
+    static_assert(
+        sizeof(_Ty) == 0,
+        "This type does not support size, begin and end member functions");
+  }
+};
+
 template <typename Container, typename Callable>
 struct SendNode<
     Container, Callable,
@@ -292,18 +310,23 @@ struct SendNode<
       : m_convertor(std::move(Host2Network)),
         MsgHeader<Container>(msg_id, string, type) {
 
+    this->_type = type;
+
     /*we should not change the inner variables*/
     uint16_t cv_id = m_convertor(this->_id);
-    uint16_t cv_length = m_convertor(this->_length);
-
     *reinterpret_cast<uint16_t *>(this->get_header_base()) = cv_id;
-    *reinterpret_cast<uint16_t *>(this->get_length_base()) = cv_length;
+
+    if (this->_type == MsgNodeType::MSGNODE_FILE_TRANSFER) {
+      uint32_t len = m_convertor(static_cast<uint32_t>(this->_length));
+      *reinterpret_cast<uint32_t *>(this->get_length_base()) = len;
+    } else {
+      uint16_t len = m_convertor(static_cast<uint16_t>(this->_length));
+      *reinterpret_cast<uint16_t *>(this->get_length_base()) = len;
+    }
 
     /*msg body base*/
-    auto it = this->_buffer.begin();
-    std::advance(it, this->get_header_length());
-
-    std::copy(string.begin(), string.end(), it);
+    std::copy(string.begin(), string.end(),
+              this->_buffer.begin() + this->get_header_length());
   }
   const Container &get_buffer() const { return this->_buffer; }
   const std::size_t get_full_length() const { return this->_length; }

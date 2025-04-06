@@ -9,9 +9,9 @@
 
 Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
     : s_closed(false), s_socket(_ioc), s_gate(my_gate),
-      m_recv_buffer(std::make_unique<Recv>([](auto x) {
-        return boost::asio::detail::socket_ops::network_to_host_short(x);
-      })) /*init header buffer init*/
+      m_write_in_progress(false),
+      m_recv_buffer(std::make_unique<Recv>(
+          ByteOrderConverter{})) /*init header buffer init*/
 {
   /*generate the session id*/
   boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
@@ -46,30 +46,31 @@ void Session::closeSession() {
 
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
   try {
-    std::lock_guard<std::mutex> _lckg(m_mtx);
-    if (m_send_queue.size() >
-        ServerConfig::get_instance()->ChattingServerQueueSize) {
-      spdlog::warn("Client [UUID = {}] Sending Queue is full!");
-      return;
-    }
+    // if (m_send_queue.size() >
+    // ServerConfig::get_instance()->ResourceQueueSize) {
+    //   spdlog::warn("Client [UUID = {}] Sending Queue is full!");
+    //   return;
+    // }
 
     /*inside SendNode ctor, temporary must be modifiable*/
     std::string temporary = message;
 
-    m_send_queue.push(std::make_unique<Send>(
-        static_cast<uint16_t>(srv_type), temporary, [](auto x) {
-          return boost::asio::detail::socket_ops::host_to_network_short(x);
-        }));
+    m_concurrent_sent_queue.push(
+        std::make_unique<Send>(static_cast<uint16_t>(srv_type), temporary,
+                               ByteOrderConverterReverse{}));
 
-    /*currently, there is no task inside queue*/
-    if (!m_send_queue.empty()) {
-      auto &front = m_send_queue.front();
-      boost::asio::async_write(s_socket,
-                               boost::asio::buffer(front->get_header_base(),
-                                                   front->get_full_length()),
-                               std::bind(&Session::handle_write, this,
-                                         shared_from_this(),
-                                         std::placeholders::_1));
+    bool expected = false;
+    if (m_write_in_progress.compare_exchange_strong(expected, true)) {
+      if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
+        boost::asio::async_write(
+            s_socket,
+            boost::asio::buffer(m_current_write_msg->get_header_base(),
+                                m_current_write_msg->get_full_length()),
+            std::bind(&Session::handle_write, this, shared_from_this(),
+                      std::placeholders::_1));
+      } else {
+        m_write_in_progress = false;
+      }
     }
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
@@ -87,20 +88,17 @@ void Session::handle_write(std::shared_ptr<Session> session,
           session->s_uuid, session->s_session_id, ec.message());
       return;
     }
-    std::lock_guard<std::mutex> _lckg(m_mtx);
-
-    /*when the first element was processed, then pop it out*/
-    m_send_queue.pop();
 
     /*till there is no element inside queue*/
-    if (!m_send_queue.empty()) {
-      auto &front = m_send_queue.front();
-      boost::asio::async_write(s_socket,
-                               boost::asio::buffer(front->get_header_base(),
-                                                   front->get_full_length()),
-                               std::bind(&Session::handle_write, this,
-                                         shared_from_this(),
-                                         std::placeholders::_1));
+    if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
+      boost::asio::async_write(
+          s_socket,
+          boost::asio::buffer(m_current_write_msg->get_header_base(),
+                              m_current_write_msg->get_full_length()),
+          std::bind(&Session::handle_write, this, shared_from_this(),
+                    std::placeholders::_1));
+    } else {
+      m_write_in_progress = false;
     }
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
@@ -225,9 +223,7 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
      * Warning: m_header has already been init(cleared)
      * RecvNode<std::string>: only create a Header
      */
-    m_recv_buffer.reset(new Recv([](auto x) {
-      return boost::asio::detail::socket_ops::network_to_host_short(x);
-    }));
+    m_recv_buffer.reset(new Recv(ByteOrderConverter{}));
 
     boost::asio::async_read(
         session->s_socket,

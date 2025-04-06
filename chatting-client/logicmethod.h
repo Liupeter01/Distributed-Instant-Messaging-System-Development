@@ -7,7 +7,10 @@
 /*execute some specfic logic from network*/
 #include <logicexecutor.h>
 
-class LogicMethod : public QObject, public Singleton<LogicMethod> {
+class LogicMethod
+    : public QObject
+    , public Singleton<LogicMethod> {
+
   Q_OBJECT
   friend class Singleton<LogicMethod>;
 

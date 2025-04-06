@@ -3,65 +3,80 @@
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
 #include <config/ServerConfig.hpp>
+#include <dispatcher/FileProcessingDispatcher.hpp>
 #include <filesystem>
 #include <fstream>
-#include <handler/SyncLogic.hpp>
+#include <handler/RequestHandlerNode.hpp>
 #include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
+#include <server/Session.hpp>
 #include <server/UserNameCard.hpp>
 #include <service/ConnectionPool.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
 
 /*redis*/
-std::string SyncLogic::redis_server_login = "redis_server";
+std::string handler::RequestHandlerNode::redis_server_login = "redis_server";
 
 /*store user base info in redis*/
-std::string SyncLogic::user_prefix = "user_info_";
+std::string handler::RequestHandlerNode::user_prefix = "user_info_";
 
 /*store the server name that this user belongs to*/
-std::string SyncLogic::server_prefix = "uuid_";
+std::string handler::RequestHandlerNode::server_prefix = "uuid_";
 
-SyncLogic::SyncLogic() : m_stop(false) {
+handler::RequestHandlerNode::RequestHandlerNode() : RequestHandlerNode(0) {}
+
+handler::RequestHandlerNode::RequestHandlerNode(const std::size_t id)
+    : m_stop(false), handler_id(id) {
+
   /*register callbacks*/
   registerCallbacks();
 
   /*start processing thread to process queue*/
-  m_working = std::thread(&SyncLogic::processing, this);
+  m_working = std::thread(&RequestHandlerNode::processing, this);
 }
 
-SyncLogic::~SyncLogic() { shutdown(); }
+handler::RequestHandlerNode::~RequestHandlerNode() { shutdown(); }
 
-void SyncLogic::registerCallbacks() {
+void handler::RequestHandlerNode::registerCallbacks() {
 
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
       ServiceType::SERVICE_LOGINSERVER,
-      std::bind(&SyncLogic::handlingLogin, this, std::placeholders::_1,
+      std::bind(&RequestHandlerNode::handlingLogin, this, std::placeholders::_1,
                 std::placeholders::_2, std::placeholders::_3)));
 
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
       ServiceType::SERVICE_LOGOUTSERVER,
-      std::bind(&SyncLogic::handlingLogout, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3)));
+      std::bind(&RequestHandlerNode::handlingLogout, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
       ServiceType::SERVICE_FILEUPLOADREQUEST,
-      std::bind(&SyncLogic::handlingFileUploading, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3)));
+      std::bind(&RequestHandlerNode::handlingFileUploading, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 }
 
-void SyncLogic::commit(pair recv_node) {
+void handler::RequestHandlerNode::commit(
+    pair recv_node, [[maybe_unused]] SessionPtr live_extend) {
+
   std::lock_guard<std::mutex> _lckg(m_mtx);
   if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-    spdlog::warn("SyncLogic Queue is full!");
+    spdlog::warn("[Resources Server]: RequestHandlerNode {}'s Queue is full!",
+                 handler_id);
+
     return;
   }
+
   m_queue.push(std::move(recv_node));
   m_cv.notify_one();
 }
 
-void SyncLogic::generateErrorMessage(const std::string &log, ServiceType type,
-                                     ServiceStatus status, SessionPtr conn) {
+void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
+                                                       ServiceType type,
+                                                       ServiceStatus status,
+                                                       SessionPtr conn) {
 
   boost::json::object obj;
   obj["error"] = static_cast<uint8_t>(status);
@@ -69,7 +84,7 @@ void SyncLogic::generateErrorMessage(const std::string &log, ServiceType type,
   conn->sendMessage(type, boost::json::serialize(obj));
 }
 
-void SyncLogic::processing() {
+void handler::RequestHandlerNode::processing() {
   for (;;) {
     std::unique_lock<std::mutex> _lckg(m_mtx);
     m_cv.wait(_lckg, [this]() { return m_stop || !m_queue.empty(); });
@@ -90,7 +105,7 @@ void SyncLogic::processing() {
   }
 }
 
-void SyncLogic::execute(pair &&node) {
+void handler::RequestHandlerNode::execute(pair &&node) {
   std::shared_ptr<Session> session = node.first;
 
   ServiceType type = static_cast<ServiceType>(node.second->_id);
@@ -109,7 +124,15 @@ void SyncLogic::execute(pair &&node) {
   }
 }
 
-void SyncLogic::shutdown() {
+void handler::RequestHandlerNode::setHandlerId(const std::size_t id) {
+  handler_id = id;
+}
+
+const std::size_t handler::RequestHandlerNode::getId() const {
+  return handler_id;
+}
+
+void handler::RequestHandlerNode::shutdown() {
   m_stop = true;
   m_cv.notify_all();
 
@@ -119,8 +142,8 @@ void SyncLogic::shutdown() {
   }
 }
 
-void SyncLogic::handlingLogin(ServiceType srv_type,
-                              std::shared_ptr<Session> session, NodePtr recv) {
+void handler::RequestHandlerNode::handlingLogin(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
   boost::json::object src_obj;
   boost::json::object result;
@@ -185,8 +208,8 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
                        boost::json::serialize(result));
 }
 
-void SyncLogic::handlingLogout(ServiceType srv_type,
-                               std::shared_ptr<Session> session, NodePtr recv) {
+void handler::RequestHandlerNode::handlingLogout(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
   /*
    * sub user connection counter for current server
@@ -197,15 +220,15 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   decrementConnection();
 
   /*delete user belonged server in redis*/
-  if (!untagCurrentUser(session->s_uuid)) {
+  if (!untagCurrentUser(session->get_user_uuid())) {
     spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
-                 session->s_uuid, ServerConfig::get_instance()->GrpcServerName);
+                 session->get_user_uuid(),
+                 ServerConfig::get_instance()->GrpcServerName);
   }
 }
 
-void SyncLogic::handlingFileUploading(ServiceType srv_type,
-                                      std::shared_ptr<Session> session,
-                                      NodePtr recv) {
+void handler::RequestHandlerNode::handlingFileUploading(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
   boost::json::object src_obj;
   boost::json::object dst_root;
@@ -239,8 +262,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   // Parsing json object
   if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
         src_obj.contains("file_size") && src_obj.contains("block") &&
-        src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
-        src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
+        src_obj.contains("cur_seq") && src_obj.contains("last_seq"))) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
@@ -271,37 +293,19 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   auto cur_size = cur_size_op.value();
   auto total_size = total_size_op.value();
 
-  std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
-  std::filesystem::path full_path = output_dir / filename;
-
-  std::error_code ec;
-  if (!std::filesystem::exists(output_dir)) {
-    std::filesystem::create_directories(output_dir, ec);
-    if (ec) {
-      spdlog::error("[Resources Server]: Failed to create directory '{}': {}",
-                    output_dir.string(), ec.message());
-      generateErrorMessage("Directory Creation Failed",
-                           ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                           ServiceStatus::FILE_CREATE_ERROR, session);
-      return;
-    }
-  }
-
-  std::filesystem::path target_path =
-      std::filesystem::weakly_canonical(full_path, ec);
-  if (ec) {
-    spdlog::warn(
-        "[Resources Server]: Failed to get canonical path for '{}': {}",
-        full_path.string(), ec.message());
-    generateErrorMessage("Path Canonicalization Error",
-                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                         ServiceStatus::FILE_CREATE_ERROR, session);
-    return;
-  }
+  /*final pathname, and this path might not exist!!*/
+  auto target_path = std::filesystem::weakly_canonical(
+      std::filesystem::path(ServerConfig::get_instance()->outputPath) /
+      std::filesystem::path(filename));
 
   /*if it is first package then we should create a new file*/
   bool isFirstPackage = (boost::json::value_to<std::string>(
                              src_obj["cur_seq"]) == std::string("1"));
+
+  /*End of Transmission*/
+  if (src_obj.contains("EOF")) {
+    // src_root["EOF"].asInt();
+  }
 
   /*convert base64 to binary*/
   std::string block_data;
@@ -329,15 +333,10 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
     return;
   }
 
-  spdlog::info("[Resources Server]: Uploading {} Progress {:.2f}% ({}/{})",
-               filename, static_cast<float>(cur_size) / total_size * 100,
-               cur_size, total_size);
-
-  // out.seekp(cur_size);
   out.write(block_data.data(), block_data.size());
-
   if (!out) {
     spdlog::warn("Uploading File [{}] Write Error!", filename);
+
     generateErrorMessage("File Write Error",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
                          ServiceStatus::FILE_WRITE_ERROR, session);
@@ -361,7 +360,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
  * counter
  * 2. HGET exist: Increment by 1
  */
-void SyncLogic::incrementConnection() {
+void handler::RequestHandlerNode::incrementConnection() {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
 
@@ -388,7 +387,7 @@ void SyncLogic::incrementConnection() {
  * counter
  * 2. HGET exist: Decrement by 1
  */
-void SyncLogic::decrementConnection() {
+void handler::RequestHandlerNode::decrementConnection() {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
 
@@ -409,14 +408,14 @@ void SyncLogic::decrementConnection() {
                              std::to_string(--new_number));
 }
 
-bool SyncLogic::tagCurrentUser(const std::string &uuid) {
+bool handler::RequestHandlerNode::tagCurrentUser(const std::string &uuid) {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
   return raii->get()->setValue(server_prefix + uuid,
                                ServerConfig::get_instance()->GrpcServerName);
 }
 
-bool SyncLogic::untagCurrentUser(const std::string &uuid) {
+bool handler::RequestHandlerNode::untagCurrentUser(const std::string &uuid) {
   connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
       raii;
   return raii->get()->delPair(server_prefix + uuid);

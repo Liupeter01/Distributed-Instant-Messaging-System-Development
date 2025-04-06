@@ -12,8 +12,10 @@
 #include <resourcestoragemanager.h>
 
 TCPNetworkConnection::TCPNetworkConnection()
-    : m_chatting_buffer([](auto x) { return qFromBigEndian(x); }),
-      m_resources_buffer([](auto x) { return qFromBigEndian(x); }) {
+    : m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
+    m_resources_buffer(std::make_unique<RecvNodeType>(
+          ByteOrderConverter{},
+          MsgNodeType::MSGNODE_FILE_TRANSFER)) {
 
   /*callbacks should be registered at first(before signal)*/
   registerCallback();
@@ -50,6 +52,10 @@ void TCPNetworkConnection::registerNetworkEvent() {
 
   connect(this, &TCPNetworkConnection::signal_send_message, this,
           &TCPNetworkConnection::slot_send_message);
+
+  connect(this, &TCPNetworkConnection::signal_resources_logic_handler,
+          LogicMethod::get_instance().get(),
+          &LogicMethod::signal_resources_logic_handler);
 }
 
 void TCPNetworkConnection::registerSocketSignal() {
@@ -75,15 +81,15 @@ void TCPNetworkConnection::registerSocketSignal() {
     emit signal_connection_status(false);
   });
 
-  connect(this, &TCPNetworkConnection::signal_resources_logic_handler,
-          LogicMethod::get_instance().get(),
-          &LogicMethod::signal_resources_logic_handler);
+  connect(&m_resources_server_socket, &QTcpSocket::bytesWritten, [this](qint64 bytes) {
+      emit signal_block_send(bytes);
+  });
 
   /*receive data from server*/
   setupChattingDataRetrieveEvent(m_chatting_server_socket, m_chatting_info,
-                                 m_chatting_buffer);
+                                 *m_chatting_buffer);
   setupResourcesDataRetrieveEvent(m_resources_server_socket, m_resource_info,
-                                  m_resources_buffer);
+                                  *m_resources_buffer);
 }
 
 void TCPNetworkConnection::registerErrorHandling() {
@@ -108,7 +114,7 @@ void TCPNetworkConnection::registerErrorHandling() {
 
 void TCPNetworkConnection::setupChattingDataRetrieveEvent(
     QTcpSocket &socket, RecvInfo &received,
-    RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer) {
+    RecvNodeType &buffer) {
 
   connect(&socket, &QTcpSocket::readyRead,
           [&socket, &received, &buffer, this]() {
@@ -197,7 +203,7 @@ void TCPNetworkConnection::setupChattingDataRetrieveEvent(
 
 void TCPNetworkConnection::setupResourcesDataRetrieveEvent(
     QTcpSocket &socket, RecvInfo &received,
-    RecvNode<QByteArray, std::function<uint16_t(uint16_t)>> &buffer) {
+    RecvNodeType &buffer) {
   connect(
       &socket, &QTcpSocket::readyRead, [&socket, &received, &buffer, this]() {
         while (socket.bytesAvailable() > 0) {
@@ -250,9 +256,9 @@ void TCPNetworkConnection::setupResourcesDataRetrieveEvent(
           received._msg = buffer.get_msg_body().value();
 
           // Debug output to show the received message
-          qDebug() << "msg_id = " << received._id << "\n"
-                   << "msg_length = " << received._length << "\n"
-                   << "msg_data = " << received._msg << "\n";
+          // qDebug() << "msg_id = " << received._id << "\n"
+          //          << "msg_length = " << received._length << "\n"
+          //          << "msg_data = " << received._msg << "\n";
 
           // Clear the buffer for the next message
           buffer.clear();
@@ -563,8 +569,18 @@ void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
                                              TargetServer tar) {
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data->get_buffer());
+      //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+      //No flush, it might causing buffer full!!!!!!!!!
+      //m_resources_server_socket.flush();
+
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data->get_buffer());
+      //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+      //No flush, it might causing buffer full!!!!!!!!!
+      //m_resources_server_socket.flush();
+
+    /*return file transmission status*/
+    //emit signal_block_send(data->get_buffer().size());
   }
 }
 
@@ -572,8 +588,16 @@ void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
 
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data.get_buffer());
+
+    //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+    //No flush, it might causing buffer full!!!!!!!!!
+    //m_resources_server_socket.flush();
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data.get_buffer());
+
+      //Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+      //No flush, it might causing buffer full!!!!!!!!!
+      //m_resources_server_socket.flush();
   }
 }
 

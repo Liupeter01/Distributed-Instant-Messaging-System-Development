@@ -7,7 +7,7 @@ AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
     : m_ioc(_ioc),
       m_acceptor(_ioc, boost::asio::ip::tcp::endpoint(
                            boost::asio::ip::address_v4::any(), port)) {
-  spdlog::info("Chattintg Server activated, listen on port {}", port);
+  spdlog::info("Chatting Server activated, listen on port {}", port);
 }
 
 AsyncServer::~AsyncServer() {

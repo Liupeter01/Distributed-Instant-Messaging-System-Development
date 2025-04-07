@@ -44,15 +44,21 @@ void FileTransferThread::registerSignal()
     connect(this, &FileTransferThread::signal_send_next_block,
             this, &FileTransferThread::slot_send_next_block);
 
+    /* flow control*/
     connect(LogicMethod::get_instance().get(),
             &LogicMethod::signal_data_transmission_status, this,
-            [this](const QString &filename, const std::size_t curr_seq,
-                   const std::size_t curr_size, const std::size_t total_size) {
+            [this](const QString &filename,
+                                       const std::size_t curr_seq,
+                                       const std::size_t curr_size,
+                                       const std::size_t total_size,
+                                        const bool eof) {
 
-                m_curSeq = curr_seq + 1;
-                accumulate_transferred = curr_size;
+                if(!eof){
+                    m_curSeq = curr_seq + 1;
+                    accumulate_transferred = curr_size;
 
-                emit signal_send_next_block();
+                    emit signal_send_next_block();
+                }
             });
 }
 

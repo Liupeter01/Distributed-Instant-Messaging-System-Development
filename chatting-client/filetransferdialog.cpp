@@ -72,7 +72,7 @@ void FileTransferDialog::registerSignals() {
                 ui->progressBar->setValue(curr_size);
                 ui->progressBar->setMaximum(total_size);
 
-                if(!eof){
+                if(eof){
                     ui->send_button->setDisabled(false);
                 }
             });

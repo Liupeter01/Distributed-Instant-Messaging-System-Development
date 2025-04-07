@@ -6,6 +6,12 @@
 #include <tools/tools.hpp>
 
 namespace redis {
+
+          enum class TimeUnit {
+                    Seconds,
+                    Milliseconds
+          };
+
 class RedisContext {
   friend class RedisReply;
 
@@ -45,7 +51,34 @@ public:
   std::optional<std::string> getValueFromHash(const std::string &key,
                                               const std::string &field);
 
+  std::optional<std::string> acquire(const std::string& lockName,
+            const std::string& uuid,
+            const std::size_t waitTime,
+            const std::size_t EXPX, 
+            TimeUnit unit = TimeUnit::Seconds);
+
+  bool release(const std::string& lockName, const std::string& uuid);
+
+private:
+  bool acquireLock(const std::string& lockName,
+                                                        const std::string& uuid, 
+                                                        const std::size_t EXPX, 
+                                                        TimeUnit unit);
+
+  bool releaseLock(const std::string& lockName, const std::string& uuid);
+
   std::optional<tools::RedisContextWrapper> operator->();
+
+  static constexpr const char* lock = "lock:";
+
+  //Lock Might be acquired by others, so when  KEYS[1]!=ARGV[1]
+  //then redis should not be released!
+  static constexpr const char* release_lock_lua_script =
+            "if redis.call('get', KEYS[1]) == ARGV[1] then "
+            "    return redis.call('del', KEYS[1]) "
+            "else "
+            "    return 0 "
+            "end";
 
 private:
   /*if check error failed, m_valid will be set to false*/

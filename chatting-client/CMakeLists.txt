@@ -32,7 +32,7 @@ endif()
 
 project(
   ChattingClient
-  VERSION 3.1.3
+  VERSION 3.1.4
   LANGUAGES CXX)
 
 file(GLOB source_file CONFIGURE_DEPENDS *.cpp *.h *.hpp)

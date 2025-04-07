@@ -59,7 +59,17 @@ void FileTransferThread::registerSignal()
 
                     emit signal_send_next_block();
                 }
+                else{
+                    closeFile();
+                }
             });
+}
+
+void FileTransferThread::closeFile()
+{
+    if(m_file.isOpen()){
+        m_file.close();
+    }
 }
 
 /*update seq and accumulate size*/
@@ -111,6 +121,9 @@ void FileTransferThread::slot_start_file_transmission(const QString&fileName,
                                                       const QString&filePath,
                                                       const std::size_t fileChunk)
 {
+    /*Safty consideration, if the m_file has already been opened, close it first*/
+    closeFile();
+
     m_fileName = fileName;
     m_filePath = filePath;
     m_fileChunk = fileChunk;

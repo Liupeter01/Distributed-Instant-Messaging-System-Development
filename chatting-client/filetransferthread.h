@@ -30,6 +30,7 @@ public:
 
 private:
     void registerSignal();
+    void closeFile();
 
 private slots:
     void slot_start_file_transmission(const QString&fileName,

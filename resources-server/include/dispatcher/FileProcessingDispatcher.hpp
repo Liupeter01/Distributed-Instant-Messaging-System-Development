@@ -28,7 +28,7 @@ public:
 
   void commit(const std::string &filename, const std::string &block_data,
               const std::string &checksum, const std::string &curr_sequence,
-              const std::string &last_sequence, std::size_t accumlated_size,
+              const std::string &last_sequence, const std::string& _eof, std::size_t accumlated_size,
               std::size_t file_size, [[maybe_unused]] SessionPtr live_extend);
 
 protected:

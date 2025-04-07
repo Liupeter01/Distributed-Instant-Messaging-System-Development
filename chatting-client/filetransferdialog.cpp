@@ -74,6 +74,8 @@ void FileTransferDialog::registerSignals() {
 
                 if(eof){
                     ui->send_button->setDisabled(false);
+                    ui->progressBar->setValue(0);
+                    ui->progressBar->setMaximum(0);
                 }
             });
 
@@ -106,6 +108,7 @@ bool FileTransferDialog::validateFile(const QString &file) {
 void FileTransferDialog::initProgressBar(const std::size_t fileSize) {
   ui->progressBar->setRange(0, fileSize);
   ui->progressBar->setValue(0);
+  ui->progressBar->setMaximum(fileSize);
 }
 
 void FileTransferDialog::on_open_file_button_clicked() {

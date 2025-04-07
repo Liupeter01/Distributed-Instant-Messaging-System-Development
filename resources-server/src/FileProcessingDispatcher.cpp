@@ -50,11 +50,12 @@ void dispatcher::FileProcessingDispatcher::commit(
 void dispatcher::FileProcessingDispatcher::commit(
     const std::string &filename, const std::string &block_data,
     const std::string &checksum, const std::string &curr_sequence,
-    const std::string &last_sequence, const std::string& _eof, std::size_t accumlated_size,
-    std::size_t file_size, [[maybe_unused]] SessionPtr live_extend) {
+    const std::string &last_sequence, const std::string &_eof,
+    std::size_t accumlated_size, std::size_t file_size,
+    [[maybe_unused]] SessionPtr live_extend) {
 
   commit(std::make_unique<handler::FileDescriptionBlock>(
-             filename, block_data, checksum, curr_sequence, last_sequence,_eof,
+             filename, block_data, checksum, curr_sequence, last_sequence, _eof,
              accumlated_size, file_size),
          live_extend);
 }
@@ -73,7 +74,7 @@ dispatcher::FileProcessingDispatcher::dispatch_to_iterator(
 
   auto it = m_nodes.begin() + hash_to_index(filename);
   if (it != m_nodes.end()) {
-            return it;
+    return it;
   }
   return m_nodes.end();
 }
@@ -84,11 +85,12 @@ dispatcher::FileProcessingDispatcher::dispatch_to_node(
   if (m_nodes.empty())
     return std::nullopt;
 
-  try{
-           return m_nodes.at(hash_to_index(filename));
-  }
-  catch (const std::exception&e ){
-                      spdlog::error("[Resources Server]: Retrieve File Processing Node Error, Reason:{}", e.what());
+  try {
+    return m_nodes.at(hash_to_index(filename));
+  } catch (const std::exception &e) {
+    spdlog::error(
+        "[Resources Server]: Retrieve File Processing Node Error, Reason:{}",
+        e.what());
   }
   return std::nullopt;
 }

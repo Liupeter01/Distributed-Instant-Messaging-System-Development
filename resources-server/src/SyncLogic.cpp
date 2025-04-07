@@ -304,8 +304,8 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
                              src_obj["cur_seq"]) == std::string("1"));
 
   /*if it is end of the file*/
-  bool isEOF = (boost::json::value_to<std::string>(
-                              src_obj["EOF"]) == std::string("1"));
+  bool isEOF =
+      (boost::json::value_to<std::string>(src_obj["EOF"]) == std::string("1"));
 
   /*convert base64 to binary*/
   std::string block_data;
@@ -335,7 +335,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
 
   // No stdout I/O allow in file upload thread, because of performance
   // System log could be processed by another thread!
-  //spdlog::info("[Resources Server]: Uploading {} Progress {:.2f}% ({}/{})",
+  // spdlog::info("[Resources Server]: Uploading {} Progress {:.2f}% ({}/{})",
   //             filename, static_cast<float>(cur_size) / total_size * 100,
   //             cur_size, total_size);
 
@@ -351,7 +351,6 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   }
 
   out.close();
-
 
   dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   dst_root["filename"] = filename;

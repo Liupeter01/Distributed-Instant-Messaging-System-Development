@@ -62,7 +62,7 @@ private:
     ResourceQueueSize =
         m_ini["ResourcesServer"]["send_queue_size"].as<unsigned long>();
 
-    ResourcesMsgLength = 
+    ResourcesMsgLength =
         m_ini["ResourcesServer"]["msg_length"].as<unsigned long>();
   }
 

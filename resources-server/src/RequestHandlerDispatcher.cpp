@@ -59,7 +59,7 @@ dispatcher::RequestHandlerDispatcher::dispatch_to_iterator(
 
   auto it = m_nodes.begin() + hash_to_index(session_id);
   if (it != m_nodes.end()) {
-            return it;
+    return it;
   }
   return m_nodes.end();
 }
@@ -71,10 +71,11 @@ dispatcher::RequestHandlerDispatcher::dispatch_to_node(
     return std::nullopt;
 
   try {
-            return m_nodes.at(hash_to_index(session_id));
-  }
-  catch (const std::exception& e) {
-            spdlog::error("[Resources Server]: Retrieve Request Handler Node Error, Reason:{}", e.what());
+    return m_nodes.at(hash_to_index(session_id));
+  } catch (const std::exception &e) {
+    spdlog::error(
+        "[Resources Server]: Retrieve Request Handler Node Error, Reason:{}",
+        e.what());
   }
   return std::nullopt;
 }

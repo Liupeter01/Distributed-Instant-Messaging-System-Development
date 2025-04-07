@@ -261,28 +261,37 @@ void handler::RequestHandlerNode::handlingFileUploading(
 
   // Parsing json object
   if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
-            src_obj.contains("file_size") && src_obj.contains("block") &&
-            src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
-            src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
+        src_obj.contains("file_size") && src_obj.contains("block") &&
+        src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
+        src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
 
-            generateErrorMessage("Failed to parse json data",
-                      ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            spdlog::warn(
-                      "[Resources Server]: Json Obj Does Not Contains Specific Field!");
-            return;
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    spdlog::warn(
+        "[Resources Server]: Json Obj Does Not Contains Specific Field!");
+    return;
   }
 
-  [[maybe_unused]] auto filename = boost::json::value_to<std::string>(src_obj["filename"]);
-  [[maybe_unused]] auto checksum = boost::json::value_to<std::string>(src_obj["checksum"]);
-  [[maybe_unused]] auto last_seq = boost::json::value_to<std::string>(src_obj["last_seq"]);
-  [[maybe_unused]] auto cur_seq = boost::json::value_to<std::string>(src_obj["cur_seq"]);
-  [[maybe_unused]] auto sEOF = boost::json::value_to<std::string>(src_obj["EOF"]);
-  [[maybe_unused]] auto scur_size = boost::json::value_to<std::string>(src_obj["cur_size"]);
-  [[maybe_unused]] auto stotal_size = boost::json::value_to<std::string>(src_obj["file_size"]);
+  [[maybe_unused]] auto filename =
+      boost::json::value_to<std::string>(src_obj["filename"]);
+  [[maybe_unused]] auto checksum =
+      boost::json::value_to<std::string>(src_obj["checksum"]);
+  [[maybe_unused]] auto last_seq =
+      boost::json::value_to<std::string>(src_obj["last_seq"]);
+  [[maybe_unused]] auto cur_seq =
+      boost::json::value_to<std::string>(src_obj["cur_seq"]);
+  [[maybe_unused]] auto sEOF =
+      boost::json::value_to<std::string>(src_obj["EOF"]);
+  [[maybe_unused]] auto scur_size =
+      boost::json::value_to<std::string>(src_obj["cur_size"]);
+  [[maybe_unused]] auto stotal_size =
+      boost::json::value_to<std::string>(src_obj["file_size"]);
 
-  [[maybe_unused]] auto cur_size_op = tools::string_to_value<std::size_t>(scur_size);
-  [[maybe_unused]] auto total_size_op = tools::string_to_value<std::size_t>(stotal_size);
+  [[maybe_unused]] auto cur_size_op =
+      tools::string_to_value<std::size_t>(scur_size);
+  [[maybe_unused]] auto total_size_op =
+      tools::string_to_value<std::size_t>(stotal_size);
 
   if (!cur_size_op.has_value() || !total_size_op.has_value()) {
     spdlog::warn("Casting string typed key to std::size_t!");
@@ -293,22 +302,21 @@ void handler::RequestHandlerNode::handlingFileUploading(
   }
 
   dispatcher::FileProcessingDispatcher::get_instance()->commit(
-            std::make_unique<handler::FileDescriptionBlock>(
-                      /*filename=*/filename,
-                      /*block_data = */boost::json::value_to<std::string>(src_obj["block"]),
-                      /*checksum = */checksum,
-                      /*curr_sequence=*/  cur_seq,
-                      /*last_sequence=*/  last_seq,
-                      /*EOF=*/  sEOF,
-                      /*accumlated_size=*/cur_size_op.value(),
-                      /*file_size=*/total_size_op.value()
-                      ),
-            session
-  );
+      std::make_unique<handler::FileDescriptionBlock>(
+          /*filename=*/filename,
+          /*block_data = */
+          boost::json::value_to<std::string>(src_obj["block"]),
+          /*checksum = */ checksum,
+          /*curr_sequence=*/cur_seq,
+          /*last_sequence=*/last_seq,
+          /*EOF=*/sEOF,
+          /*accumlated_size=*/cur_size_op.value(),
+          /*file_size=*/total_size_op.value()),
+      session);
 
   /*if it is end of the file*/
-  bool isEOF = (boost::json::value_to<std::string>(
-            src_obj["EOF"]) == std::string("1"));
+  bool isEOF =
+      (boost::json::value_to<std::string>(src_obj["EOF"]) == std::string("1"));
 
   dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   dst_root["filename"] = filename;
@@ -320,7 +328,7 @@ void handler::RequestHandlerNode::handlingFileUploading(
   dst_root["EOF"] = isEOF ? true : false;
 
   session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
-            boost::json::serialize(dst_root));
+                       boost::json::serialize(dst_root));
 }
 
 /*

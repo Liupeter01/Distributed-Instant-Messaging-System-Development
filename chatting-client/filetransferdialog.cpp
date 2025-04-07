@@ -59,19 +59,23 @@ void FileTransferDialog::registerNetworkEvent() {
 }
 
 void FileTransferDialog::registerSignals() {
-  // connect(LogicMethod::get_instance().get(),
-  //         &LogicMethod::signal_data_transmission_status, this,
-  //         [this](const QString &filename, const std::size_t curr_seq,
-  //                const std::size_t curr_size, const std::size_t total_size) {
 
-  //           ui->progressBar->setMaximum(total_size);
-  //           ui->progressBar->setValue(curr_size); // update progress bar
+    /* update progress bar*/
+    connect(LogicMethod::get_instance().get(),
+            &LogicMethod::signal_data_transmission_status, this,
+            [this](const QString &filename,
+                   const std::size_t curr_seq,
+                   const std::size_t curr_size,
+                   const std::size_t total_size,
+                   const bool eof) {
 
-  //           /*transmission finished!*/
-  //           if (curr_size >= ui->progressBar->maximum()) {
-  //             ui->send_button->setDisabled(false);
-  //           }
-  //         });
+                ui->progressBar->setValue(curr_size);
+                ui->progressBar->setMaximum(total_size);
+
+                if(!eof){
+                    ui->send_button->setDisabled(false);
+                }
+            });
 
   connect(this, &FileTransferDialog::signal_connection_status, this,
           &FileTransferDialog::slot_connection_status);

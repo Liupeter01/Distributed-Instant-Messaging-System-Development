@@ -25,7 +25,8 @@ signals:
   void signal_data_transmission_status(const QString &filename,
                                        const std::size_t curr_seq,
                                        const std::size_t curr_size,
-                                       const std::size_t total_size);
+                                       const std::size_t total_size,
+                                        const bool eof);
 
 private slots:
   /*forward resources server's message to a standlone logic thread*/

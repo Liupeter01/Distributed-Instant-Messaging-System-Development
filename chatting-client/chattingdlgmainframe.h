@@ -1,6 +1,8 @@
 #ifndef CHATTINGDLGMAINFRAME_H
 #define CHATTINGDLGMAINFRAME_H
 
+#include <ByteOrderConverter.hpp>
+#include <MsgNode.hpp>
 #include <QDialog>
 #include <QIcon>
 #include <QLabel>
@@ -8,8 +10,6 @@
 #include <atomic>
 #include <memory>
 #include <unordered_map>
-#include <MsgNode.hpp>
-#include <ByteOrderConverter.hpp>
 
 class SideBarWidget;
 class QMouseEvent;
@@ -28,7 +28,7 @@ class ChattingDlgMainFrame;
 class ChattingDlgMainFrame : public QDialog {
   Q_OBJECT
 
-   using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit ChattingDlgMainFrame(QWidget *parent = nullptr);

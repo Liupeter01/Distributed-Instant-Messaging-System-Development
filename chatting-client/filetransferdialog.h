@@ -5,8 +5,8 @@
 #include <MsgNode.hpp>
 #include <QByteArray>
 #include <QDialog>
-#include <memory>
 #include <QThread>
+#include <memory>
 
 #define GB_TO_BYTES(gb) ((gb) * 1024LL * 1024 * 1024)
 #define FOUR_GB GB_TO_BYTES(4)
@@ -43,9 +43,9 @@ signals:
 
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
-  void signal_start_file_transmission(const QString&fileName,
-                                     const QString&filePath,
-                                     const std::size_t fileChunk);
+  void signal_start_file_transmission(const QString &fileName,
+                                      const QString &filePath,
+                                      const std::size_t fileChunk);
 
 private slots:
   /*open file*/

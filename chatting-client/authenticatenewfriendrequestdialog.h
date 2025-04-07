@@ -10,8 +10,8 @@
 #include "UserNameCard.h"
 #include "onceclickableqlabel.h"
 #include "usertagwidget.h"
-#include <MsgNode.hpp>
 #include <ByteOrderConverter.hpp>
+#include <MsgNode.hpp>
 
 namespace Ui {
 class AuthenticateNewFriendRequestDialog;
@@ -20,7 +20,7 @@ class AuthenticateNewFriendRequestDialog;
 class AuthenticateNewFriendRequestDialog : public QDialog {
   Q_OBJECT
 
-    using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit AuthenticateNewFriendRequestDialog(QWidget *parent = nullptr);

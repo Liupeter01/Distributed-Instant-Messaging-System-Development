@@ -28,7 +28,8 @@ void LogicExecutor::registerCallbacks() {
         [[maybe_unused]] auto eof = json["EOF"].toBool();
 
         /*notifying the main UI interface to update progress bar!*/
-        emit signal_data_transmission_status(filename, curr_seq.toUInt(), curr_size.toUInt(),
+        emit signal_data_transmission_status(filename, curr_seq.toUInt(),
+                                             curr_size.toUInt(),
                                              total_size.toUInt(), eof);
       }));
 }

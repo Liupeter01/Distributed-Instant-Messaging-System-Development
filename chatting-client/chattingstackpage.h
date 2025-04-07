@@ -1,9 +1,9 @@
 #ifndef CHATTINGSTACKPAGE_H
 #define CHATTINGSTACKPAGE_H
 
-#include <MsgNode.hpp>
 #include <ByteOrderConverter.hpp>
 #include <ChattingHistory.hpp>
+#include <MsgNode.hpp>
 #include <QWidget>
 #include <multiclickableqlabel.h>
 
@@ -18,7 +18,7 @@ enum class MsgType;
 class ChattingStackPage : public QWidget {
   Q_OBJECT
 
-   using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit ChattingStackPage(QWidget *parent = nullptr);

@@ -2,6 +2,8 @@
 #define TCPNETWORKCONNECTION_H
 
 #include "def.hpp"
+#include <ByteOrderConverter.hpp>
+#include <MsgNode.hpp>
 #include <QJsonObject>
 #include <QObject> //connect
 #include <QString>
@@ -11,8 +13,6 @@
 #include <functional>
 #include <optional>
 #include <singleton.hpp>
-#include <MsgNode.hpp>
-#include <ByteOrderConverter.hpp>
 
 struct UserNameCard;
 struct UserFriendRequest;
@@ -62,13 +62,11 @@ private:
   void registerErrorHandling();
 
 protected:
-  void setupChattingDataRetrieveEvent(
-      QTcpSocket &socket, RecvInfo &received,
-      RecvNodeType &buffer);
+  void setupChattingDataRetrieveEvent(QTcpSocket &socket, RecvInfo &received,
+                                      RecvNodeType &buffer);
 
-  void setupResourcesDataRetrieveEvent(
-      QTcpSocket &socket, RecvInfo &received,
-      RecvNodeType &buffer);
+  void setupResourcesDataRetrieveEvent(QTcpSocket &socket, RecvInfo &received,
+                                       RecvNodeType &buffer);
 
 private slots:
   void slot_connect2_chatting_server();
@@ -81,7 +79,7 @@ private slots:
   void slot_send_message(std::shared_ptr<SendNodeType> data,
                          TargetServer tar = TargetServer::CHATTINGSERVER);
 
-  //void slot_bytes_written(qint64 bytes);
+  // void slot_bytes_written(qint64 bytes);
 
 signals:
   void signal_connect2_chatting_server();

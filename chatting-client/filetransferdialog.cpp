@@ -9,18 +9,19 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <def.hpp>
+#include <filetransferthread.h>
 #include <logicmethod.h>
 #include <resourcestoragemanager.h>
 #include <tcpnetworkconnection.h>
-#include <filetransferthread.h>
 
 FileTransferDialog::FileTransferDialog(std::shared_ptr<UserNameCard> id,
                                        const std::size_t fileChunk,
                                        QWidget *parent)
     : QDialog(parent), ui(new Ui::FileTransferDialog), m_filePath{},
-    m_fileCheckSum{}, m_fileName{}, m_fileSize(0),m_alreadySent{0}
-      ,m_fileChunk(fileChunk) /*init fileChunk size*/
-    ,m_blockNumber(0) {
+      m_fileCheckSum{}, m_fileName{}, m_fileSize(0), m_alreadySent{0},
+      m_fileChunk(fileChunk) /*init fileChunk size*/
+      ,
+      m_blockNumber(0) {
 
   ui->setupUi(this);
 
@@ -60,23 +61,20 @@ void FileTransferDialog::registerNetworkEvent() {
 
 void FileTransferDialog::registerSignals() {
 
-    /* update progress bar*/
-    connect(LogicMethod::get_instance().get(),
-            &LogicMethod::signal_data_transmission_status, this,
-            [this](const QString &filename,
-                   const std::size_t curr_seq,
-                   const std::size_t curr_size,
-                   const std::size_t total_size,
-                   const bool eof) {
+  /* update progress bar*/
+  connect(LogicMethod::get_instance().get(),
+          &LogicMethod::signal_data_transmission_status, this,
+          [this](const QString &filename, const std::size_t curr_seq,
+                 const std::size_t curr_size, const std::size_t total_size,
+                 const bool eof) {
+            ui->progressBar->setValue(curr_size);
+            ui->progressBar->setMaximum(total_size);
 
-                ui->progressBar->setValue(curr_size);
-                ui->progressBar->setMaximum(total_size);
-
-                if(eof){
-                    ui->send_button->setDisabled(false);
-                    ui->progressBar->setValue(0);
-                }
-            });
+            if (eof) {
+              ui->send_button->setDisabled(false);
+              ui->progressBar->setValue(0);
+            }
+          });
 
   connect(this, &FileTransferDialog::signal_connection_status, this,
           &FileTransferDialog::slot_connection_status);
@@ -90,7 +88,7 @@ bool FileTransferDialog::validateFile(const QString &file) {
   QFileInfo info(file);
 
   if (!info.isFile() || !info.isReadable()) {
-      ui->send_button->setDisabled(true);
+    ui->send_button->setDisabled(true);
     return false;
   }
 
@@ -144,28 +142,28 @@ void FileTransferDialog::on_open_file_button_clicked() {
 
 void FileTransferDialog::on_send_button_clicked() {
 
- //m_uploadThread->moveToThread()
-    ui->send_button->setDisabled(true);
+  // m_uploadThread->moveToThread()
+  ui->send_button->setDisabled(true);
 
- emit signal_start_file_transmission(m_fileName, m_filePath, m_fileChunk);
+  emit signal_start_file_transmission(m_fileName, m_filePath, m_fileChunk);
 }
 
 void FileTransferDialog::on_connect_server_clicked() {
-    auto ip = ui->server_addr->text();
-    auto port = ui->server_port->text();
+  auto ip = ui->server_addr->text();
+  auto port = ui->server_port->text();
 
-    if (ip.isEmpty() || port.isEmpty()) {
-        qDebug() << "Invalid Ip and Port!";
-        return;
-    }
+  if (ip.isEmpty() || port.isEmpty()) {
+    qDebug() << "Invalid Ip and Port!";
+    return;
+  }
 
-    ResourceStorageManager::get_instance()->set_host(ip);
-    ResourceStorageManager::get_instance()->set_port(port);
+  ResourceStorageManager::get_instance()->set_host(ip);
+  ResourceStorageManager::get_instance()->set_port(port);
 
-    emit signal_connect2_resources_server();
+  emit signal_connect2_resources_server();
 
-    ui->connect_server->setDisabled(true);
-    ui->send_button->setDisabled(false);
+  ui->connect_server->setDisabled(true);
+  ui->send_button->setDisabled(false);
 }
 
 void FileTransferDialog::slot_connection_status(bool status) {

@@ -10,8 +10,8 @@
 #include "UserNameCard.h"
 #include "onceclickableqlabel.h"
 #include "usertagwidget.h"
-#include <MsgNode.hpp>
 #include <ByteOrderConverter.hpp>
+#include <MsgNode.hpp>
 
 namespace Ui {
 class AddUserRequestDialog;
@@ -24,7 +24,7 @@ class AddUserNameCardDialog;
 class AddUserRequestDialog : public QDialog {
   Q_OBJECT
 
-   using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit AddUserRequestDialog(QWidget *parent = nullptr);

@@ -4,12 +4,12 @@
 #include "tcpnetworkconnection.h"
 #include "tools.h"
 #include "ui_authenticatenewfriendrequestdialog.h"
+#include <ByteOrderConverter.hpp>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QScrollBar>
 #include <useraccountmanager.hpp>
-#include <ByteOrderConverter.hpp>
 
 AuthenticateNewFriendRequestDialog::AuthenticateNewFriendRequestDialog(
     QWidget *parent)

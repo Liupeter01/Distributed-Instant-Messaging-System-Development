@@ -22,16 +22,18 @@ struct FileDescriptionBlock {
                        const std::string &checksum,
                        const std::string &curr_sequence,
                        const std::string &last_sequence,
+                       const std::string& _eof,
                        std::size_t accumlated_size, std::size_t file_size)
       : filename(filename), block_data(block_data), checksum(checksum),
         curr_sequence(curr_sequence), last_sequence(last_sequence),
-        accumlated_size(accumlated_size), file_size(file_size) {}
+        accumlated_size(accumlated_size), file_size(file_size),isEOF(_eof) {}
 
   std::string filename;
   std::string block_data;
   std::string checksum;
   std::string curr_sequence;
   std::string last_sequence;
+  std::string isEOF;
 
   std::size_t accumlated_size;
   std::size_t file_size;
@@ -55,14 +57,16 @@ public:
               [[maybe_unused]] SessionPtr live_extend);
   void commit(const std::string &filename, const std::string &block_data,
               const std::string &checksum, const std::string &curr_sequence,
-              const std::string &last_sequence, std::size_t accumlated_size,
+              const std::string &last_sequence, const std::string& _eof, std::size_t accumlated_size,
               std::size_t file_size, [[maybe_unused]] SessionPtr live_extend);
+
+  static bool validFilename(std::string_view name);
 
 protected:
   [[nodiscard]] std::optional<std::filesystem::path>
-  createFile(const std::string &filename);
+            resolveAndPreparePath(const std::filesystem::path& base, const std::string& filename);
   bool writeToFile(const std::string &content);
-  bool resetFileStream(const std::string &filename,
+  bool resetFileStream(const bool isFirstPackage, const std::string &filename, 
                        const std::size_t cur_size = 0);
 
   [[nodiscard]] std::string base64Decode(const std::string &origin);
@@ -71,6 +75,9 @@ private:
   /*FileProcessingNode Class Operations*/
   void processing();
   void execute(pair &&block);
+
+  bool openFile(const std::filesystem::path& path, std::ios::openmode mode);
+  void closeCurrentFile();
 
 private:
   std::size_t processing_id;

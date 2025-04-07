@@ -48,7 +48,7 @@ int main() {
 
     /*join subthread*/
     if (grpc_server_thread.joinable()) {
-              grpc_server_thread.join();
+      grpc_server_thread.join();
     }
 
     server->Wait();

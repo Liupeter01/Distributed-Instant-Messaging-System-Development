@@ -24,6 +24,7 @@ service BalancerService {
 
   // user send SERVICE_LOGINSERVER request
   rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
+  rpc UserLogoutFromServer( LogoutChattingServer) returns( LogoutChattingResponse){}
 
   // register current chatting server to balance server
   rpc RegisterChattingServerInstance(GrpcRegisterRequest)
@@ -67,6 +68,13 @@ message LoginChattingServer {
 }
 
 message LoginChattingResponse { int32 error = 1; }
+
+message LogoutChattingServer {
+  int32 uuid = 1;
+  string token = 2;
+}
+
+message LogoutChattingResponse { int32 error = 1; }
 
 service ResourceService {
 

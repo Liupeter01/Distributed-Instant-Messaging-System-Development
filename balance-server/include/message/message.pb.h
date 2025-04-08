@@ -69,6 +69,12 @@ extern LoginChattingResponseDefaultTypeInternal _LoginChattingResponse_default_i
 class LoginChattingServer;
 struct LoginChattingServerDefaultTypeInternal;
 extern LoginChattingServerDefaultTypeInternal _LoginChattingServer_default_instance_;
+class LogoutChattingResponse;
+struct LogoutChattingResponseDefaultTypeInternal;
+extern LogoutChattingResponseDefaultTypeInternal _LogoutChattingResponse_default_instance_;
+class LogoutChattingServer;
+struct LogoutChattingServerDefaultTypeInternal;
+extern LogoutChattingServerDefaultTypeInternal _LogoutChattingServer_default_instance_;
 class PeerListsRequest;
 struct PeerListsRequestDefaultTypeInternal;
 extern PeerListsRequestDefaultTypeInternal _PeerListsRequest_default_instance_;
@@ -91,6 +97,8 @@ template<> ::message::GrpcShutdownRequest* Arena::CreateMaybeMessage<::message::
 template<> ::message::GrpcStatusResponse* Arena::CreateMaybeMessage<::message::GrpcStatusResponse>(Arena*);
 template<> ::message::LoginChattingResponse* Arena::CreateMaybeMessage<::message::LoginChattingResponse>(Arena*);
 template<> ::message::LoginChattingServer* Arena::CreateMaybeMessage<::message::LoginChattingServer>(Arena*);
+template<> ::message::LogoutChattingResponse* Arena::CreateMaybeMessage<::message::LogoutChattingResponse>(Arena*);
+template<> ::message::LogoutChattingServer* Arena::CreateMaybeMessage<::message::LogoutChattingServer>(Arena*);
 template<> ::message::PeerListsRequest* Arena::CreateMaybeMessage<::message::PeerListsRequest>(Arena*);
 template<> ::message::PeerResponse* Arena::CreateMaybeMessage<::message::PeerResponse>(Arena*);
 template<> ::message::RegisterToBalancer* Arena::CreateMaybeMessage<::message::RegisterToBalancer>(Arena*);
@@ -1089,6 +1097,318 @@ class LoginChattingResponse final :
 };
 // -------------------------------------------------------------------
 
+class LogoutChattingServer final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.LogoutChattingServer) */ {
+ public:
+  inline LogoutChattingServer() : LogoutChattingServer(nullptr) {}
+  ~LogoutChattingServer() override;
+  explicit PROTOBUF_CONSTEXPR LogoutChattingServer(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  LogoutChattingServer(const LogoutChattingServer& from);
+  LogoutChattingServer(LogoutChattingServer&& from) noexcept
+    : LogoutChattingServer() {
+    *this = ::std::move(from);
+  }
+
+  inline LogoutChattingServer& operator=(const LogoutChattingServer& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline LogoutChattingServer& operator=(LogoutChattingServer&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const LogoutChattingServer& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const LogoutChattingServer* internal_default_instance() {
+    return reinterpret_cast<const LogoutChattingServer*>(
+               &_LogoutChattingServer_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(LogoutChattingServer& a, LogoutChattingServer& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(LogoutChattingServer* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(LogoutChattingServer* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  LogoutChattingServer* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<LogoutChattingServer>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const LogoutChattingServer& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const LogoutChattingServer& from) {
+    LogoutChattingServer::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(LogoutChattingServer* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "message.LogoutChattingServer";
+  }
+  protected:
+  explicit LogoutChattingServer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTokenFieldNumber = 2,
+    kUuidFieldNumber = 1,
+  };
+  // string token = 2;
+  void clear_token();
+  const std::string& token() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_token(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_token();
+  PROTOBUF_NODISCARD std::string* release_token();
+  void set_allocated_token(std::string* token);
+  private:
+  const std::string& _internal_token() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_token(const std::string& value);
+  std::string* _internal_mutable_token();
+  public:
+
+  // int32 uuid = 1;
+  void clear_uuid();
+  int32_t uuid() const;
+  void set_uuid(int32_t value);
+  private:
+  int32_t _internal_uuid() const;
+  void _internal_set_uuid(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:message.LogoutChattingServer)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr token_;
+    int32_t uuid_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_message_2eproto;
+};
+// -------------------------------------------------------------------
+
+class LogoutChattingResponse final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.LogoutChattingResponse) */ {
+ public:
+  inline LogoutChattingResponse() : LogoutChattingResponse(nullptr) {}
+  ~LogoutChattingResponse() override;
+  explicit PROTOBUF_CONSTEXPR LogoutChattingResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  LogoutChattingResponse(const LogoutChattingResponse& from);
+  LogoutChattingResponse(LogoutChattingResponse&& from) noexcept
+    : LogoutChattingResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline LogoutChattingResponse& operator=(const LogoutChattingResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline LogoutChattingResponse& operator=(LogoutChattingResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const LogoutChattingResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const LogoutChattingResponse* internal_default_instance() {
+    return reinterpret_cast<const LogoutChattingResponse*>(
+               &_LogoutChattingResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(LogoutChattingResponse& a, LogoutChattingResponse& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(LogoutChattingResponse* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(LogoutChattingResponse* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  LogoutChattingResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<LogoutChattingResponse>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const LogoutChattingResponse& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const LogoutChattingResponse& from) {
+    LogoutChattingResponse::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(LogoutChattingResponse* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "message.LogoutChattingResponse";
+  }
+  protected:
+  explicit LogoutChattingResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kErrorFieldNumber = 1,
+  };
+  // int32 error = 1;
+  void clear_error();
+  int32_t error() const;
+  void set_error(int32_t value);
+  private:
+  int32_t _internal_error() const;
+  void _internal_set_error(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:message.LogoutChattingResponse)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t error_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_message_2eproto;
+};
+// -------------------------------------------------------------------
+
 class ServerInfo final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.ServerInfo) */ {
  public:
@@ -1137,7 +1457,7 @@ class ServerInfo final :
                &_ServerInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    8;
 
   friend void swap(ServerInfo& a, ServerInfo& b) {
     a.Swap(&b);
@@ -1322,7 +1642,7 @@ class PeerListsRequest final :
                &_PeerListsRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    9;
 
   friend void swap(PeerListsRequest& a, PeerListsRequest& b) {
     a.Swap(&b);
@@ -1475,7 +1795,7 @@ class PeerResponse final :
                &_PeerResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    10;
 
   friend void swap(PeerResponse& a, PeerResponse& b) {
     a.Swap(&b);
@@ -1643,7 +1963,7 @@ class GrpcRegisterRequest final :
                &_GrpcRegisterRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    11;
 
   friend void swap(GrpcRegisterRequest& a, GrpcRegisterRequest& b) {
     a.Swap(&b);
@@ -1800,7 +2120,7 @@ class GrpcShutdownRequest final :
                &_GrpcShutdownRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    12;
 
   friend void swap(GrpcShutdownRequest& a, GrpcShutdownRequest& b) {
     a.Swap(&b);
@@ -1953,7 +2273,7 @@ class GrpcStatusResponse final :
                &_GrpcStatusResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    13;
 
   friend void swap(GrpcStatusResponse& a, GrpcStatusResponse& b) {
     a.Swap(&b);
@@ -2534,6 +2854,104 @@ inline void LoginChattingResponse::set_error(int32_t value) {
 
 // -------------------------------------------------------------------
 
+// LogoutChattingServer
+
+// int32 uuid = 1;
+inline void LogoutChattingServer::clear_uuid() {
+  _impl_.uuid_ = 0;
+}
+inline int32_t LogoutChattingServer::_internal_uuid() const {
+  return _impl_.uuid_;
+}
+inline int32_t LogoutChattingServer::uuid() const {
+  // @@protoc_insertion_point(field_get:message.LogoutChattingServer.uuid)
+  return _internal_uuid();
+}
+inline void LogoutChattingServer::_internal_set_uuid(int32_t value) {
+  
+  _impl_.uuid_ = value;
+}
+inline void LogoutChattingServer::set_uuid(int32_t value) {
+  _internal_set_uuid(value);
+  // @@protoc_insertion_point(field_set:message.LogoutChattingServer.uuid)
+}
+
+// string token = 2;
+inline void LogoutChattingServer::clear_token() {
+  _impl_.token_.ClearToEmpty();
+}
+inline const std::string& LogoutChattingServer::token() const {
+  // @@protoc_insertion_point(field_get:message.LogoutChattingServer.token)
+  return _internal_token();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void LogoutChattingServer::set_token(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.token_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:message.LogoutChattingServer.token)
+}
+inline std::string* LogoutChattingServer::mutable_token() {
+  std::string* _s = _internal_mutable_token();
+  // @@protoc_insertion_point(field_mutable:message.LogoutChattingServer.token)
+  return _s;
+}
+inline const std::string& LogoutChattingServer::_internal_token() const {
+  return _impl_.token_.Get();
+}
+inline void LogoutChattingServer::_internal_set_token(const std::string& value) {
+  
+  _impl_.token_.Set(value, GetArenaForAllocation());
+}
+inline std::string* LogoutChattingServer::_internal_mutable_token() {
+  
+  return _impl_.token_.Mutable(GetArenaForAllocation());
+}
+inline std::string* LogoutChattingServer::release_token() {
+  // @@protoc_insertion_point(field_release:message.LogoutChattingServer.token)
+  return _impl_.token_.Release();
+}
+inline void LogoutChattingServer::set_allocated_token(std::string* token) {
+  if (token != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.token_.SetAllocated(token, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.token_.IsDefault()) {
+    _impl_.token_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:message.LogoutChattingServer.token)
+}
+
+// -------------------------------------------------------------------
+
+// LogoutChattingResponse
+
+// int32 error = 1;
+inline void LogoutChattingResponse::clear_error() {
+  _impl_.error_ = 0;
+}
+inline int32_t LogoutChattingResponse::_internal_error() const {
+  return _impl_.error_;
+}
+inline int32_t LogoutChattingResponse::error() const {
+  // @@protoc_insertion_point(field_get:message.LogoutChattingResponse.error)
+  return _internal_error();
+}
+inline void LogoutChattingResponse::_internal_set_error(int32_t value) {
+  
+  _impl_.error_ = value;
+}
+inline void LogoutChattingResponse::set_error(int32_t value) {
+  _internal_set_error(value);
+  // @@protoc_insertion_point(field_set:message.LogoutChattingResponse.error)
+}
+
+// -------------------------------------------------------------------
+
 // ServerInfo
 
 // string name = 1;
@@ -2979,6 +3397,10 @@ inline void GrpcStatusResponse::set_error(int32_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

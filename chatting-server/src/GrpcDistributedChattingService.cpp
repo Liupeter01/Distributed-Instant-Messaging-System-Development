@@ -18,9 +18,11 @@ void gRPCDistributedChattingService::updateGrpcPeerLists() {
 
   if (response.error() !=
       static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
-    spdlog::error("[Balance Server] try retrieve peer servers' info failed!, "
-                  "error code {}",
-                  response.error());
+
+    spdlog::info("[{}] Trying To Retrieve Peer Server's Info Failed, Error Code: {}",
+              ServerConfig::get_instance()->GrpcServerName,
+              response.error());
+
     std::abort();
   }
 

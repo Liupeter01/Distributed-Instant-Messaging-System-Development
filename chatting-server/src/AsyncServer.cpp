@@ -30,9 +30,6 @@ void AsyncServer::handleAccept(std::shared_ptr<Session> session,
   if (!ec) {
     /*start session read and write function*/
     session->startSession();
-
-    std::lock_guard<std::mutex> _lckg(m_mtx);
-    m_sessions.insert(std::make_pair(session->s_session_id, session));
   } else {
     spdlog::info("[Session = {}]Chatting Server Accept failed",
                  session->s_session_id);
@@ -41,18 +38,8 @@ void AsyncServer::handleAccept(std::shared_ptr<Session> session,
   this->startAccept();
 }
 
-void AsyncServer::terminateConnection(const std::string &session_id) {
-  std::lock_guard<std::mutex> _lckg(m_mtx);
-  auto session = this->m_sessions.find(session_id);
-
-  /*we found nothing*/
-  if (session == this->m_sessions.end()) {
-    spdlog::warn("[Session = {}] Session ID Not Found!", session_id);
-    return;
-  }
+void AsyncServer::terminateConnection(const std::string & user_uuid) {
 
   /*remove the bind of uuid and session inside UserManager*/
-  UserManager::get_instance()->removeUsrSession(session->second->s_uuid);
-  session->second->closeSession(); // close socket connection
-  this->m_sessions.erase(session); // erase it from map
+  UserManager::get_instance()->removeUsrSession(user_uuid);
 }

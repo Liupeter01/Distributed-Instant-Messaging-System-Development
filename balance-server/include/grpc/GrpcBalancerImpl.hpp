@@ -49,6 +49,11 @@ public:
                     const ::message::LoginChattingServer *request,
                     ::message::LoginChattingResponse *response);
 
+  virtual ::grpc::Status
+            UserLogoutFromServer(::grpc::ServerContext* context,
+                      const ::message::LogoutChattingServer* request,
+                      ::message::LogoutChattingResponse* response);
+
   // chatting server acquires other servers info through this service
   virtual ::grpc::Status
   GetPeerChattingServerInfo(::grpc::ServerContext *context,

@@ -156,6 +156,17 @@ void grpc::GrpcBalancerImpl::registerUserInfo(std::size_t uuid,
   return grpc::Status::OK;
 }
 
+::grpc::Status
+grpc::GrpcBalancerImpl::UserLogoutFromServer(::grpc::ServerContext* context,
+          const ::message::LogoutChattingServer* request,
+          ::message::LogoutChattingResponse* response)
+{
+          /*verify user token*/
+          response->set_error(static_cast<std::size_t>(
+                    verifyUserToken(request->uuid(), request->token())));
+          return grpc::Status::OK;
+}
+
 ::grpc::Status grpc::GrpcBalancerImpl::GetPeerChattingServerInfo(
     ::grpc::ServerContext *context, const ::message::PeerListsRequest *request,
     ::message::PeerResponse *response) {

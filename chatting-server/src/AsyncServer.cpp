@@ -1,17 +1,24 @@
 #include <server/AsyncServer.hpp>
 #include <server/UserManager.hpp>
 #include <service/IOServicePool.hpp>
+#include <config/ServerConfig.hpp>
 #include <spdlog/spdlog.h>
 
 AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
     : m_ioc(_ioc),
       m_acceptor(_ioc, boost::asio::ip::tcp::endpoint(
                            boost::asio::ip::address_v4::any(), port)) {
-  spdlog::info("Chatting Server activated, listen on port {}", port);
+
+  spdlog::info("[{}] Server Activated, Listen On Port {}",
+            ServerConfig::get_instance()->GrpcServerName,
+            port);
+
 }
 
 AsyncServer::~AsyncServer() {
-  spdlog::critical("Chatting Sever Shutting Down!");
+
+  spdlog::critical("[{}] Sever Shutting Down!",
+            ServerConfig::get_instance()->GrpcServerName);
 }
 
 void AsyncServer::startAccept() {
@@ -31,8 +38,14 @@ void AsyncServer::handleAccept(std::shared_ptr<Session> session,
     /*start session read and write function*/
     session->startSession();
   } else {
-    spdlog::info("[Session = {}]Chatting Server Accept failed",
-                 session->s_session_id);
+    spdlog::warn(
+              "[{}] Client Session {} UUID {} Accept failed! "
+              "Error message {}",
+              ServerConfig::get_instance()->GrpcServerName,
+              session->s_session_id,
+              session->s_uuid,
+              ec.message());
+
     this->terminateConnection(session->s_session_id);
   }
   this->startAccept();

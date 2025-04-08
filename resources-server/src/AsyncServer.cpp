@@ -1,7 +1,7 @@
+#include <config/ServerConfig.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/UserManager.hpp>
 #include <service/IOServicePool.hpp>
-#include <config/ServerConfig.hpp>
 #include <spdlog/spdlog.h>
 
 AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
@@ -9,14 +9,13 @@ AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
       m_acceptor(_ioc, boost::asio::ip::tcp::endpoint(
                            boost::asio::ip::address_v4::any(), port)) {
 
-          spdlog::info("[{}] Server Activated, Listen On Port {}",
-                    ServerConfig::get_instance()->GrpcServerName,
-                    port);
+  spdlog::info("[{}] Server Activated, Listen On Port {}",
+               ServerConfig::get_instance()->GrpcServerName, port);
 }
 
 AsyncServer::~AsyncServer() {
-          spdlog::critical("[{}] Sever Shutting Down!",
-                    ServerConfig::get_instance()->GrpcServerName);
+  spdlog::critical("[{}] Sever Shutting Down!",
+                   ServerConfig::get_instance()->GrpcServerName);
 }
 
 void AsyncServer::startAccept() {
@@ -36,15 +35,12 @@ void AsyncServer::handleAccept(std::shared_ptr<Session> session,
     /*start session read and write function*/
     session->startSession();
   } else {
-            spdlog::warn(
-                      "[{}] Client Session {} UUID {} Accept failed! "
-                      "Error message {}",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      session->s_session_id,
-                      session->s_uuid,
-                      ec.message());
+    spdlog::warn("[{}] Client Session {} UUID {} Accept failed! "
+                 "Error message {}",
+                 ServerConfig::get_instance()->GrpcServerName,
+                 session->s_session_id, session->s_uuid, ec.message());
 
-            this->terminateConnection(session->get_user_uuid());
+    this->terminateConnection(session->get_user_uuid());
   }
   this->startAccept();
 }

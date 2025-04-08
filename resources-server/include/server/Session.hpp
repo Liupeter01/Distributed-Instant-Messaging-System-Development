@@ -36,7 +36,7 @@ public:
   const std::string &get_session_id() const;
 
 private:
-          void terminateAndRemoveFromServer(const std::string& user_uuid);
+  void terminateAndRemoveFromServer(const std::string &user_uuid);
 
   /*handling sending event*/
   void handle_write(std::shared_ptr<Session> session,

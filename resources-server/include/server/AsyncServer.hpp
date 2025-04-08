@@ -17,7 +17,7 @@ public:
   void startAccept();
 
 private:
-  void terminateConnection(const std::string& user_uuid);
+  void terminateConnection(const std::string &user_uuid);
   void handleAccept(std::shared_ptr<Session> session,
                     boost::system::error_code ec);
 

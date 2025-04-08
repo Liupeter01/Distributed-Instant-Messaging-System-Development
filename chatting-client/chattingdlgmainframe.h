@@ -34,6 +34,10 @@ public:
   explicit ChattingDlgMainFrame(QWidget *parent = nullptr);
   virtual ~ChattingDlgMainFrame();
 
+signals:
+    void switchToLogin();
+    void signal_teminate_chatting_server(const QString&,const QString&);
+
 protected:
   /*chat list test*/
   void addItemToChatListTest();
@@ -43,6 +47,7 @@ protected:
 
 private:
   void registerSignal();
+  void registerNetworkEvent();
 
   /*register action for search edit ui item*/
   void registerSearchEditAction();
@@ -94,13 +99,7 @@ protected:
   std::optional<QListWidgetItem *>
   findChattingHistoryWidget(const QString &friend_uuid);
 
-signals:
-  void signal_log_out();
-
 private slots:
-  /*when server offline or kick out of the server*/
-  void slot_connection_status(bool status);
-
   /*
    * waiting for data from remote server
    * status = true: activate

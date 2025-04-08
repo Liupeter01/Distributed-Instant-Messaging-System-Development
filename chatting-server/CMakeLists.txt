@@ -46,7 +46,7 @@ endif()
 
 project(
   ChattingServer
-  VERSION 2.3.1
+  VERSION 2.3.2
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)

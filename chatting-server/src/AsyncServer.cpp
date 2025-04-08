@@ -46,7 +46,7 @@ void AsyncServer::handleAccept(std::shared_ptr<Session> session,
               session->s_uuid,
               ec.message());
 
-    this->terminateConnection(session->s_session_id);
+    this->terminateConnection(session->get_user_uuid());
   }
   this->startAccept();
 }

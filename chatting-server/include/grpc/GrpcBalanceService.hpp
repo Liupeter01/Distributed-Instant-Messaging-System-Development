@@ -12,6 +12,9 @@ struct gRPCBalancerService {
   static message::LoginChattingResponse
   userLoginToServer(std::size_t uuid, const std::string &token);
 
+  static message::LogoutChattingResponse
+  userLogoutFromServer(std::size_t uuid, const std::string& token);
+
   static message::PeerResponse
   getPeerChattingServerLists(const std::string &cur_name);
 

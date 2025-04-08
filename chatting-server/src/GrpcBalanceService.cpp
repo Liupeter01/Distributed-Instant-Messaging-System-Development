@@ -26,6 +26,28 @@ gRPCBalancerService::userLoginToServer(std::size_t uuid,
   return response;
 }
 
+message::LogoutChattingResponse
+gRPCBalancerService::userLogoutFromServer(std::size_t uuid, const std::string& token) {
+          grpc::ClientContext context;
+          message::LogoutChattingServer request;
+          message::LogoutChattingResponse response;
+          request.set_uuid(uuid);
+          request.set_token(token);
+
+          connection::ConnectionRAII<stubpool::BalancerServicePool,
+                    message::BalancerService::Stub>
+                    raii;
+
+          grpc::Status status =
+                    raii->get()->UserLogoutFromServer(&context, request, &response);
+
+          ///*error occured*/
+          if (!status.ok()) {
+                    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+          }
+          return response;
+}
+
 message::PeerResponse
 gRPCBalancerService::getPeerChattingServerLists(const std::string &cur_name) {
   grpc::ClientContext context;

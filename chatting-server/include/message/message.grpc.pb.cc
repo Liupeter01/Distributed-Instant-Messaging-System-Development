@@ -23,6 +23,7 @@ namespace message {
 
 static const char* BalancerService_method_names[] = {
   "/message.BalancerService/UserLoginToServer",
+  "/message.BalancerService/UserLogoutFromServer",
   "/message.BalancerService/RegisterChattingServerInstance",
   "/message.BalancerService/RegisterChattingGrpcServer",
   "/message.BalancerService/ChattingServerShutDown",
@@ -39,12 +40,13 @@ std::unique_ptr< BalancerService::Stub> BalancerService::NewStub(const std::shar
 
 BalancerService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_UserLoginToServer_(BalancerService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterChattingServerInstance_(BalancerService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterChattingGrpcServer_(BalancerService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChattingServerShutDown_(BalancerService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChattingGrpcServerShutDown_(BalancerService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerChattingServerInfo_(BalancerService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerGrpcServerInfo_(BalancerService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_UserLogoutFromServer_(BalancerService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RegisterChattingServerInstance_(BalancerService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RegisterChattingGrpcServer_(BalancerService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ChattingServerShutDown_(BalancerService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ChattingGrpcServerShutDown_(BalancerService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetPeerChattingServerInfo_(BalancerService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetPeerGrpcServerInfo_(BalancerService_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status BalancerService::Stub::UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::message::LoginChattingResponse* response) {
@@ -66,6 +68,29 @@ void BalancerService::Stub::async::UserLoginToServer(::grpc::ClientContext* cont
 ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>* BalancerService::Stub::AsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncUserLoginToServerRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status BalancerService::Stub::UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::message::LogoutChattingResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::LogoutChattingServer, ::message::LogoutChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_UserLogoutFromServer_, context, request, response);
+}
+
+void BalancerService::Stub::async::UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::LogoutChattingServer, ::message::LogoutChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UserLogoutFromServer_, context, request, response, std::move(f));
+}
+
+void BalancerService::Stub::async::UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UserLogoutFromServer_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>* BalancerService::Stub::PrepareAsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::LogoutChattingResponse, ::message::LogoutChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_UserLogoutFromServer_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>* BalancerService::Stub::AsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncUserLogoutFromServerRaw(context, request, cq);
   result->StartCall();
   return result;
 }
@@ -222,12 +247,12 @@ BalancerService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BalancerService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::LogoutChattingServer, ::message::LogoutChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::GrpcRegisterRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->RegisterChattingServerInstance(ctx, req, resp);
+             const ::message::LogoutChattingServer* req,
+             ::message::LogoutChattingResponse* resp) {
+               return service->UserLogoutFromServer(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BalancerService_method_names[2],
@@ -237,17 +262,17 @@ BalancerService::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::message::GrpcRegisterRequest* req,
              ::message::GrpcStatusResponse* resp) {
-               return service->RegisterChattingGrpcServer(ctx, req, resp);
+               return service->RegisterChattingServerInstance(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BalancerService_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::GrpcShutdownRequest* req,
+             const ::message::GrpcRegisterRequest* req,
              ::message::GrpcStatusResponse* resp) {
-               return service->ChattingServerShutDown(ctx, req, resp);
+               return service->RegisterChattingGrpcServer(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BalancerService_method_names[4],
@@ -257,10 +282,20 @@ BalancerService::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::message::GrpcShutdownRequest* req,
              ::message::GrpcStatusResponse* resp) {
-               return service->ChattingGrpcServerShutDown(ctx, req, resp);
+               return service->ChattingServerShutDown(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       BalancerService_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](BalancerService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::GrpcShutdownRequest* req,
+             ::message::GrpcStatusResponse* resp) {
+               return service->ChattingGrpcServerShutDown(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      BalancerService_method_names[6],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -270,7 +305,7 @@ BalancerService::Service::Service() {
                return service->GetPeerChattingServerInfo(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[6],
+      BalancerService_method_names[7],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](BalancerService::Service* service,
@@ -285,6 +320,13 @@ BalancerService::Service::~Service() {
 }
 
 ::grpc::Status BalancerService::Service::UserLoginToServer(::grpc::ServerContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status BalancerService::Service::UserLogoutFromServer(::grpc::ServerContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response) {
   (void) context;
   (void) request;
   (void) response;

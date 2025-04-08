@@ -3,8 +3,10 @@ package message;
 
 /*prepared for balance service*/
 service BalancerService {
+
   // user send SERVICE_LOGINSERVER request
   rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
+  rpc UserLogoutFromServer( LogoutChattingServer) returns( LogoutChattingResponse){}
 
   // register current chatting server to balance server
   rpc RegisterChattingServerInstance(GrpcRegisterRequest)
@@ -30,17 +32,6 @@ service BalancerService {
   rpc GetPeerGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
 }
 
-// register new uuid to balance and ask for chatting server allocation
-message RegisterToBalancer { int32 uuid = 1; }
-
-// get server host & port & token of one chatting server
-message GetAllocatedChattingServer {
-  int32 error = 1;
-  string host = 2;
-  string port = 3;
-  string token = 4;
-}
-
 // transfer uuid and token to balanceserver to check validation
 message LoginChattingServer {
   int32 uuid = 1;
@@ -48,6 +39,13 @@ message LoginChattingServer {
 }
 
 message LoginChattingResponse { int32 error = 1; }
+
+message LogoutChattingServer {
+  int32 uuid = 1;
+  string token = 2;
+}
+
+message LogoutChattingResponse { int32 error = 1; }
 
 message ServerInfo {
   string name = 1;

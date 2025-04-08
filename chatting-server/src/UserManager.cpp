@@ -20,8 +20,8 @@ void UserManager::removeUsrSession(const std::string &uuid) {
   std::lock_guard<std::mutex> _lckg(m_update_mtx);
   auto target = m_uuid2Session.find(uuid);
   if (target != m_uuid2Session.end()) {
-            target->second->closeSession();
-            m_uuid2Session.erase(uuid);
+    target->second->closeSession();
+    m_uuid2Session.erase(uuid);
   }
 }
 

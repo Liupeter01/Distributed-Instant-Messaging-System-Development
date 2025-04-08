@@ -6,7 +6,8 @@ service BalancerService {
 
   // user send SERVICE_LOGINSERVER request
   rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
-  rpc UserLogoutFromServer( LogoutChattingServer) returns( LogoutChattingResponse){}
+  rpc UserLogoutFromServer(LogoutChattingServer)
+      returns (LogoutChattingResponse) {}
 
   // register current chatting server to balance server
   rpc RegisterChattingServerInstance(GrpcRegisterRequest)

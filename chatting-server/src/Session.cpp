@@ -43,12 +43,12 @@ void Session::closeSession() {
   s_closed = true;
 
   if (s_socket.is_open()) {
-            s_socket.close();
+    s_socket.close();
   }
 }
 
 void Session::terminateAndRemoveFromServer(const std::string &user_uuid) {
-          s_gate->terminateConnection(user_uuid);
+  s_gate->terminateConnection(user_uuid);
 }
 
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
@@ -89,15 +89,12 @@ void Session::handle_write(std::shared_ptr<Session> session,
   try {
     /*error occured*/
     if (ec) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
-      spdlog::warn(
-                "[{}] Client Session {} UUID {} Exit Anomaly! "
-                "Error message {}",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid,
-                ec.message());
+      spdlog::warn("[{}] Client Session {} UUID {} Exit Anomaly! "
+                   "Error message {}",
+                   ServerConfig::get_instance()->GrpcServerName,
+                   session->s_session_id, session->s_uuid, ec.message());
 
       return;
     }
@@ -124,15 +121,13 @@ void Session::handle_header(std::shared_ptr<Session> session,
   try {
     /*error occured*/
     if (ec) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
-      spdlog::warn(
-                "[{}] Client Session {} UUID {} Header Error! Exit Due To Header Error "
-                ", Error message {}",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid,
-                ec.message());
+      spdlog::warn("[{}] Client Session {} UUID {} Header Error! Exit Due To "
+                   "Header Error "
+                   ", Error message {}",
+                   ServerConfig::get_instance()->GrpcServerName,
+                   session->s_session_id, session->s_uuid, ec.message());
 
       return;
     }
@@ -142,15 +137,13 @@ void Session::handle_header(std::shared_ptr<Session> session,
 
     /*current, we didn't get the full size of the header*/
     if (m_recv_buffer->check_header_remaining()) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       spdlog::warn(
-                "[{}] Client Session {} UUID {} Header Error! Exit Due To Transfer "
-                "Issue, Only {} Bytes Received!",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid,
-                bytes_transferred);
+          "[{}] Client Session {} UUID {} Header Error! Exit Due To Transfer "
+          "Issue, Only {} Bytes Received!",
+          ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+          session->s_uuid, bytes_transferred);
 
       return;
     }
@@ -161,41 +154,36 @@ void Session::handle_header(std::shared_ptr<Session> session,
      */
     std::optional<uint16_t> id = m_recv_buffer->get_id();
     if (!id.has_value()) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
-      spdlog::warn(
-                "[{}] Client Session {} UUID {} Header Error! Invalid ID!",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid);
+      spdlog::warn("[{}] Client Session {} UUID {} Header Error! Invalid ID!",
+                   ServerConfig::get_instance()->GrpcServerName,
+                   session->s_session_id, session->s_uuid);
 
       return;
     }
 
     uint16_t msg_id = id.value();
     if (msg_id >= static_cast<uint16_t>(ServiceType::SERVICE_UNKNOWN)) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       spdlog::warn(
-                "[{}] Client Session {} UUID {} Header Error! Exit Due To Invalid "
-                   "Service ID {}",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid,
-                msg_id);
+          "[{}] Client Session {} UUID {} Header Error! Exit Due To Invalid "
+          "Service ID {}",
+          ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+          session->s_uuid, msg_id);
 
       return;
     }
 
     std::optional<uint16_t> length = m_recv_buffer->get_length();
     if (!length.has_value()) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       spdlog::warn(
-                "[{}] Client Session {} UUID {} Header Error! Invalid Length! ",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid);
+          "[{}] Client Session {} UUID {} Header Error! Invalid Length! ",
+          ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+          session->s_uuid);
 
       return;
     }
@@ -203,15 +191,13 @@ void Session::handle_header(std::shared_ptr<Session> session,
     uint16_t msg_length = length.value();
 
     if (msg_length > MAX_LENGTH) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       spdlog::warn(
-                "[{}] Client Session {} UUID {} Header Error! Due To Invalid Data "
-                "Length, {} Bytes Received!",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid,
-                msg_length);
+          "[{}] Client Session {} UUID {} Header Error! Due To Invalid Data "
+          "Length, {} Bytes Received!",
+          ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+          session->s_uuid, msg_length);
 
       return;
     }
@@ -233,14 +219,12 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
   try {
     /*error occured*/
     if (ec) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       spdlog::warn(
-                "[{}] Client Session {} UUID {} Exit Anomaly! Error message {}",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid,
-                ec.message());
+          "[{}] Client Session {} UUID {} Exit Anomaly! Error message {}",
+          ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+          session->s_uuid, ec.message());
 
       return;
     }
@@ -250,12 +234,11 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
 
     /*data is not fully received*/
     if (m_recv_buffer->check_body_remaining()) {
-              terminateAndRemoveFromServer(session->get_user_uuid());
-      spdlog::warn(
-                "[{}] Client Session {} UUID {} Exit Anomaly! Body Not Fully Recevied!",
-                ServerConfig::get_instance()->GrpcServerName,
-                session->s_session_id,
-                session->s_uuid);
+      terminateAndRemoveFromServer(session->get_user_uuid());
+      spdlog::warn("[{}] Client Session {} UUID {} Exit Anomaly! Body Not "
+                   "Fully Recevied!",
+                   ServerConfig::get_instance()->GrpcServerName,
+                   session->s_session_id, session->s_uuid);
 
       return;
     }
@@ -284,6 +267,6 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
   }
 }
 
-const std::string& Session::get_user_uuid() const { return s_uuid; }
+const std::string &Session::get_user_uuid() const { return s_uuid; }
 
-const std::string& Session::get_session_id() const { return s_session_id; }
+const std::string &Session::get_session_id() const { return s_session_id; }

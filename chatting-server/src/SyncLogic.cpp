@@ -278,8 +278,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
   std::string token = boost::json::value_to<std::string>(src_obj["token"]);
 
   spdlog::info("[{}] UUID = {} Trying to Establish Connection with Token {}",
-            ServerConfig::get_instance()->GrpcServerName,
-            uuid, token);
+               ServerConfig::get_instance()->GrpcServerName, uuid, token);
 
   auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
   if (!uuid_value_op.has_value()) {
@@ -296,8 +295,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
       static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
 
     spdlog::warn("[{}] UUID = {} Trying to Establish Connection Failed",
-              ServerConfig::get_instance()->GrpcServerName,
-              uuid);
+                 ServerConfig::get_instance()->GrpcServerName, uuid);
 
     generateErrorMessage("Internel Server Error",
                          ServiceType::SERVICE_LOGINRESPONSE,
@@ -316,8 +314,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
   if (!info_str.has_value()) {
 
     spdlog::warn("[{}] UUID = {} Not Located in MySQL & Redis!",
-              ServerConfig::get_instance()->GrpcServerName,
-              uuid);
+                 ServerConfig::get_instance()->GrpcServerName, uuid);
 
     generateErrorMessage("No User Account Found",
                          ServiceType::SERVICE_LOGINRESPONSE,
@@ -401,76 +398,72 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
   if (!tagCurrentUser(uuid)) {
 
     spdlog::warn("[{}] UUID = {} Was Written in Redis Cache Successfully",
-              ServerConfig::get_instance()->GrpcServerName,
-              uuid);
-
+                 ServerConfig::get_instance()->GrpcServerName, uuid);
   }
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,
                                std::shared_ptr<Session> session, NodePtr recv) {
 
-          boost::json::object src_obj;
-          boost::json::object result_root; /*send processing result back to src user*/
+  boost::json::object src_obj;
+  boost::json::object result_root; /*send processing result back to src user*/
 
-          std::optional<std::string> body = recv->get_msg_body();
-          /*recv message error*/
-          if (!body.has_value()) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_LOGOUTRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  std::optional<std::string> body = recv->get_msg_body();
+  /*recv message error*/
+  if (!body.has_value()) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGOUTRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          // prevent parse error
-          try {
-                    src_obj = boost::json::parse(body.value()).as_object();
-          }
-          catch (const boost::json::system_error& e) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_LOGOUTRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  // prevent parse error
+  try {
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGOUTRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          // Parsing failed
-          if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_LOGOUTRESPONSE,
-                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-                    return;
-          }
+  // Parsing failed
+  if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_LOGOUTRESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
 
-          std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
-          std::string token = boost::json::value_to<std::string>(src_obj["token"]);
+  std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
+  std::string token = boost::json::value_to<std::string>(src_obj["token"]);
 
-          spdlog::info("[{}] UUID = {} Trying to Close Connection with Token {}",
-                    ServerConfig::get_instance()->GrpcServerName,
-                    uuid, token);
+  spdlog::info("[{}] UUID = {} Trying to Close Connection with Token {}",
+               ServerConfig::get_instance()->GrpcServerName, uuid, token);
 
-          auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
-          if (!uuid_value_op.has_value()) {
-                    generateErrorMessage("Failed to convert string to number",
-                              ServiceType::SERVICE_LOGOUTRESPONSE,
-                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-                    return;
-          }
+  auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
+  if (!uuid_value_op.has_value()) {
+    generateErrorMessage("Failed to convert string to number",
+                         ServiceType::SERVICE_LOGOUTRESPONSE,
+                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+    return;
+  }
 
-          auto response =
-                    gRPCBalancerService::userLogoutFromServer(uuid_value_op.value(), token);
+  auto response =
+      gRPCBalancerService::userLogoutFromServer(uuid_value_op.value(), token);
 
-          if (response.error() !=
-                    static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
+  if (response.error() !=
+      static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
 
-                    spdlog::warn("[{}] UUID = {} Trying to Logout Failed! Error Code: {}",
-                              ServerConfig::get_instance()->GrpcServerName,
-                              uuid, response.error());
+    spdlog::warn("[{}] UUID = {} Trying to Logout Failed! Error Code: {}",
+                 ServerConfig::get_instance()->GrpcServerName, uuid,
+                 response.error());
 
-                    generateErrorMessage("Internel Server Error",
-                              ServiceType::SERVICE_LOGOUTRESPONSE,
-                              ServiceStatus::LOGOUT_UNSUCCESSFUL, session);
-                    return;
-          }
+    generateErrorMessage("Internel Server Error",
+                         ServiceType::SERVICE_LOGOUTRESPONSE,
+                         ServiceStatus::LOGOUT_UNSUCCESSFUL, session);
+    return;
+  }
 
   /*
    * sub user connection counter for current server
@@ -484,16 +477,14 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   if (untagCurrentUser(session->s_uuid)) {
 
     spdlog::info("[{}] UUID = {} Was Removed From Redis Cache Successfully",
-              ServerConfig::get_instance()->GrpcServerName,
-              uuid);
-
+                 ServerConfig::get_instance()->GrpcServerName, uuid);
   }
 
   result_root["error"] = response.error();
   result_root["uuid"] = session->s_uuid;
 
   session->sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
-            boost::json::serialize(result_root));
+                       boost::json::serialize(result_root));
 
   session->s_gate->terminateConnection(session->s_uuid);
 }

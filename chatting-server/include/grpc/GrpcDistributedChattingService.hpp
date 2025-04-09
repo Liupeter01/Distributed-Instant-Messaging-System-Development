@@ -1,7 +1,7 @@
 #pragma once
 #ifndef _GRPCDISTRIBUTEDCHATTINGSERVICE_HPP_
 #define _GRPCDISTRIBUTEDCHATTINGSERVICE_HPP_
-#include <grpc/BalanceServicePool.hpp>
+#include <grpc/RegisterChattingServicePool.hpp>
 #include <grpc/DistributedChattingServicePool.hpp>
 #include <network/def.hpp>
 #include <optional>

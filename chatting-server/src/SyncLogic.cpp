@@ -2,7 +2,8 @@
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
 #include <config/ServerConfig.hpp>
-#include <grpc/GrpcBalanceService.hpp>
+#include <grpc/GrpcRegisterChattingService.hpp>
+#include <grpc/GrpcUserService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
 #include <handler/SyncLogic.hpp>
 #include <redis/RedisManager.hpp>
@@ -289,7 +290,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
   }
 
   auto response =
-      gRPCBalancerService::userLoginToServer(uuid_value_op.value(), token);
+            gRPCGrpcUserService::userLoginToServer(uuid_value_op.value(), token);
 
   if (response.error() !=
       static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
@@ -450,7 +451,7 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   }
 
   auto response =
-      gRPCBalancerService::userLogoutFromServer(uuid_value_op.value(), token);
+            gRPCGrpcUserService::userLogoutFromServer(uuid_value_op.value(), token);
 
   if (response.error() !=
       static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {

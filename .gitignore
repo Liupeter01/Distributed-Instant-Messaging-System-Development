@@ -5,3 +5,7 @@ CMakePresets.json
 CMakeUserPresets.json
 /chatting-client/CMakeLists.txt.user
 .vscode
+/balance-server/include/message
+/chatting-server/include/message
+/gateway-server/include/message
+/resources-server/include/message

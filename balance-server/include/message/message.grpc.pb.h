@@ -235,230 +235,95 @@ class VerificationService final {
   typedef WithStreamedUnaryMethod_GetVerificationCode<Service > StreamedService;
 };
 
-// prepared for balance service
-class BalancerService final {
+class UserService final {
  public:
   static constexpr char const* service_full_name() {
-    return "message.BalancerService";
+    return "message.UserService";
   }
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    // pass user's uuid parameter to the server, and returns available server
-    // address to user
-    virtual ::grpc::Status AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::message::GetAllocatedChattingServer* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GetAllocatedChattingServer>> AsyncAddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GetAllocatedChattingServer>>(AsyncAddNewUserToServerRaw(context, request, cq));
+    // Register new user UUID and get allocated chatting server
+    virtual ::grpc::Status RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::message::UserRegisterResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::UserRegisterResponse>> AsyncRegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::UserRegisterResponse>>(AsyncRegisterUserRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GetAllocatedChattingServer>> PrepareAsyncAddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GetAllocatedChattingServer>>(PrepareAsyncAddNewUserToServerRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::UserRegisterResponse>> PrepareAsyncRegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::UserRegisterResponse>>(PrepareAsyncRegisterUserRaw(context, request, cq));
     }
-    // user send SERVICE_LOGINSERVER request
-    virtual ::grpc::Status UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::message::LoginChattingResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginChattingResponse>> AsyncUserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginChattingResponse>>(AsyncUserLoginToServerRaw(context, request, cq));
+    // User login
+    virtual ::grpc::Status LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::message::LoginResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginResponse>> AsyncLoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginResponse>>(AsyncLoginUserRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginChattingResponse>> PrepareAsyncUserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginChattingResponse>>(PrepareAsyncUserLoginToServerRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginResponse>> PrepareAsyncLoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginResponse>>(PrepareAsyncLoginUserRaw(context, request, cq));
     }
-    virtual ::grpc::Status UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::message::LogoutChattingResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutChattingResponse>> AsyncUserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutChattingResponse>>(AsyncUserLogoutFromServerRaw(context, request, cq));
+    // User logout
+    virtual ::grpc::Status LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::message::LogoutResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutResponse>> AsyncLogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutResponse>>(AsyncLogoutUserRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutChattingResponse>> PrepareAsyncUserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutChattingResponse>>(PrepareAsyncUserLogoutFromServerRaw(context, request, cq));
-    }
-    // register current chatting server to balance server
-    virtual ::grpc::Status RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncRegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncRegisterChattingServerInstanceRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncRegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterChattingServerInstanceRaw(context, request, cq));
-    }
-    // register current grpc server which belongs to chattingserver to balance
-    // server
-    virtual ::grpc::Status RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncRegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncRegisterChattingGrpcServerRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncRegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterChattingGrpcServerRaw(context, request, cq));
-    }
-    // when chatting server shutdown delete its existance in balance server
-    virtual ::grpc::Status ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncChattingServerShutDownRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncChattingServerShutDownRaw(context, request, cq));
-    }
-    // when chatting grpc server shutdown delete its existance in balance server
-    virtual ::grpc::Status ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncChattingGrpcServerShutDownRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncChattingGrpcServerShutDownRaw(context, request, cq));
-    }
-    // chatting server acquires other servers info through this service
-    virtual ::grpc::Status GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetPeerChattingServerInfoRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetPeerChattingServerInfoRaw(context, request, cq));
-    }
-    // chatting server acquires other chatting servers' grpc connection info
-    virtual ::grpc::Status GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetPeerGrpcServerInfoRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetPeerGrpcServerInfoRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutResponse>> PrepareAsyncLogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutResponse>>(PrepareAsyncLogoutUserRaw(context, request, cq));
     }
     class async_interface {
      public:
       virtual ~async_interface() {}
-      // pass user's uuid parameter to the server, and returns available server
-      // address to user
-      virtual void AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // user send SERVICE_LOGINSERVER request
-      virtual void UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // register current chatting server to balance server
-      virtual void RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // register current grpc server which belongs to chattingserver to balance
-      // server
-      virtual void RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // when chatting server shutdown delete its existance in balance server
-      virtual void ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // when chatting grpc server shutdown delete its existance in balance server
-      virtual void ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // chatting server acquires other servers info through this service
-      virtual void GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // chatting server acquires other chatting servers' grpc connection info
-      virtual void GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // Register new user UUID and get allocated chatting server
+      virtual void RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // User login
+      virtual void LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // User logout
+      virtual void LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GetAllocatedChattingServer>* AsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GetAllocatedChattingServer>* PrepareAsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginChattingResponse>* AsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginChattingResponse>* PrepareAsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutChattingResponse>* AsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutChattingResponse>* PrepareAsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncRegisterChattingServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncRegisterChattingServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncRegisterChattingGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncRegisterChattingGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncChattingServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncChattingServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncChattingGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncChattingGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetPeerChattingServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetPeerChattingServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetPeerGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetPeerGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::UserRegisterResponse>* AsyncRegisterUserRaw(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::UserRegisterResponse>* PrepareAsyncRegisterUserRaw(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginResponse>* AsyncLoginUserRaw(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LoginResponse>* PrepareAsyncLoginUserRaw(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutResponse>* AsyncLogoutUserRaw(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::LogoutResponse>* PrepareAsyncLogoutUserRaw(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    ::grpc::Status AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::message::GetAllocatedChattingServer* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>> AsyncAddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>>(AsyncAddNewUserToServerRaw(context, request, cq));
+    ::grpc::Status RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::message::UserRegisterResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>> AsyncRegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>>(AsyncRegisterUserRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>> PrepareAsyncAddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>>(PrepareAsyncAddNewUserToServerRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>> PrepareAsyncRegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>>(PrepareAsyncRegisterUserRaw(context, request, cq));
     }
-    ::grpc::Status UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::message::LoginChattingResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>> AsyncUserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>>(AsyncUserLoginToServerRaw(context, request, cq));
+    ::grpc::Status LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::message::LoginResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginResponse>> AsyncLoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginResponse>>(AsyncLoginUserRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>> PrepareAsyncUserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>>(PrepareAsyncUserLoginToServerRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginResponse>> PrepareAsyncLoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LoginResponse>>(PrepareAsyncLoginUserRaw(context, request, cq));
     }
-    ::grpc::Status UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::message::LogoutChattingResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>> AsyncUserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>>(AsyncUserLogoutFromServerRaw(context, request, cq));
+    ::grpc::Status LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::message::LogoutResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>> AsyncLogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>>(AsyncLogoutUserRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>> PrepareAsyncUserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>>(PrepareAsyncUserLogoutFromServerRaw(context, request, cq));
-    }
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncRegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncRegisterChattingServerInstanceRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncRegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterChattingServerInstanceRaw(context, request, cq));
-    }
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncRegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncRegisterChattingGrpcServerRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncRegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterChattingGrpcServerRaw(context, request, cq));
-    }
-    ::grpc::Status ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncChattingServerShutDownRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncChattingServerShutDownRaw(context, request, cq));
-    }
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncChattingGrpcServerShutDownRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncChattingGrpcServerShutDownRaw(context, request, cq));
-    }
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetPeerChattingServerInfoRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetPeerChattingServerInfoRaw(context, request, cq));
-    }
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetPeerGrpcServerInfoRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetPeerGrpcServerInfoRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>> PrepareAsyncLogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>>(PrepareAsyncLogoutUserRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
      public:
-      void AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, std::function<void(::grpc::Status)>) override;
-      void AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response, std::function<void(::grpc::Status)>) override;
-      void UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, std::function<void(::grpc::Status)>) override;
-      void UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
-      void GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
-      void GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response, std::function<void(::grpc::Status)>) override;
+      void RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response, std::function<void(::grpc::Status)>) override;
+      void LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response, std::function<void(::grpc::Status)>) override;
+      void LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -470,33 +335,15 @@ class BalancerService final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>* AsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>* PrepareAsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>* AsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>* PrepareAsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>* AsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>* PrepareAsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncRegisterChattingServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncRegisterChattingServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncRegisterChattingGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncRegisterChattingGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncChattingServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncChattingServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncChattingGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncChattingGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetPeerChattingServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetPeerChattingServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetPeerGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetPeerGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_AddNewUserToServer_;
-    const ::grpc::internal::RpcMethod rpcmethod_UserLoginToServer_;
-    const ::grpc::internal::RpcMethod rpcmethod_UserLogoutFromServer_;
-    const ::grpc::internal::RpcMethod rpcmethod_RegisterChattingServerInstance_;
-    const ::grpc::internal::RpcMethod rpcmethod_RegisterChattingGrpcServer_;
-    const ::grpc::internal::RpcMethod rpcmethod_ChattingServerShutDown_;
-    const ::grpc::internal::RpcMethod rpcmethod_ChattingGrpcServerShutDown_;
-    const ::grpc::internal::RpcMethod rpcmethod_GetPeerChattingServerInfo_;
-    const ::grpc::internal::RpcMethod rpcmethod_GetPeerGrpcServerInfo_;
+    ::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>* AsyncRegisterUserRaw(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>* PrepareAsyncRegisterUserRaw(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::LoginResponse>* AsyncLoginUserRaw(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::LoginResponse>* PrepareAsyncLoginUserRaw(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>* AsyncLogoutUserRaw(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>* PrepareAsyncLogoutUserRaw(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_RegisterUser_;
+    const ::grpc::internal::RpcMethod rpcmethod_LoginUser_;
+    const ::grpc::internal::RpcMethod rpcmethod_LogoutUser_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -504,1388 +351,565 @@ class BalancerService final {
    public:
     Service();
     virtual ~Service();
-    // pass user's uuid parameter to the server, and returns available server
-    // address to user
-    virtual ::grpc::Status AddNewUserToServer(::grpc::ServerContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response);
-    // user send SERVICE_LOGINSERVER request
-    virtual ::grpc::Status UserLoginToServer(::grpc::ServerContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response);
-    virtual ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response);
-    // register current chatting server to balance server
-    virtual ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response);
-    // register current grpc server which belongs to chattingserver to balance
-    // server
-    virtual ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response);
-    // when chatting server shutdown delete its existance in balance server
-    virtual ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response);
-    // when chatting grpc server shutdown delete its existance in balance server
-    virtual ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response);
-    // chatting server acquires other servers info through this service
-    virtual ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response);
-    // chatting server acquires other chatting servers' grpc connection info
-    virtual ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response);
+    // Register new user UUID and get allocated chatting server
+    virtual ::grpc::Status RegisterUser(::grpc::ServerContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response);
+    // User login
+    virtual ::grpc::Status LoginUser(::grpc::ServerContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response);
+    // User logout
+    virtual ::grpc::Status LogoutUser(::grpc::ServerContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response);
   };
   template <class BaseClass>
-  class WithAsyncMethod_AddNewUserToServer : public BaseClass {
+  class WithAsyncMethod_RegisterUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_AddNewUserToServer() {
+    WithAsyncMethod_RegisterUser() {
       ::grpc::Service::MarkMethodAsync(0);
     }
-    ~WithAsyncMethod_AddNewUserToServer() override {
+    ~WithAsyncMethod_RegisterUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status AddNewUserToServer(::grpc::ServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/) override {
+    ::grpc::Status RegisterUser(::grpc::ServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestAddNewUserToServer(::grpc::ServerContext* context, ::message::RegisterToBalancer* request, ::grpc::ServerAsyncResponseWriter< ::message::GetAllocatedChattingServer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterUser(::grpc::ServerContext* context, ::message::UserRegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::UserRegisterResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_UserLoginToServer : public BaseClass {
+  class WithAsyncMethod_LoginUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_UserLoginToServer() {
+    WithAsyncMethod_LoginUser() {
       ::grpc::Service::MarkMethodAsync(1);
     }
-    ~WithAsyncMethod_UserLoginToServer() override {
+    ~WithAsyncMethod_LoginUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLoginToServer(::grpc::ServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/) override {
+    ::grpc::Status LoginUser(::grpc::ServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUserLoginToServer(::grpc::ServerContext* context, ::message::LoginChattingServer* request, ::grpc::ServerAsyncResponseWriter< ::message::LoginChattingResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestLoginUser(::grpc::ServerContext* context, ::message::LoginRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::LoginResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_UserLogoutFromServer : public BaseClass {
+  class WithAsyncMethod_LogoutUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_UserLogoutFromServer() {
+    WithAsyncMethod_LogoutUser() {
       ::grpc::Service::MarkMethodAsync(2);
     }
-    ~WithAsyncMethod_UserLogoutFromServer() override {
+    ~WithAsyncMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/) override {
+    ::grpc::Status LogoutUser(::grpc::ServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUserLogoutFromServer(::grpc::ServerContext* context, ::message::LogoutChattingServer* request, ::grpc::ServerAsyncResponseWriter< ::message::LogoutChattingResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestLogoutUser(::grpc::ServerContext* context, ::message::LogoutRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::LogoutResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
+  typedef WithAsyncMethod_RegisterUser<WithAsyncMethod_LoginUser<WithAsyncMethod_LogoutUser<Service > > > AsyncService;
   template <class BaseClass>
-  class WithAsyncMethod_RegisterChattingServerInstance : public BaseClass {
+  class WithCallbackMethod_RegisterUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_RegisterChattingServerInstance() {
-      ::grpc::Service::MarkMethodAsync(3);
-    }
-    ~WithAsyncMethod_RegisterChattingServerInstance() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestRegisterChattingServerInstance(::grpc::ServerContext* context, ::message::GrpcRegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_RegisterChattingGrpcServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_RegisterChattingGrpcServer() {
-      ::grpc::Service::MarkMethodAsync(4);
-    }
-    ~WithAsyncMethod_RegisterChattingGrpcServer() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestRegisterChattingGrpcServer(::grpc::ServerContext* context, ::message::GrpcRegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_ChattingServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_ChattingServerShutDown() {
-      ::grpc::Service::MarkMethodAsync(5);
-    }
-    ~WithAsyncMethod_ChattingServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestChattingServerShutDown(::grpc::ServerContext* context, ::message::GrpcShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_ChattingGrpcServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_ChattingGrpcServerShutDown() {
-      ::grpc::Service::MarkMethodAsync(6);
-    }
-    ~WithAsyncMethod_ChattingGrpcServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestChattingGrpcServerShutDown(::grpc::ServerContext* context, ::message::GrpcShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_GetPeerChattingServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_GetPeerChattingServerInfo() {
-      ::grpc::Service::MarkMethodAsync(7);
-    }
-    ~WithAsyncMethod_GetPeerChattingServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestGetPeerChattingServerInfo(::grpc::ServerContext* context, ::message::PeerListsRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_GetPeerGrpcServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_GetPeerGrpcServerInfo() {
-      ::grpc::Service::MarkMethodAsync(8);
-    }
-    ~WithAsyncMethod_GetPeerGrpcServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestGetPeerGrpcServerInfo(::grpc::ServerContext* context, ::message::PeerListsRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(8, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  typedef WithAsyncMethod_AddNewUserToServer<WithAsyncMethod_UserLoginToServer<WithAsyncMethod_UserLogoutFromServer<WithAsyncMethod_RegisterChattingServerInstance<WithAsyncMethod_RegisterChattingGrpcServer<WithAsyncMethod_ChattingServerShutDown<WithAsyncMethod_ChattingGrpcServerShutDown<WithAsyncMethod_GetPeerChattingServerInfo<WithAsyncMethod_GetPeerGrpcServerInfo<Service > > > > > > > > > AsyncService;
-  template <class BaseClass>
-  class WithCallbackMethod_AddNewUserToServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_AddNewUserToServer() {
+    WithCallbackMethod_RegisterUser() {
       ::grpc::Service::MarkMethodCallback(0,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::UserRegisterRequest, ::message::UserRegisterResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response) { return this->AddNewUserToServer(context, request, response); }));}
-    void SetMessageAllocatorFor_AddNewUserToServer(
-        ::grpc::MessageAllocator< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response) { return this->RegisterUser(context, request, response); }));}
+    void SetMessageAllocatorFor_RegisterUser(
+        ::grpc::MessageAllocator< ::message::UserRegisterRequest, ::message::UserRegisterResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::UserRegisterRequest, ::message::UserRegisterResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_AddNewUserToServer() override {
+    ~WithCallbackMethod_RegisterUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status AddNewUserToServer(::grpc::ServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/) override {
+    ::grpc::Status RegisterUser(::grpc::ServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* AddNewUserToServer(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* RegisterUser(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_UserLoginToServer : public BaseClass {
+  class WithCallbackMethod_LoginUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_UserLoginToServer() {
+    WithCallbackMethod_LoginUser() {
       ::grpc::Service::MarkMethodCallback(1,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::LoginChattingServer, ::message::LoginChattingResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::LoginRequest, ::message::LoginResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response) { return this->UserLoginToServer(context, request, response); }));}
-    void SetMessageAllocatorFor_UserLoginToServer(
-        ::grpc::MessageAllocator< ::message::LoginChattingServer, ::message::LoginChattingResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response) { return this->LoginUser(context, request, response); }));}
+    void SetMessageAllocatorFor_LoginUser(
+        ::grpc::MessageAllocator< ::message::LoginRequest, ::message::LoginResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::LoginChattingServer, ::message::LoginChattingResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::LoginRequest, ::message::LoginResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_UserLoginToServer() override {
+    ~WithCallbackMethod_LoginUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLoginToServer(::grpc::ServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/) override {
+    ::grpc::Status LoginUser(::grpc::ServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* UserLoginToServer(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* LoginUser(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_UserLogoutFromServer : public BaseClass {
+  class WithCallbackMethod_LogoutUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_UserLogoutFromServer() {
+    WithCallbackMethod_LogoutUser() {
       ::grpc::Service::MarkMethodCallback(2,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::LogoutChattingServer, ::message::LogoutChattingResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::LogoutRequest, ::message::LogoutResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response) { return this->UserLogoutFromServer(context, request, response); }));}
-    void SetMessageAllocatorFor_UserLogoutFromServer(
-        ::grpc::MessageAllocator< ::message::LogoutChattingServer, ::message::LogoutChattingResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response) { return this->LogoutUser(context, request, response); }));}
+    void SetMessageAllocatorFor_LogoutUser(
+        ::grpc::MessageAllocator< ::message::LogoutRequest, ::message::LogoutResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::LogoutChattingServer, ::message::LogoutChattingResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::LogoutRequest, ::message::LogoutResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_UserLogoutFromServer() override {
+    ~WithCallbackMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/) override {
+    ::grpc::Status LogoutUser(::grpc::ServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* UserLogoutFromServer(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* LogoutUser(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/)  { return nullptr; }
   };
-  template <class BaseClass>
-  class WithCallbackMethod_RegisterChattingServerInstance : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_RegisterChattingServerInstance() {
-      ::grpc::Service::MarkMethodCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) { return this->RegisterChattingServerInstance(context, request, response); }));}
-    void SetMessageAllocatorFor_RegisterChattingServerInstance(
-        ::grpc::MessageAllocator< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_RegisterChattingServerInstance() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* RegisterChattingServerInstance(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_RegisterChattingGrpcServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_RegisterChattingGrpcServer() {
-      ::grpc::Service::MarkMethodCallback(4,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) { return this->RegisterChattingGrpcServer(context, request, response); }));}
-    void SetMessageAllocatorFor_RegisterChattingGrpcServer(
-        ::grpc::MessageAllocator< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(4);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_RegisterChattingGrpcServer() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* RegisterChattingGrpcServer(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_ChattingServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_ChattingServerShutDown() {
-      ::grpc::Service::MarkMethodCallback(5,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) { return this->ChattingServerShutDown(context, request, response); }));}
-    void SetMessageAllocatorFor_ChattingServerShutDown(
-        ::grpc::MessageAllocator< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_ChattingServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ChattingServerShutDown(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_ChattingGrpcServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_ChattingGrpcServerShutDown() {
-      ::grpc::Service::MarkMethodCallback(6,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) { return this->ChattingGrpcServerShutDown(context, request, response); }));}
-    void SetMessageAllocatorFor_ChattingGrpcServerShutDown(
-        ::grpc::MessageAllocator< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(6);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_ChattingGrpcServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ChattingGrpcServerShutDown(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_GetPeerChattingServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_GetPeerChattingServerInfo() {
-      ::grpc::Service::MarkMethodCallback(7,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) { return this->GetPeerChattingServerInfo(context, request, response); }));}
-    void SetMessageAllocatorFor_GetPeerChattingServerInfo(
-        ::grpc::MessageAllocator< ::message::PeerListsRequest, ::message::PeerResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(7);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_GetPeerChattingServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* GetPeerChattingServerInfo(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_GetPeerGrpcServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_GetPeerGrpcServerInfo() {
-      ::grpc::Service::MarkMethodCallback(8,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) { return this->GetPeerGrpcServerInfo(context, request, response); }));}
-    void SetMessageAllocatorFor_GetPeerGrpcServerInfo(
-        ::grpc::MessageAllocator< ::message::PeerListsRequest, ::message::PeerResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(8);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_GetPeerGrpcServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* GetPeerGrpcServerInfo(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
-  };
-  typedef WithCallbackMethod_AddNewUserToServer<WithCallbackMethod_UserLoginToServer<WithCallbackMethod_UserLogoutFromServer<WithCallbackMethod_RegisterChattingServerInstance<WithCallbackMethod_RegisterChattingGrpcServer<WithCallbackMethod_ChattingServerShutDown<WithCallbackMethod_ChattingGrpcServerShutDown<WithCallbackMethod_GetPeerChattingServerInfo<WithCallbackMethod_GetPeerGrpcServerInfo<Service > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_RegisterUser<WithCallbackMethod_LoginUser<WithCallbackMethod_LogoutUser<Service > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
-  class WithGenericMethod_AddNewUserToServer : public BaseClass {
+  class WithGenericMethod_RegisterUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_AddNewUserToServer() {
+    WithGenericMethod_RegisterUser() {
       ::grpc::Service::MarkMethodGeneric(0);
     }
-    ~WithGenericMethod_AddNewUserToServer() override {
+    ~WithGenericMethod_RegisterUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status AddNewUserToServer(::grpc::ServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/) override {
+    ::grpc::Status RegisterUser(::grpc::ServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_UserLoginToServer : public BaseClass {
+  class WithGenericMethod_LoginUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_UserLoginToServer() {
+    WithGenericMethod_LoginUser() {
       ::grpc::Service::MarkMethodGeneric(1);
     }
-    ~WithGenericMethod_UserLoginToServer() override {
+    ~WithGenericMethod_LoginUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLoginToServer(::grpc::ServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/) override {
+    ::grpc::Status LoginUser(::grpc::ServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_UserLogoutFromServer : public BaseClass {
+  class WithGenericMethod_LogoutUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_UserLogoutFromServer() {
+    WithGenericMethod_LogoutUser() {
       ::grpc::Service::MarkMethodGeneric(2);
     }
-    ~WithGenericMethod_UserLogoutFromServer() override {
+    ~WithGenericMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/) override {
+    ::grpc::Status LogoutUser(::grpc::ServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_RegisterChattingServerInstance : public BaseClass {
+  class WithRawMethod_RegisterUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_RegisterChattingServerInstance() {
-      ::grpc::Service::MarkMethodGeneric(3);
-    }
-    ~WithGenericMethod_RegisterChattingServerInstance() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_RegisterChattingGrpcServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_RegisterChattingGrpcServer() {
-      ::grpc::Service::MarkMethodGeneric(4);
-    }
-    ~WithGenericMethod_RegisterChattingGrpcServer() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_ChattingServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_ChattingServerShutDown() {
-      ::grpc::Service::MarkMethodGeneric(5);
-    }
-    ~WithGenericMethod_ChattingServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_ChattingGrpcServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_ChattingGrpcServerShutDown() {
-      ::grpc::Service::MarkMethodGeneric(6);
-    }
-    ~WithGenericMethod_ChattingGrpcServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_GetPeerChattingServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_GetPeerChattingServerInfo() {
-      ::grpc::Service::MarkMethodGeneric(7);
-    }
-    ~WithGenericMethod_GetPeerChattingServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_GetPeerGrpcServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_GetPeerGrpcServerInfo() {
-      ::grpc::Service::MarkMethodGeneric(8);
-    }
-    ~WithGenericMethod_GetPeerGrpcServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_AddNewUserToServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_AddNewUserToServer() {
+    WithRawMethod_RegisterUser() {
       ::grpc::Service::MarkMethodRaw(0);
     }
-    ~WithRawMethod_AddNewUserToServer() override {
+    ~WithRawMethod_RegisterUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status AddNewUserToServer(::grpc::ServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/) override {
+    ::grpc::Status RegisterUser(::grpc::ServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestAddNewUserToServer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_UserLoginToServer : public BaseClass {
+  class WithRawMethod_LoginUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_UserLoginToServer() {
+    WithRawMethod_LoginUser() {
       ::grpc::Service::MarkMethodRaw(1);
     }
-    ~WithRawMethod_UserLoginToServer() override {
+    ~WithRawMethod_LoginUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLoginToServer(::grpc::ServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/) override {
+    ::grpc::Status LoginUser(::grpc::ServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUserLoginToServer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestLoginUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_UserLogoutFromServer : public BaseClass {
+  class WithRawMethod_LogoutUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_UserLogoutFromServer() {
+    WithRawMethod_LogoutUser() {
       ::grpc::Service::MarkMethodRaw(2);
     }
-    ~WithRawMethod_UserLogoutFromServer() override {
+    ~WithRawMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/) override {
+    ::grpc::Status LogoutUser(::grpc::ServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUserLogoutFromServer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestLogoutUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_RegisterChattingServerInstance : public BaseClass {
+  class WithRawCallbackMethod_RegisterUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_RegisterChattingServerInstance() {
-      ::grpc::Service::MarkMethodRaw(3);
-    }
-    ~WithRawMethod_RegisterChattingServerInstance() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestRegisterChattingServerInstance(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_RegisterChattingGrpcServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_RegisterChattingGrpcServer() {
-      ::grpc::Service::MarkMethodRaw(4);
-    }
-    ~WithRawMethod_RegisterChattingGrpcServer() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestRegisterChattingGrpcServer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_ChattingServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_ChattingServerShutDown() {
-      ::grpc::Service::MarkMethodRaw(5);
-    }
-    ~WithRawMethod_ChattingServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestChattingServerShutDown(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_ChattingGrpcServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_ChattingGrpcServerShutDown() {
-      ::grpc::Service::MarkMethodRaw(6);
-    }
-    ~WithRawMethod_ChattingGrpcServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestChattingGrpcServerShutDown(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_GetPeerChattingServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_GetPeerChattingServerInfo() {
-      ::grpc::Service::MarkMethodRaw(7);
-    }
-    ~WithRawMethod_GetPeerChattingServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestGetPeerChattingServerInfo(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_GetPeerGrpcServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_GetPeerGrpcServerInfo() {
-      ::grpc::Service::MarkMethodRaw(8);
-    }
-    ~WithRawMethod_GetPeerGrpcServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestGetPeerGrpcServerInfo(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(8, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_AddNewUserToServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_AddNewUserToServer() {
+    WithRawCallbackMethod_RegisterUser() {
       ::grpc::Service::MarkMethodRawCallback(0,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->AddNewUserToServer(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterUser(context, request, response); }));
     }
-    ~WithRawCallbackMethod_AddNewUserToServer() override {
+    ~WithRawCallbackMethod_RegisterUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status AddNewUserToServer(::grpc::ServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/) override {
+    ::grpc::Status RegisterUser(::grpc::ServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* AddNewUserToServer(
+    virtual ::grpc::ServerUnaryReactor* RegisterUser(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_UserLoginToServer : public BaseClass {
+  class WithRawCallbackMethod_LoginUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_UserLoginToServer() {
+    WithRawCallbackMethod_LoginUser() {
       ::grpc::Service::MarkMethodRawCallback(1,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->UserLoginToServer(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->LoginUser(context, request, response); }));
     }
-    ~WithRawCallbackMethod_UserLoginToServer() override {
+    ~WithRawCallbackMethod_LoginUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLoginToServer(::grpc::ServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/) override {
+    ::grpc::Status LoginUser(::grpc::ServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* UserLoginToServer(
+    virtual ::grpc::ServerUnaryReactor* LoginUser(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_UserLogoutFromServer : public BaseClass {
+  class WithRawCallbackMethod_LogoutUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_UserLogoutFromServer() {
+    WithRawCallbackMethod_LogoutUser() {
       ::grpc::Service::MarkMethodRawCallback(2,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->UserLogoutFromServer(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->LogoutUser(context, request, response); }));
     }
-    ~WithRawCallbackMethod_UserLogoutFromServer() override {
+    ~WithRawCallbackMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/) override {
+    ::grpc::Status LogoutUser(::grpc::ServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* UserLogoutFromServer(
+    virtual ::grpc::ServerUnaryReactor* LogoutUser(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_RegisterChattingServerInstance : public BaseClass {
+  class WithStreamedUnaryMethod_RegisterUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_RegisterChattingServerInstance() {
-      ::grpc::Service::MarkMethodRawCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterChattingServerInstance(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_RegisterChattingServerInstance() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* RegisterChattingServerInstance(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_RegisterChattingGrpcServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_RegisterChattingGrpcServer() {
-      ::grpc::Service::MarkMethodRawCallback(4,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterChattingGrpcServer(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_RegisterChattingGrpcServer() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* RegisterChattingGrpcServer(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_ChattingServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_ChattingServerShutDown() {
-      ::grpc::Service::MarkMethodRawCallback(5,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ChattingServerShutDown(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_ChattingServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ChattingServerShutDown(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_ChattingGrpcServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_ChattingGrpcServerShutDown() {
-      ::grpc::Service::MarkMethodRawCallback(6,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ChattingGrpcServerShutDown(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_ChattingGrpcServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ChattingGrpcServerShutDown(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_GetPeerChattingServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_GetPeerChattingServerInfo() {
-      ::grpc::Service::MarkMethodRawCallback(7,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetPeerChattingServerInfo(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_GetPeerChattingServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* GetPeerChattingServerInfo(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_GetPeerGrpcServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_GetPeerGrpcServerInfo() {
-      ::grpc::Service::MarkMethodRawCallback(8,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetPeerGrpcServerInfo(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_GetPeerGrpcServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* GetPeerGrpcServerInfo(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_AddNewUserToServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_AddNewUserToServer() {
+    WithStreamedUnaryMethod_RegisterUser() {
       ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer>(
+          ::message::UserRegisterRequest, ::message::UserRegisterResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer>* streamer) {
-                       return this->StreamedAddNewUserToServer(context,
+                     ::message::UserRegisterRequest, ::message::UserRegisterResponse>* streamer) {
+                       return this->StreamedRegisterUser(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_AddNewUserToServer() override {
+    ~WithStreamedUnaryMethod_RegisterUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status AddNewUserToServer(::grpc::ServerContext* /*context*/, const ::message::RegisterToBalancer* /*request*/, ::message::GetAllocatedChattingServer* /*response*/) override {
+    ::grpc::Status RegisterUser(::grpc::ServerContext* /*context*/, const ::message::UserRegisterRequest* /*request*/, ::message::UserRegisterResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedAddNewUserToServer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::RegisterToBalancer,::message::GetAllocatedChattingServer>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedRegisterUser(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::UserRegisterRequest,::message::UserRegisterResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_UserLoginToServer : public BaseClass {
+  class WithStreamedUnaryMethod_LoginUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_UserLoginToServer() {
+    WithStreamedUnaryMethod_LoginUser() {
       ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::LoginChattingServer, ::message::LoginChattingResponse>(
+          ::message::LoginRequest, ::message::LoginResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::LoginChattingServer, ::message::LoginChattingResponse>* streamer) {
-                       return this->StreamedUserLoginToServer(context,
+                     ::message::LoginRequest, ::message::LoginResponse>* streamer) {
+                       return this->StreamedLoginUser(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_UserLoginToServer() override {
+    ~WithStreamedUnaryMethod_LoginUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status UserLoginToServer(::grpc::ServerContext* /*context*/, const ::message::LoginChattingServer* /*request*/, ::message::LoginChattingResponse* /*response*/) override {
+    ::grpc::Status LoginUser(::grpc::ServerContext* /*context*/, const ::message::LoginRequest* /*request*/, ::message::LoginResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedUserLoginToServer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::LoginChattingServer,::message::LoginChattingResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedLoginUser(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::LoginRequest,::message::LoginResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_UserLogoutFromServer : public BaseClass {
+  class WithStreamedUnaryMethod_LogoutUser : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_UserLogoutFromServer() {
+    WithStreamedUnaryMethod_LogoutUser() {
       ::grpc::Service::MarkMethodStreamed(2,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::LogoutChattingServer, ::message::LogoutChattingResponse>(
+          ::message::LogoutRequest, ::message::LogoutResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::LogoutChattingServer, ::message::LogoutChattingResponse>* streamer) {
-                       return this->StreamedUserLogoutFromServer(context,
+                     ::message::LogoutRequest, ::message::LogoutResponse>* streamer) {
+                       return this->StreamedLogoutUser(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_UserLogoutFromServer() override {
+    ~WithStreamedUnaryMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status UserLogoutFromServer(::grpc::ServerContext* /*context*/, const ::message::LogoutChattingServer* /*request*/, ::message::LogoutChattingResponse* /*response*/) override {
+    ::grpc::Status LogoutUser(::grpc::ServerContext* /*context*/, const ::message::LogoutRequest* /*request*/, ::message::LogoutResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedUserLogoutFromServer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::LogoutChattingServer,::message::LogoutChattingResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedLogoutUser(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::LogoutRequest,::message::LogoutResponse>* server_unary_streamer) = 0;
   };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_RegisterChattingServerInstance : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_RegisterChattingServerInstance() {
-      ::grpc::Service::MarkMethodStreamed(3,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedRegisterChattingServerInstance(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_RegisterChattingServerInstance() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status RegisterChattingServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedRegisterChattingServerInstance(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcRegisterRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_RegisterChattingGrpcServer : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_RegisterChattingGrpcServer() {
-      ::grpc::Service::MarkMethodStreamed(4,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedRegisterChattingGrpcServer(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_RegisterChattingGrpcServer() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status RegisterChattingGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedRegisterChattingGrpcServer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcRegisterRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_ChattingServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_ChattingServerShutDown() {
-      ::grpc::Service::MarkMethodStreamed(5,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedChattingServerShutDown(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_ChattingServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status ChattingServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedChattingServerShutDown(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcShutdownRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_ChattingGrpcServerShutDown : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_ChattingGrpcServerShutDown() {
-      ::grpc::Service::MarkMethodStreamed(6,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedChattingGrpcServerShutDown(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_ChattingGrpcServerShutDown() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status ChattingGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedChattingGrpcServerShutDown(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcShutdownRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_GetPeerChattingServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_GetPeerChattingServerInfo() {
-      ::grpc::Service::MarkMethodStreamed(7,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::message::PeerListsRequest, ::message::PeerResponse>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::message::PeerListsRequest, ::message::PeerResponse>* streamer) {
-                       return this->StreamedGetPeerChattingServerInfo(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_GetPeerChattingServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status GetPeerChattingServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedGetPeerChattingServerInfo(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerListsRequest,::message::PeerResponse>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_GetPeerGrpcServerInfo : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_GetPeerGrpcServerInfo() {
-      ::grpc::Service::MarkMethodStreamed(8,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::message::PeerListsRequest, ::message::PeerResponse>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::message::PeerListsRequest, ::message::PeerResponse>* streamer) {
-                       return this->StreamedGetPeerGrpcServerInfo(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_GetPeerGrpcServerInfo() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status GetPeerGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedGetPeerGrpcServerInfo(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerListsRequest,::message::PeerResponse>* server_unary_streamer) = 0;
-  };
-  typedef WithStreamedUnaryMethod_AddNewUserToServer<WithStreamedUnaryMethod_UserLoginToServer<WithStreamedUnaryMethod_UserLogoutFromServer<WithStreamedUnaryMethod_RegisterChattingServerInstance<WithStreamedUnaryMethod_RegisterChattingGrpcServer<WithStreamedUnaryMethod_ChattingServerShutDown<WithStreamedUnaryMethod_ChattingGrpcServerShutDown<WithStreamedUnaryMethod_GetPeerChattingServerInfo<WithStreamedUnaryMethod_GetPeerGrpcServerInfo<Service > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_RegisterUser<WithStreamedUnaryMethod_LoginUser<WithStreamedUnaryMethod_LogoutUser<Service > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_AddNewUserToServer<WithStreamedUnaryMethod_UserLoginToServer<WithStreamedUnaryMethod_UserLogoutFromServer<WithStreamedUnaryMethod_RegisterChattingServerInstance<WithStreamedUnaryMethod_RegisterChattingGrpcServer<WithStreamedUnaryMethod_ChattingServerShutDown<WithStreamedUnaryMethod_ChattingGrpcServerShutDown<WithStreamedUnaryMethod_GetPeerChattingServerInfo<WithStreamedUnaryMethod_GetPeerGrpcServerInfo<Service > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_RegisterUser<WithStreamedUnaryMethod_LoginUser<WithStreamedUnaryMethod_LogoutUser<Service > > > StreamedService;
 };
 
-class ResourceService final {
+class ChattingRegisterService final {
  public:
   static constexpr char const* service_full_name() {
-    return "message.ResourceService";
+    return "message.ChattingRegisterService";
   }
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    // register current resources server to chatting server
-    virtual ::grpc::Status RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncRegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncRegisterResourceServerInstanceRaw(context, request, cq));
+    // Chatting server related
+    virtual ::grpc::Status RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncRegisterInstanceRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncRegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterResourceServerInstanceRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncRegisterInstanceRaw(context, request, cq));
     }
-    // register current grpc server which belongs to chattingserver to chatting
-    // server
-    virtual ::grpc::Status RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncRegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncRegisterResourceGrpcServerRaw(context, request, cq));
+    virtual ::grpc::Status RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncRegisterGrpcRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncRegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterResourceGrpcServerRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncRegisterGrpcRaw(context, request, cq));
     }
-    // when Resource server shutdown delete its existance in chatting server
-    virtual ::grpc::Status ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncResourceServerShutDownRaw(context, request, cq));
+    virtual ::grpc::Status ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncShutdownInstanceRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncResourceServerShutDownRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncShutdownInstanceRaw(context, request, cq));
     }
-    // when resources grpc server shutdown delete its existance in chatting server
-    virtual ::grpc::Status ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> AsyncResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(AsyncResourceGrpcServerShutDownRaw(context, request, cq));
+    virtual ::grpc::Status ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncShutdownGrpcRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>> PrepareAsyncResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>>(PrepareAsyncResourceGrpcServerShutDownRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncShutdownGrpcRaw(context, request, cq));
     }
-    // resources server acquires other servers info through this service
-    virtual ::grpc::Status GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetPeerResourceServerInfoRaw(context, request, cq));
+    virtual ::grpc::Status GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetInstancePeersRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetPeerResourceServerInfoRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetInstancePeersRaw(context, request, cq));
     }
-    // resourcesserver acquires other resources servers' grpc connection info
-    virtual ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetPeerResourceGrpcServerInfoRaw(context, request, cq));
+    virtual ::grpc::Status GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetGrpcPeersRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetPeerResourceGrpcServerInfoRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetGrpcPeersRaw(context, request, cq));
     }
     class async_interface {
      public:
       virtual ~async_interface() {}
-      // register current resources server to chatting server
-      virtual void RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // register current grpc server which belongs to chattingserver to chatting
-      // server
-      virtual void RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // when Resource server shutdown delete its existance in chatting server
-      virtual void ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // when resources grpc server shutdown delete its existance in chatting server
-      virtual void ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // resources server acquires other servers info through this service
-      virtual void GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // resourcesserver acquires other resources servers' grpc connection info
-      virtual void GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // Chatting server related
+      virtual void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncRegisterResourceServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncRegisterResourceServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncRegisterResourceGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncRegisterResourceGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncResourceServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncResourceServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* AsyncResourceGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::GrpcStatusResponse>* PrepareAsyncResourceGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetPeerResourceServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetPeerResourceServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetPeerResourceGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetPeerResourceGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncRegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncRegisterResourceServerInstanceRaw(context, request, cq));
+    ::grpc::Status RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncRegisterInstanceRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncRegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterResourceServerInstanceRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncRegisterInstanceRaw(context, request, cq));
     }
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncRegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncRegisterResourceGrpcServerRaw(context, request, cq));
+    ::grpc::Status RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncRegisterGrpcRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncRegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncRegisterResourceGrpcServerRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncRegisterGrpcRaw(context, request, cq));
     }
-    ::grpc::Status ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncResourceServerShutDownRaw(context, request, cq));
+    ::grpc::Status ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncShutdownInstanceRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncResourceServerShutDownRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncShutdownInstanceRaw(context, request, cq));
     }
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> AsyncResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(AsyncResourceGrpcServerShutDownRaw(context, request, cq));
+    ::grpc::Status ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncShutdownGrpcRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>> PrepareAsyncResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>>(PrepareAsyncResourceGrpcServerShutDownRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncShutdownGrpcRaw(context, request, cq));
     }
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetPeerResourceServerInfoRaw(context, request, cq));
+    ::grpc::Status GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetInstancePeersRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetPeerResourceServerInfoRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetInstancePeersRaw(context, request, cq));
     }
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetPeerResourceGrpcServerInfoRaw(context, request, cq));
+    ::grpc::Status GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetGrpcPeersRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetPeerResourceGrpcServerInfoRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetGrpcPeersRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
      public:
-      void RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)>) override;
-      void ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
-      void GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
-      void GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -1897,24 +921,24 @@ class ResourceService final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncRegisterResourceServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncRegisterResourceServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncRegisterResourceGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncRegisterResourceGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncResourceServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncResourceServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* AsyncResourceGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* PrepareAsyncResourceGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetPeerResourceServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetPeerResourceServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetPeerResourceGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetPeerResourceGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_RegisterResourceServerInstance_;
-    const ::grpc::internal::RpcMethod rpcmethod_RegisterResourceGrpcServer_;
-    const ::grpc::internal::RpcMethod rpcmethod_ResourceServerShutDown_;
-    const ::grpc::internal::RpcMethod rpcmethod_ResourceGrpcServerShutDown_;
-    const ::grpc::internal::RpcMethod rpcmethod_GetPeerResourceServerInfo_;
-    const ::grpc::internal::RpcMethod rpcmethod_GetPeerResourceGrpcServerInfo_;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_RegisterInstance_;
+    const ::grpc::internal::RpcMethod rpcmethod_RegisterGrpc_;
+    const ::grpc::internal::RpcMethod rpcmethod_ShutdownInstance_;
+    const ::grpc::internal::RpcMethod rpcmethod_ShutdownGrpc_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetInstancePeers_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetGrpcPeers_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -1922,824 +946,1813 @@ class ResourceService final {
    public:
     Service();
     virtual ~Service();
-    // register current resources server to chatting server
-    virtual ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response);
-    // register current grpc server which belongs to chattingserver to chatting
-    // server
-    virtual ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response);
-    // when Resource server shutdown delete its existance in chatting server
-    virtual ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response);
-    // when resources grpc server shutdown delete its existance in chatting server
-    virtual ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response);
-    // resources server acquires other servers info through this service
-    virtual ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response);
-    // resourcesserver acquires other resources servers' grpc connection info
-    virtual ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response);
+    // Chatting server related
+    virtual ::grpc::Status RegisterInstance(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status RegisterGrpc(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status ShutdownInstance(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status ShutdownGrpc(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status GetInstancePeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response);
+    virtual ::grpc::Status GetGrpcPeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response);
   };
   template <class BaseClass>
-  class WithAsyncMethod_RegisterResourceServerInstance : public BaseClass {
+  class WithAsyncMethod_RegisterInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_RegisterResourceServerInstance() {
+    WithAsyncMethod_RegisterInstance() {
       ::grpc::Service::MarkMethodAsync(0);
     }
-    ~WithAsyncMethod_RegisterResourceServerInstance() override {
+    ~WithAsyncMethod_RegisterInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestRegisterResourceServerInstance(::grpc::ServerContext* context, ::message::GrpcRegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterInstance(::grpc::ServerContext* context, ::message::RegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_RegisterResourceGrpcServer : public BaseClass {
+  class WithAsyncMethod_RegisterGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_RegisterResourceGrpcServer() {
+    WithAsyncMethod_RegisterGrpc() {
       ::grpc::Service::MarkMethodAsync(1);
     }
-    ~WithAsyncMethod_RegisterResourceGrpcServer() override {
+    ~WithAsyncMethod_RegisterGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestRegisterResourceGrpcServer(::grpc::ServerContext* context, ::message::GrpcRegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterGrpc(::grpc::ServerContext* context, ::message::RegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_ResourceServerShutDown : public BaseClass {
+  class WithAsyncMethod_ShutdownInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_ResourceServerShutDown() {
+    WithAsyncMethod_ShutdownInstance() {
       ::grpc::Service::MarkMethodAsync(2);
     }
-    ~WithAsyncMethod_ResourceServerShutDown() override {
+    ~WithAsyncMethod_ShutdownInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestResourceServerShutDown(::grpc::ServerContext* context, ::message::GrpcShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestShutdownInstance(::grpc::ServerContext* context, ::message::ShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_ResourceGrpcServerShutDown : public BaseClass {
+  class WithAsyncMethod_ShutdownGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_ResourceGrpcServerShutDown() {
+    WithAsyncMethod_ShutdownGrpc() {
       ::grpc::Service::MarkMethodAsync(3);
     }
-    ~WithAsyncMethod_ResourceGrpcServerShutDown() override {
+    ~WithAsyncMethod_ShutdownGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestResourceGrpcServerShutDown(::grpc::ServerContext* context, ::message::GrpcShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::GrpcStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestShutdownGrpc(::grpc::ServerContext* context, ::message::ShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_GetPeerResourceServerInfo : public BaseClass {
+  class WithAsyncMethod_GetInstancePeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_GetPeerResourceServerInfo() {
+    WithAsyncMethod_GetInstancePeers() {
       ::grpc::Service::MarkMethodAsync(4);
     }
-    ~WithAsyncMethod_GetPeerResourceServerInfo() override {
+    ~WithAsyncMethod_GetInstancePeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestGetPeerResourceServerInfo(::grpc::ServerContext* context, ::message::PeerListsRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestGetInstancePeers(::grpc::ServerContext* context, ::message::PeerRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_GetPeerResourceGrpcServerInfo : public BaseClass {
+  class WithAsyncMethod_GetGrpcPeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_GetPeerResourceGrpcServerInfo() {
+    WithAsyncMethod_GetGrpcPeers() {
       ::grpc::Service::MarkMethodAsync(5);
     }
-    ~WithAsyncMethod_GetPeerResourceGrpcServerInfo() override {
+    ~WithAsyncMethod_GetGrpcPeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestGetPeerResourceGrpcServerInfo(::grpc::ServerContext* context, ::message::PeerListsRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestGetGrpcPeers(::grpc::ServerContext* context, ::message::PeerRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_RegisterResourceServerInstance<WithAsyncMethod_RegisterResourceGrpcServer<WithAsyncMethod_ResourceServerShutDown<WithAsyncMethod_ResourceGrpcServerShutDown<WithAsyncMethod_GetPeerResourceServerInfo<WithAsyncMethod_GetPeerResourceGrpcServerInfo<Service > > > > > > AsyncService;
+  typedef WithAsyncMethod_RegisterInstance<WithAsyncMethod_RegisterGrpc<WithAsyncMethod_ShutdownInstance<WithAsyncMethod_ShutdownGrpc<WithAsyncMethod_GetInstancePeers<WithAsyncMethod_GetGrpcPeers<Service > > > > > > AsyncService;
   template <class BaseClass>
-  class WithCallbackMethod_RegisterResourceServerInstance : public BaseClass {
+  class WithCallbackMethod_RegisterInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_RegisterResourceServerInstance() {
+    WithCallbackMethod_RegisterInstance() {
       ::grpc::Service::MarkMethodCallback(0,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) { return this->RegisterResourceServerInstance(context, request, response); }));}
-    void SetMessageAllocatorFor_RegisterResourceServerInstance(
-        ::grpc::MessageAllocator< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) { return this->RegisterInstance(context, request, response); }));}
+    void SetMessageAllocatorFor_RegisterInstance(
+        ::grpc::MessageAllocator< ::message::RegisterRequest, ::message::StatusResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_RegisterResourceServerInstance() override {
+    ~WithCallbackMethod_RegisterInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* RegisterResourceServerInstance(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* RegisterInstance(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_RegisterResourceGrpcServer : public BaseClass {
+  class WithCallbackMethod_RegisterGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_RegisterResourceGrpcServer() {
+    WithCallbackMethod_RegisterGrpc() {
       ::grpc::Service::MarkMethodCallback(1,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) { return this->RegisterResourceGrpcServer(context, request, response); }));}
-    void SetMessageAllocatorFor_RegisterResourceGrpcServer(
-        ::grpc::MessageAllocator< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) { return this->RegisterGrpc(context, request, response); }));}
+    void SetMessageAllocatorFor_RegisterGrpc(
+        ::grpc::MessageAllocator< ::message::RegisterRequest, ::message::StatusResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_RegisterResourceGrpcServer() override {
+    ~WithCallbackMethod_RegisterGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* RegisterResourceGrpcServer(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* RegisterGrpc(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_ResourceServerShutDown : public BaseClass {
+  class WithCallbackMethod_ShutdownInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_ResourceServerShutDown() {
+    WithCallbackMethod_ShutdownInstance() {
       ::grpc::Service::MarkMethodCallback(2,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) { return this->ResourceServerShutDown(context, request, response); }));}
-    void SetMessageAllocatorFor_ResourceServerShutDown(
-        ::grpc::MessageAllocator< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) { return this->ShutdownInstance(context, request, response); }));}
+    void SetMessageAllocatorFor_ShutdownInstance(
+        ::grpc::MessageAllocator< ::message::ShutdownRequest, ::message::StatusResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_ResourceServerShutDown() override {
+    ~WithCallbackMethod_ShutdownInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* ResourceServerShutDown(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* ShutdownInstance(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_ResourceGrpcServerShutDown : public BaseClass {
+  class WithCallbackMethod_ShutdownGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_ResourceGrpcServerShutDown() {
+    WithCallbackMethod_ShutdownGrpc() {
       ::grpc::Service::MarkMethodCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) { return this->ResourceGrpcServerShutDown(context, request, response); }));}
-    void SetMessageAllocatorFor_ResourceGrpcServerShutDown(
-        ::grpc::MessageAllocator< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) { return this->ShutdownGrpc(context, request, response); }));}
+    void SetMessageAllocatorFor_ShutdownGrpc(
+        ::grpc::MessageAllocator< ::message::ShutdownRequest, ::message::StatusResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_ResourceGrpcServerShutDown() override {
+    ~WithCallbackMethod_ShutdownGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* ResourceGrpcServerShutDown(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* ShutdownGrpc(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_GetPeerResourceServerInfo : public BaseClass {
+  class WithCallbackMethod_GetInstancePeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_GetPeerResourceServerInfo() {
+    WithCallbackMethod_GetInstancePeers() {
       ::grpc::Service::MarkMethodCallback(4,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) { return this->GetPeerResourceServerInfo(context, request, response); }));}
-    void SetMessageAllocatorFor_GetPeerResourceServerInfo(
-        ::grpc::MessageAllocator< ::message::PeerListsRequest, ::message::PeerResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) { return this->GetInstancePeers(context, request, response); }));}
+    void SetMessageAllocatorFor_GetInstancePeers(
+        ::grpc::MessageAllocator< ::message::PeerRequest, ::message::PeerResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(4);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_GetPeerResourceServerInfo() override {
+    ~WithCallbackMethod_GetInstancePeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* GetPeerResourceServerInfo(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* GetInstancePeers(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_GetPeerResourceGrpcServerInfo : public BaseClass {
+  class WithCallbackMethod_GetGrpcPeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_GetPeerResourceGrpcServerInfo() {
+    WithCallbackMethod_GetGrpcPeers() {
       ::grpc::Service::MarkMethodCallback(5,
-          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) { return this->GetPeerResourceGrpcServerInfo(context, request, response); }));}
-    void SetMessageAllocatorFor_GetPeerResourceGrpcServerInfo(
-        ::grpc::MessageAllocator< ::message::PeerListsRequest, ::message::PeerResponse>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) { return this->GetGrpcPeers(context, request, response); }));}
+    void SetMessageAllocatorFor_GetGrpcPeers(
+        ::grpc::MessageAllocator< ::message::PeerRequest, ::message::PeerResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerListsRequest, ::message::PeerResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_GetPeerResourceGrpcServerInfo() override {
+    ~WithCallbackMethod_GetGrpcPeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* GetPeerResourceGrpcServerInfo(
-      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* GetGrpcPeers(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_RegisterResourceServerInstance<WithCallbackMethod_RegisterResourceGrpcServer<WithCallbackMethod_ResourceServerShutDown<WithCallbackMethod_ResourceGrpcServerShutDown<WithCallbackMethod_GetPeerResourceServerInfo<WithCallbackMethod_GetPeerResourceGrpcServerInfo<Service > > > > > > CallbackService;
+  typedef WithCallbackMethod_RegisterInstance<WithCallbackMethod_RegisterGrpc<WithCallbackMethod_ShutdownInstance<WithCallbackMethod_ShutdownGrpc<WithCallbackMethod_GetInstancePeers<WithCallbackMethod_GetGrpcPeers<Service > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
-  class WithGenericMethod_RegisterResourceServerInstance : public BaseClass {
+  class WithGenericMethod_RegisterInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_RegisterResourceServerInstance() {
+    WithGenericMethod_RegisterInstance() {
       ::grpc::Service::MarkMethodGeneric(0);
     }
-    ~WithGenericMethod_RegisterResourceServerInstance() override {
+    ~WithGenericMethod_RegisterInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_RegisterResourceGrpcServer : public BaseClass {
+  class WithGenericMethod_RegisterGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_RegisterResourceGrpcServer() {
+    WithGenericMethod_RegisterGrpc() {
       ::grpc::Service::MarkMethodGeneric(1);
     }
-    ~WithGenericMethod_RegisterResourceGrpcServer() override {
+    ~WithGenericMethod_RegisterGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_ResourceServerShutDown : public BaseClass {
+  class WithGenericMethod_ShutdownInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_ResourceServerShutDown() {
+    WithGenericMethod_ShutdownInstance() {
       ::grpc::Service::MarkMethodGeneric(2);
     }
-    ~WithGenericMethod_ResourceServerShutDown() override {
+    ~WithGenericMethod_ShutdownInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_ResourceGrpcServerShutDown : public BaseClass {
+  class WithGenericMethod_ShutdownGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_ResourceGrpcServerShutDown() {
+    WithGenericMethod_ShutdownGrpc() {
       ::grpc::Service::MarkMethodGeneric(3);
     }
-    ~WithGenericMethod_ResourceGrpcServerShutDown() override {
+    ~WithGenericMethod_ShutdownGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_GetPeerResourceServerInfo : public BaseClass {
+  class WithGenericMethod_GetInstancePeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_GetPeerResourceServerInfo() {
+    WithGenericMethod_GetInstancePeers() {
       ::grpc::Service::MarkMethodGeneric(4);
     }
-    ~WithGenericMethod_GetPeerResourceServerInfo() override {
+    ~WithGenericMethod_GetInstancePeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_GetPeerResourceGrpcServerInfo : public BaseClass {
+  class WithGenericMethod_GetGrpcPeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_GetPeerResourceGrpcServerInfo() {
+    WithGenericMethod_GetGrpcPeers() {
       ::grpc::Service::MarkMethodGeneric(5);
     }
-    ~WithGenericMethod_GetPeerResourceGrpcServerInfo() override {
+    ~WithGenericMethod_GetGrpcPeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithRawMethod_RegisterResourceServerInstance : public BaseClass {
+  class WithRawMethod_RegisterInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_RegisterResourceServerInstance() {
+    WithRawMethod_RegisterInstance() {
       ::grpc::Service::MarkMethodRaw(0);
     }
-    ~WithRawMethod_RegisterResourceServerInstance() override {
+    ~WithRawMethod_RegisterInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestRegisterResourceServerInstance(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterInstance(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_RegisterResourceGrpcServer : public BaseClass {
+  class WithRawMethod_RegisterGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_RegisterResourceGrpcServer() {
+    WithRawMethod_RegisterGrpc() {
       ::grpc::Service::MarkMethodRaw(1);
     }
-    ~WithRawMethod_RegisterResourceGrpcServer() override {
+    ~WithRawMethod_RegisterGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestRegisterResourceGrpcServer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterGrpc(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_ResourceServerShutDown : public BaseClass {
+  class WithRawMethod_ShutdownInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_ResourceServerShutDown() {
+    WithRawMethod_ShutdownInstance() {
       ::grpc::Service::MarkMethodRaw(2);
     }
-    ~WithRawMethod_ResourceServerShutDown() override {
+    ~WithRawMethod_ShutdownInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestResourceServerShutDown(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestShutdownInstance(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_ResourceGrpcServerShutDown : public BaseClass {
+  class WithRawMethod_ShutdownGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_ResourceGrpcServerShutDown() {
+    WithRawMethod_ShutdownGrpc() {
       ::grpc::Service::MarkMethodRaw(3);
     }
-    ~WithRawMethod_ResourceGrpcServerShutDown() override {
+    ~WithRawMethod_ShutdownGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestResourceGrpcServerShutDown(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestShutdownGrpc(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_GetPeerResourceServerInfo : public BaseClass {
+  class WithRawMethod_GetInstancePeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_GetPeerResourceServerInfo() {
+    WithRawMethod_GetInstancePeers() {
       ::grpc::Service::MarkMethodRaw(4);
     }
-    ~WithRawMethod_GetPeerResourceServerInfo() override {
+    ~WithRawMethod_GetInstancePeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestGetPeerResourceServerInfo(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestGetInstancePeers(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_GetPeerResourceGrpcServerInfo : public BaseClass {
+  class WithRawMethod_GetGrpcPeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_GetPeerResourceGrpcServerInfo() {
+    WithRawMethod_GetGrpcPeers() {
       ::grpc::Service::MarkMethodRaw(5);
     }
-    ~WithRawMethod_GetPeerResourceGrpcServerInfo() override {
+    ~WithRawMethod_GetGrpcPeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestGetPeerResourceGrpcServerInfo(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestGetGrpcPeers(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_RegisterResourceServerInstance : public BaseClass {
+  class WithRawCallbackMethod_RegisterInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_RegisterResourceServerInstance() {
+    WithRawCallbackMethod_RegisterInstance() {
       ::grpc::Service::MarkMethodRawCallback(0,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterResourceServerInstance(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterInstance(context, request, response); }));
     }
-    ~WithRawCallbackMethod_RegisterResourceServerInstance() override {
+    ~WithRawCallbackMethod_RegisterInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* RegisterResourceServerInstance(
+    virtual ::grpc::ServerUnaryReactor* RegisterInstance(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_RegisterResourceGrpcServer : public BaseClass {
+  class WithRawCallbackMethod_RegisterGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_RegisterResourceGrpcServer() {
+    WithRawCallbackMethod_RegisterGrpc() {
       ::grpc::Service::MarkMethodRawCallback(1,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterResourceGrpcServer(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterGrpc(context, request, response); }));
     }
-    ~WithRawCallbackMethod_RegisterResourceGrpcServer() override {
+    ~WithRawCallbackMethod_RegisterGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* RegisterResourceGrpcServer(
+    virtual ::grpc::ServerUnaryReactor* RegisterGrpc(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_ResourceServerShutDown : public BaseClass {
+  class WithRawCallbackMethod_ShutdownInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_ResourceServerShutDown() {
+    WithRawCallbackMethod_ShutdownInstance() {
       ::grpc::Service::MarkMethodRawCallback(2,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ResourceServerShutDown(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ShutdownInstance(context, request, response); }));
     }
-    ~WithRawCallbackMethod_ResourceServerShutDown() override {
+    ~WithRawCallbackMethod_ShutdownInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* ResourceServerShutDown(
+    virtual ::grpc::ServerUnaryReactor* ShutdownInstance(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_ResourceGrpcServerShutDown : public BaseClass {
+  class WithRawCallbackMethod_ShutdownGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_ResourceGrpcServerShutDown() {
+    WithRawCallbackMethod_ShutdownGrpc() {
       ::grpc::Service::MarkMethodRawCallback(3,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ResourceGrpcServerShutDown(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ShutdownGrpc(context, request, response); }));
     }
-    ~WithRawCallbackMethod_ResourceGrpcServerShutDown() override {
+    ~WithRawCallbackMethod_ShutdownGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* ResourceGrpcServerShutDown(
+    virtual ::grpc::ServerUnaryReactor* ShutdownGrpc(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_GetPeerResourceServerInfo : public BaseClass {
+  class WithRawCallbackMethod_GetInstancePeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_GetPeerResourceServerInfo() {
+    WithRawCallbackMethod_GetInstancePeers() {
       ::grpc::Service::MarkMethodRawCallback(4,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetPeerResourceServerInfo(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetInstancePeers(context, request, response); }));
     }
-    ~WithRawCallbackMethod_GetPeerResourceServerInfo() override {
+    ~WithRawCallbackMethod_GetInstancePeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* GetPeerResourceServerInfo(
+    virtual ::grpc::ServerUnaryReactor* GetInstancePeers(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_GetPeerResourceGrpcServerInfo : public BaseClass {
+  class WithRawCallbackMethod_GetGrpcPeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_GetPeerResourceGrpcServerInfo() {
+    WithRawCallbackMethod_GetGrpcPeers() {
       ::grpc::Service::MarkMethodRawCallback(5,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetPeerResourceGrpcServerInfo(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetGrpcPeers(context, request, response); }));
     }
-    ~WithRawCallbackMethod_GetPeerResourceGrpcServerInfo() override {
+    ~WithRawCallbackMethod_GetGrpcPeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* GetPeerResourceGrpcServerInfo(
+    virtual ::grpc::ServerUnaryReactor* GetGrpcPeers(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_RegisterResourceServerInstance : public BaseClass {
+  class WithStreamedUnaryMethod_RegisterInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_RegisterResourceServerInstance() {
+    WithStreamedUnaryMethod_RegisterInstance() {
       ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
+          ::message::RegisterRequest, ::message::StatusResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedRegisterResourceServerInstance(context,
+                     ::message::RegisterRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedRegisterInstance(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_RegisterResourceServerInstance() override {
+    ~WithStreamedUnaryMethod_RegisterInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status RegisterResourceServerInstance(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedRegisterResourceServerInstance(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcRegisterRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedRegisterInstance(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::RegisterRequest,::message::StatusResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_RegisterResourceGrpcServer : public BaseClass {
+  class WithStreamedUnaryMethod_RegisterGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_RegisterResourceGrpcServer() {
+    WithStreamedUnaryMethod_RegisterGrpc() {
       ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>(
+          ::message::RegisterRequest, ::message::StatusResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedRegisterResourceGrpcServer(context,
+                     ::message::RegisterRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedRegisterGrpc(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_RegisterResourceGrpcServer() override {
+    ~WithStreamedUnaryMethod_RegisterGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status RegisterResourceGrpcServer(::grpc::ServerContext* /*context*/, const ::message::GrpcRegisterRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedRegisterResourceGrpcServer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcRegisterRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedRegisterGrpc(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::RegisterRequest,::message::StatusResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_ResourceServerShutDown : public BaseClass {
+  class WithStreamedUnaryMethod_ShutdownInstance : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_ResourceServerShutDown() {
+    WithStreamedUnaryMethod_ShutdownInstance() {
       ::grpc::Service::MarkMethodStreamed(2,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
+          ::message::ShutdownRequest, ::message::StatusResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedResourceServerShutDown(context,
+                     ::message::ShutdownRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedShutdownInstance(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_ResourceServerShutDown() override {
+    ~WithStreamedUnaryMethod_ShutdownInstance() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status ResourceServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedResourceServerShutDown(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcShutdownRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedShutdownInstance(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::ShutdownRequest,::message::StatusResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_ResourceGrpcServerShutDown : public BaseClass {
+  class WithStreamedUnaryMethod_ShutdownGrpc : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_ResourceGrpcServerShutDown() {
+    WithStreamedUnaryMethod_ShutdownGrpc() {
       ::grpc::Service::MarkMethodStreamed(3,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>(
+          ::message::ShutdownRequest, ::message::StatusResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse>* streamer) {
-                       return this->StreamedResourceGrpcServerShutDown(context,
+                     ::message::ShutdownRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedShutdownGrpc(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_ResourceGrpcServerShutDown() override {
+    ~WithStreamedUnaryMethod_ShutdownGrpc() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status ResourceGrpcServerShutDown(::grpc::ServerContext* /*context*/, const ::message::GrpcShutdownRequest* /*request*/, ::message::GrpcStatusResponse* /*response*/) override {
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedResourceGrpcServerShutDown(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::GrpcShutdownRequest,::message::GrpcStatusResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedShutdownGrpc(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::ShutdownRequest,::message::StatusResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_GetPeerResourceServerInfo : public BaseClass {
+  class WithStreamedUnaryMethod_GetInstancePeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_GetPeerResourceServerInfo() {
+    WithStreamedUnaryMethod_GetInstancePeers() {
       ::grpc::Service::MarkMethodStreamed(4,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::PeerListsRequest, ::message::PeerResponse>(
+          ::message::PeerRequest, ::message::PeerResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::PeerListsRequest, ::message::PeerResponse>* streamer) {
-                       return this->StreamedGetPeerResourceServerInfo(context,
+                     ::message::PeerRequest, ::message::PeerResponse>* streamer) {
+                       return this->StreamedGetInstancePeers(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_GetPeerResourceServerInfo() override {
+    ~WithStreamedUnaryMethod_GetInstancePeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status GetPeerResourceServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedGetPeerResourceServerInfo(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerListsRequest,::message::PeerResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedGetInstancePeers(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerRequest,::message::PeerResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_GetPeerResourceGrpcServerInfo : public BaseClass {
+  class WithStreamedUnaryMethod_GetGrpcPeers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_GetPeerResourceGrpcServerInfo() {
+    WithStreamedUnaryMethod_GetGrpcPeers() {
       ::grpc::Service::MarkMethodStreamed(5,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::message::PeerListsRequest, ::message::PeerResponse>(
+          ::message::PeerRequest, ::message::PeerResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::message::PeerListsRequest, ::message::PeerResponse>* streamer) {
-                       return this->StreamedGetPeerResourceGrpcServerInfo(context,
+                     ::message::PeerRequest, ::message::PeerResponse>* streamer) {
+                       return this->StreamedGetGrpcPeers(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_GetPeerResourceGrpcServerInfo() override {
+    ~WithStreamedUnaryMethod_GetGrpcPeers() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status GetPeerResourceGrpcServerInfo(::grpc::ServerContext* /*context*/, const ::message::PeerListsRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedGetPeerResourceGrpcServerInfo(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerListsRequest,::message::PeerResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedGetGrpcPeers(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerRequest,::message::PeerResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_RegisterResourceServerInstance<WithStreamedUnaryMethod_RegisterResourceGrpcServer<WithStreamedUnaryMethod_ResourceServerShutDown<WithStreamedUnaryMethod_ResourceGrpcServerShutDown<WithStreamedUnaryMethod_GetPeerResourceServerInfo<WithStreamedUnaryMethod_GetPeerResourceGrpcServerInfo<Service > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_RegisterInstance<WithStreamedUnaryMethod_RegisterGrpc<WithStreamedUnaryMethod_ShutdownInstance<WithStreamedUnaryMethod_ShutdownGrpc<WithStreamedUnaryMethod_GetInstancePeers<WithStreamedUnaryMethod_GetGrpcPeers<Service > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_RegisterResourceServerInstance<WithStreamedUnaryMethod_RegisterResourceGrpcServer<WithStreamedUnaryMethod_ResourceServerShutDown<WithStreamedUnaryMethod_ResourceGrpcServerShutDown<WithStreamedUnaryMethod_GetPeerResourceServerInfo<WithStreamedUnaryMethod_GetPeerResourceGrpcServerInfo<Service > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_RegisterInstance<WithStreamedUnaryMethod_RegisterGrpc<WithStreamedUnaryMethod_ShutdownInstance<WithStreamedUnaryMethod_ShutdownGrpc<WithStreamedUnaryMethod_GetInstancePeers<WithStreamedUnaryMethod_GetGrpcPeers<Service > > > > > > StreamedService;
+};
+
+class ResourcesRegisterService final {
+ public:
+  static constexpr char const* service_full_name() {
+    return "message.ResourcesRegisterService";
+  }
+  class StubInterface {
+   public:
+    virtual ~StubInterface() {}
+    // Resource server related
+    virtual ::grpc::Status RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncRegisterInstanceRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncRegisterInstanceRaw(context, request, cq));
+    }
+    virtual ::grpc::Status RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncRegisterGrpcRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncRegisterGrpcRaw(context, request, cq));
+    }
+    virtual ::grpc::Status ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncShutdownInstanceRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncShutdownInstanceRaw(context, request, cq));
+    }
+    virtual ::grpc::Status ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> AsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(AsyncShutdownGrpcRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>> PrepareAsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>>(PrepareAsyncShutdownGrpcRaw(context, request, cq));
+    }
+    virtual ::grpc::Status GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetInstancePeersRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetInstancePeersRaw(context, request, cq));
+    }
+    virtual ::grpc::Status GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> AsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(AsyncGetGrpcPeersRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>> PrepareAsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>>(PrepareAsyncGetGrpcPeersRaw(context, request, cq));
+    }
+    class async_interface {
+     public:
+      virtual ~async_interface() {}
+      // Resource server related
+      virtual void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+    };
+    typedef class async_interface experimental_async_interface;
+    virtual class async_interface* async() { return nullptr; }
+    class async_interface* experimental_async() { return async(); }
+   private:
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* AsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::StatusResponse>* PrepareAsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* AsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::message::PeerResponse>* PrepareAsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+  };
+  class Stub final : public StubInterface {
+   public:
+    Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
+    ::grpc::Status RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncRegisterInstanceRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncRegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncRegisterInstanceRaw(context, request, cq));
+    }
+    ::grpc::Status RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncRegisterGrpcRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncRegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncRegisterGrpcRaw(context, request, cq));
+    }
+    ::grpc::Status ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncShutdownInstanceRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncShutdownInstanceRaw(context, request, cq));
+    }
+    ::grpc::Status ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> AsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(AsyncShutdownGrpcRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>> PrepareAsyncShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>>(PrepareAsyncShutdownGrpcRaw(context, request, cq));
+    }
+    ::grpc::Status GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetInstancePeersRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetInstancePeersRaw(context, request, cq));
+    }
+    ::grpc::Status GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> AsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(AsyncGetGrpcPeersRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>> PrepareAsyncGetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>>(PrepareAsyncGetGrpcPeersRaw(context, request, cq));
+    }
+    class async final :
+      public StubInterface::async_interface {
+     public:
+      void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+     private:
+      friend class Stub;
+      explicit async(Stub* stub): stub_(stub) { }
+      Stub* stub() { return stub_; }
+      Stub* stub_;
+    };
+    class async* async() override { return &async_stub_; }
+
+   private:
+    std::shared_ptr< ::grpc::ChannelInterface> channel_;
+    class async async_stub_{this};
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* AsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* PrepareAsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* AsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* PrepareAsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_RegisterInstance_;
+    const ::grpc::internal::RpcMethod rpcmethod_RegisterGrpc_;
+    const ::grpc::internal::RpcMethod rpcmethod_ShutdownInstance_;
+    const ::grpc::internal::RpcMethod rpcmethod_ShutdownGrpc_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetInstancePeers_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetGrpcPeers_;
+  };
+  static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
+
+  class Service : public ::grpc::Service {
+   public:
+    Service();
+    virtual ~Service();
+    // Resource server related
+    virtual ::grpc::Status RegisterInstance(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status RegisterGrpc(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status ShutdownInstance(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status ShutdownGrpc(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response);
+    virtual ::grpc::Status GetInstancePeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response);
+    virtual ::grpc::Status GetGrpcPeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response);
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_RegisterInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_RegisterInstance() {
+      ::grpc::Service::MarkMethodAsync(0);
+    }
+    ~WithAsyncMethod_RegisterInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRegisterInstance(::grpc::ServerContext* context, ::message::RegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_RegisterGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_RegisterGrpc() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_RegisterGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRegisterGrpc(::grpc::ServerContext* context, ::message::RegisterRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_ShutdownInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_ShutdownInstance() {
+      ::grpc::Service::MarkMethodAsync(2);
+    }
+    ~WithAsyncMethod_ShutdownInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestShutdownInstance(::grpc::ServerContext* context, ::message::ShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_ShutdownGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_ShutdownGrpc() {
+      ::grpc::Service::MarkMethodAsync(3);
+    }
+    ~WithAsyncMethod_ShutdownGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestShutdownGrpc(::grpc::ServerContext* context, ::message::ShutdownRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::StatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_GetInstancePeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetInstancePeers() {
+      ::grpc::Service::MarkMethodAsync(4);
+    }
+    ~WithAsyncMethod_GetInstancePeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetInstancePeers(::grpc::ServerContext* context, ::message::PeerRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_GetGrpcPeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetGrpcPeers() {
+      ::grpc::Service::MarkMethodAsync(5);
+    }
+    ~WithAsyncMethod_GetGrpcPeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetGrpcPeers(::grpc::ServerContext* context, ::message::PeerRequest* request, ::grpc::ServerAsyncResponseWriter< ::message::PeerResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_RegisterInstance<WithAsyncMethod_RegisterGrpc<WithAsyncMethod_ShutdownInstance<WithAsyncMethod_ShutdownGrpc<WithAsyncMethod_GetInstancePeers<WithAsyncMethod_GetGrpcPeers<Service > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithCallbackMethod_RegisterInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_RegisterInstance() {
+      ::grpc::Service::MarkMethodCallback(0,
+          new ::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) { return this->RegisterInstance(context, request, response); }));}
+    void SetMessageAllocatorFor_RegisterInstance(
+        ::grpc::MessageAllocator< ::message::RegisterRequest, ::message::StatusResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_RegisterInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* RegisterInstance(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_RegisterGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_RegisterGrpc() {
+      ::grpc::Service::MarkMethodCallback(1,
+          new ::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) { return this->RegisterGrpc(context, request, response); }));}
+    void SetMessageAllocatorFor_RegisterGrpc(
+        ::grpc::MessageAllocator< ::message::RegisterRequest, ::message::StatusResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::RegisterRequest, ::message::StatusResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_RegisterGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* RegisterGrpc(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_ShutdownInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_ShutdownInstance() {
+      ::grpc::Service::MarkMethodCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) { return this->ShutdownInstance(context, request, response); }));}
+    void SetMessageAllocatorFor_ShutdownInstance(
+        ::grpc::MessageAllocator< ::message::ShutdownRequest, ::message::StatusResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_ShutdownInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* ShutdownInstance(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_ShutdownGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_ShutdownGrpc() {
+      ::grpc::Service::MarkMethodCallback(3,
+          new ::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) { return this->ShutdownGrpc(context, request, response); }));}
+    void SetMessageAllocatorFor_ShutdownGrpc(
+        ::grpc::MessageAllocator< ::message::ShutdownRequest, ::message::StatusResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::ShutdownRequest, ::message::StatusResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_ShutdownGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* ShutdownGrpc(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_GetInstancePeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_GetInstancePeers() {
+      ::grpc::Service::MarkMethodCallback(4,
+          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) { return this->GetInstancePeers(context, request, response); }));}
+    void SetMessageAllocatorFor_GetInstancePeers(
+        ::grpc::MessageAllocator< ::message::PeerRequest, ::message::PeerResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(4);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_GetInstancePeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetInstancePeers(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_GetGrpcPeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_GetGrpcPeers() {
+      ::grpc::Service::MarkMethodCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) { return this->GetGrpcPeers(context, request, response); }));}
+    void SetMessageAllocatorFor_GetGrpcPeers(
+        ::grpc::MessageAllocator< ::message::PeerRequest, ::message::PeerResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::message::PeerRequest, ::message::PeerResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_GetGrpcPeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetGrpcPeers(
+      ::grpc::CallbackServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_RegisterInstance<WithCallbackMethod_RegisterGrpc<WithCallbackMethod_ShutdownInstance<WithCallbackMethod_ShutdownGrpc<WithCallbackMethod_GetInstancePeers<WithCallbackMethod_GetGrpcPeers<Service > > > > > > CallbackService;
+  typedef CallbackService ExperimentalCallbackService;
+  template <class BaseClass>
+  class WithGenericMethod_RegisterInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_RegisterInstance() {
+      ::grpc::Service::MarkMethodGeneric(0);
+    }
+    ~WithGenericMethod_RegisterInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_RegisterGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_RegisterGrpc() {
+      ::grpc::Service::MarkMethodGeneric(1);
+    }
+    ~WithGenericMethod_RegisterGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_ShutdownInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_ShutdownInstance() {
+      ::grpc::Service::MarkMethodGeneric(2);
+    }
+    ~WithGenericMethod_ShutdownInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_ShutdownGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_ShutdownGrpc() {
+      ::grpc::Service::MarkMethodGeneric(3);
+    }
+    ~WithGenericMethod_ShutdownGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetInstancePeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetInstancePeers() {
+      ::grpc::Service::MarkMethodGeneric(4);
+    }
+    ~WithGenericMethod_GetInstancePeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetGrpcPeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetGrpcPeers() {
+      ::grpc::Service::MarkMethodGeneric(5);
+    }
+    ~WithGenericMethod_GetGrpcPeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_RegisterInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_RegisterInstance() {
+      ::grpc::Service::MarkMethodRaw(0);
+    }
+    ~WithRawMethod_RegisterInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRegisterInstance(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_RegisterGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_RegisterGrpc() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_RegisterGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRegisterGrpc(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_ShutdownInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_ShutdownInstance() {
+      ::grpc::Service::MarkMethodRaw(2);
+    }
+    ~WithRawMethod_ShutdownInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestShutdownInstance(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_ShutdownGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_ShutdownGrpc() {
+      ::grpc::Service::MarkMethodRaw(3);
+    }
+    ~WithRawMethod_ShutdownGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestShutdownGrpc(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_GetInstancePeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetInstancePeers() {
+      ::grpc::Service::MarkMethodRaw(4);
+    }
+    ~WithRawMethod_GetInstancePeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetInstancePeers(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_GetGrpcPeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetGrpcPeers() {
+      ::grpc::Service::MarkMethodRaw(5);
+    }
+    ~WithRawMethod_GetGrpcPeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetGrpcPeers(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_RegisterInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_RegisterInstance() {
+      ::grpc::Service::MarkMethodRawCallback(0,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterInstance(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_RegisterInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* RegisterInstance(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_RegisterGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_RegisterGrpc() {
+      ::grpc::Service::MarkMethodRawCallback(1,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RegisterGrpc(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_RegisterGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* RegisterGrpc(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_ShutdownInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_ShutdownInstance() {
+      ::grpc::Service::MarkMethodRawCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ShutdownInstance(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_ShutdownInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* ShutdownInstance(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_ShutdownGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_ShutdownGrpc() {
+      ::grpc::Service::MarkMethodRawCallback(3,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ShutdownGrpc(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_ShutdownGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* ShutdownGrpc(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_GetInstancePeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_GetInstancePeers() {
+      ::grpc::Service::MarkMethodRawCallback(4,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetInstancePeers(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_GetInstancePeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetInstancePeers(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_GetGrpcPeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_GetGrpcPeers() {
+      ::grpc::Service::MarkMethodRawCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetGrpcPeers(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_GetGrpcPeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetGrpcPeers(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_RegisterInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_RegisterInstance() {
+      ::grpc::Service::MarkMethodStreamed(0,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::message::RegisterRequest, ::message::StatusResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::message::RegisterRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedRegisterInstance(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_RegisterInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status RegisterInstance(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedRegisterInstance(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::RegisterRequest,::message::StatusResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_RegisterGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_RegisterGrpc() {
+      ::grpc::Service::MarkMethodStreamed(1,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::message::RegisterRequest, ::message::StatusResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::message::RegisterRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedRegisterGrpc(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_RegisterGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status RegisterGrpc(::grpc::ServerContext* /*context*/, const ::message::RegisterRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedRegisterGrpc(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::RegisterRequest,::message::StatusResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_ShutdownInstance : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_ShutdownInstance() {
+      ::grpc::Service::MarkMethodStreamed(2,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::message::ShutdownRequest, ::message::StatusResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::message::ShutdownRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedShutdownInstance(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_ShutdownInstance() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status ShutdownInstance(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedShutdownInstance(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::ShutdownRequest,::message::StatusResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_ShutdownGrpc : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_ShutdownGrpc() {
+      ::grpc::Service::MarkMethodStreamed(3,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::message::ShutdownRequest, ::message::StatusResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::message::ShutdownRequest, ::message::StatusResponse>* streamer) {
+                       return this->StreamedShutdownGrpc(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_ShutdownGrpc() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status ShutdownGrpc(::grpc::ServerContext* /*context*/, const ::message::ShutdownRequest* /*request*/, ::message::StatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedShutdownGrpc(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::ShutdownRequest,::message::StatusResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetInstancePeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetInstancePeers() {
+      ::grpc::Service::MarkMethodStreamed(4,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::message::PeerRequest, ::message::PeerResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::message::PeerRequest, ::message::PeerResponse>* streamer) {
+                       return this->StreamedGetInstancePeers(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetInstancePeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetInstancePeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetInstancePeers(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerRequest,::message::PeerResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetGrpcPeers : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetGrpcPeers() {
+      ::grpc::Service::MarkMethodStreamed(5,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::message::PeerRequest, ::message::PeerResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::message::PeerRequest, ::message::PeerResponse>* streamer) {
+                       return this->StreamedGetGrpcPeers(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetGrpcPeers() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetGrpcPeers(::grpc::ServerContext* /*context*/, const ::message::PeerRequest* /*request*/, ::message::PeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetGrpcPeers(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::message::PeerRequest,::message::PeerResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_RegisterInstance<WithStreamedUnaryMethod_RegisterGrpc<WithStreamedUnaryMethod_ShutdownInstance<WithStreamedUnaryMethod_ShutdownGrpc<WithStreamedUnaryMethod_GetInstancePeers<WithStreamedUnaryMethod_GetGrpcPeers<Service > > > > > > StreamedUnaryService;
+  typedef Service SplitStreamedService;
+  typedef WithStreamedUnaryMethod_RegisterInstance<WithStreamedUnaryMethod_RegisterGrpc<WithStreamedUnaryMethod_ShutdownInstance<WithStreamedUnaryMethod_ShutdownGrpc<WithStreamedUnaryMethod_GetInstancePeers<WithStreamedUnaryMethod_GetGrpcPeers<Service > > > > > > StreamedService;
 };
 
 }  // namespace message

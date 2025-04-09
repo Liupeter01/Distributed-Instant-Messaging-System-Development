@@ -82,396 +82,144 @@ VerificationService::Service::~Service() {
 }
 
 
-static const char* BalancerService_method_names[] = {
-  "/message.BalancerService/AddNewUserToServer",
-  "/message.BalancerService/UserLoginToServer",
-  "/message.BalancerService/UserLogoutFromServer",
-  "/message.BalancerService/RegisterChattingServerInstance",
-  "/message.BalancerService/RegisterChattingGrpcServer",
-  "/message.BalancerService/ChattingServerShutDown",
-  "/message.BalancerService/ChattingGrpcServerShutDown",
-  "/message.BalancerService/GetPeerChattingServerInfo",
-  "/message.BalancerService/GetPeerGrpcServerInfo",
+static const char* UserService_method_names[] = {
+  "/message.UserService/RegisterUser",
+  "/message.UserService/LoginUser",
+  "/message.UserService/LogoutUser",
 };
 
-std::unique_ptr< BalancerService::Stub> BalancerService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+std::unique_ptr< UserService::Stub> UserService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
   (void)options;
-  std::unique_ptr< BalancerService::Stub> stub(new BalancerService::Stub(channel, options));
+  std::unique_ptr< UserService::Stub> stub(new UserService::Stub(channel, options));
   return stub;
 }
 
-BalancerService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_AddNewUserToServer_(BalancerService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_UserLoginToServer_(BalancerService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_UserLogoutFromServer_(BalancerService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterChattingServerInstance_(BalancerService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterChattingGrpcServer_(BalancerService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChattingServerShutDown_(BalancerService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChattingGrpcServerShutDown_(BalancerService_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerChattingServerInfo_(BalancerService_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerGrpcServerInfo_(BalancerService_method_names[8], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+UserService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
+  : channel_(channel), rpcmethod_RegisterUser_(UserService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LoginUser_(UserService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LogoutUser_(UserService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
-::grpc::Status BalancerService::Stub::AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::message::GetAllocatedChattingServer* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_AddNewUserToServer_, context, request, response);
+::grpc::Status UserService::Stub::RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::message::UserRegisterResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::UserRegisterRequest, ::message::UserRegisterResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterUser_, context, request, response);
 }
 
-void BalancerService::Stub::async::AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_AddNewUserToServer_, context, request, response, std::move(f));
+void UserService::Stub::async::RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::UserRegisterRequest, ::message::UserRegisterResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterUser_, context, request, response, std::move(f));
 }
 
-void BalancerService::Stub::async::AddNewUserToServer(::grpc::ClientContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_AddNewUserToServer_, context, request, response, reactor);
+void UserService::Stub::async::RegisterUser(::grpc::ClientContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterUser_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>* BalancerService::Stub::PrepareAsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GetAllocatedChattingServer, ::message::RegisterToBalancer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_AddNewUserToServer_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>* UserService::Stub::PrepareAsyncRegisterUserRaw(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::UserRegisterResponse, ::message::UserRegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterUser_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GetAllocatedChattingServer>* BalancerService::Stub::AsyncAddNewUserToServerRaw(::grpc::ClientContext* context, const ::message::RegisterToBalancer& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::UserRegisterResponse>* UserService::Stub::AsyncRegisterUserRaw(::grpc::ClientContext* context, const ::message::UserRegisterRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncAddNewUserToServerRaw(context, request, cq);
+    this->PrepareAsyncRegisterUserRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status BalancerService::Stub::UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::message::LoginChattingResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::LoginChattingServer, ::message::LoginChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_UserLoginToServer_, context, request, response);
+::grpc::Status UserService::Stub::LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::message::LoginResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::LoginRequest, ::message::LoginResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_LoginUser_, context, request, response);
 }
 
-void BalancerService::Stub::async::UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::LoginChattingServer, ::message::LoginChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UserLoginToServer_, context, request, response, std::move(f));
+void UserService::Stub::async::LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::LoginRequest, ::message::LoginResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_LoginUser_, context, request, response, std::move(f));
 }
 
-void BalancerService::Stub::async::UserLoginToServer(::grpc::ClientContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UserLoginToServer_, context, request, response, reactor);
+void UserService::Stub::async::LoginUser(::grpc::ClientContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_LoginUser_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>* BalancerService::Stub::PrepareAsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::LoginChattingResponse, ::message::LoginChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_UserLoginToServer_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::LoginResponse>* UserService::Stub::PrepareAsyncLoginUserRaw(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::LoginResponse, ::message::LoginRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_LoginUser_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::LoginChattingResponse>* BalancerService::Stub::AsyncUserLoginToServerRaw(::grpc::ClientContext* context, const ::message::LoginChattingServer& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::LoginResponse>* UserService::Stub::AsyncLoginUserRaw(::grpc::ClientContext* context, const ::message::LoginRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncUserLoginToServerRaw(context, request, cq);
+    this->PrepareAsyncLoginUserRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status BalancerService::Stub::UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::message::LogoutChattingResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::LogoutChattingServer, ::message::LogoutChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_UserLogoutFromServer_, context, request, response);
+::grpc::Status UserService::Stub::LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::message::LogoutResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::LogoutRequest, ::message::LogoutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_LogoutUser_, context, request, response);
 }
 
-void BalancerService::Stub::async::UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::LogoutChattingServer, ::message::LogoutChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UserLogoutFromServer_, context, request, response, std::move(f));
+void UserService::Stub::async::LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::LogoutRequest, ::message::LogoutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_LogoutUser_, context, request, response, std::move(f));
 }
 
-void BalancerService::Stub::async::UserLogoutFromServer(::grpc::ClientContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UserLogoutFromServer_, context, request, response, reactor);
+void UserService::Stub::async::LogoutUser(::grpc::ClientContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_LogoutUser_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>* BalancerService::Stub::PrepareAsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::LogoutChattingResponse, ::message::LogoutChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_UserLogoutFromServer_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>* UserService::Stub::PrepareAsyncLogoutUserRaw(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::LogoutResponse, ::message::LogoutRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_LogoutUser_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::LogoutChattingResponse>* BalancerService::Stub::AsyncUserLogoutFromServerRaw(::grpc::ClientContext* context, const ::message::LogoutChattingServer& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::LogoutResponse>* UserService::Stub::AsyncLogoutUserRaw(::grpc::ClientContext* context, const ::message::LogoutRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncUserLogoutFromServerRaw(context, request, cq);
+    this->PrepareAsyncLogoutUserRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status BalancerService::Stub::RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterChattingServerInstance_, context, request, response);
-}
-
-void BalancerService::Stub::async::RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterChattingServerInstance_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::RegisterChattingServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterChattingServerInstance_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::PrepareAsyncRegisterChattingServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcRegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterChattingServerInstance_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::AsyncRegisterChattingServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncRegisterChattingServerInstanceRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status BalancerService::Stub::RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterChattingGrpcServer_, context, request, response);
-}
-
-void BalancerService::Stub::async::RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterChattingGrpcServer_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::RegisterChattingGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterChattingGrpcServer_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::PrepareAsyncRegisterChattingGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcRegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterChattingGrpcServer_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::AsyncRegisterChattingGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncRegisterChattingGrpcServerRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status BalancerService::Stub::ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ChattingServerShutDown_, context, request, response);
-}
-
-void BalancerService::Stub::async::ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ChattingServerShutDown_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::ChattingServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ChattingServerShutDown_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::PrepareAsyncChattingServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ChattingServerShutDown_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::AsyncChattingServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncChattingServerShutDownRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status BalancerService::Stub::ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ChattingGrpcServerShutDown_, context, request, response);
-}
-
-void BalancerService::Stub::async::ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ChattingGrpcServerShutDown_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::ChattingGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ChattingGrpcServerShutDown_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::PrepareAsyncChattingGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ChattingGrpcServerShutDown_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* BalancerService::Stub::AsyncChattingGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncChattingGrpcServerShutDownRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status BalancerService::Stub::GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetPeerChattingServerInfo_, context, request, response);
-}
-
-void BalancerService::Stub::async::GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerChattingServerInfo_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::GetPeerChattingServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerChattingServerInfo_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* BalancerService::Stub::PrepareAsyncGetPeerChattingServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerListsRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetPeerChattingServerInfo_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* BalancerService::Stub::AsyncGetPeerChattingServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncGetPeerChattingServerInfoRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status BalancerService::Stub::GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetPeerGrpcServerInfo_, context, request, response);
-}
-
-void BalancerService::Stub::async::GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerGrpcServerInfo_, context, request, response, std::move(f));
-}
-
-void BalancerService::Stub::async::GetPeerGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerGrpcServerInfo_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* BalancerService::Stub::PrepareAsyncGetPeerGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerListsRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetPeerGrpcServerInfo_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* BalancerService::Stub::AsyncGetPeerGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncGetPeerGrpcServerInfoRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-BalancerService::Service::Service() {
+UserService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[0],
+      UserService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::RegisterToBalancer, ::message::GetAllocatedChattingServer, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< UserService::Service, ::message::UserRegisterRequest, ::message::UserRegisterResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](UserService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::RegisterToBalancer* req,
-             ::message::GetAllocatedChattingServer* resp) {
-               return service->AddNewUserToServer(ctx, req, resp);
+             const ::message::UserRegisterRequest* req,
+             ::message::UserRegisterResponse* resp) {
+               return service->RegisterUser(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[1],
+      UserService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::LoginChattingServer, ::message::LoginChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< UserService::Service, ::message::LoginRequest, ::message::LoginResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](UserService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::LoginChattingServer* req,
-             ::message::LoginChattingResponse* resp) {
-               return service->UserLoginToServer(ctx, req, resp);
+             const ::message::LoginRequest* req,
+             ::message::LoginResponse* resp) {
+               return service->LoginUser(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[2],
+      UserService_method_names[2],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::LogoutChattingServer, ::message::LogoutChattingResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< UserService::Service, ::message::LogoutRequest, ::message::LogoutResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](UserService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::LogoutChattingServer* req,
-             ::message::LogoutChattingResponse* resp) {
-               return service->UserLogoutFromServer(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[3],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::GrpcRegisterRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->RegisterChattingServerInstance(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[4],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::GrpcRegisterRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->RegisterChattingGrpcServer(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[5],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::GrpcShutdownRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->ChattingServerShutDown(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[6],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::GrpcShutdownRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->ChattingGrpcServerShutDown(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[7],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::PeerListsRequest* req,
-             ::message::PeerResponse* resp) {
-               return service->GetPeerChattingServerInfo(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      BalancerService_method_names[8],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< BalancerService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](BalancerService::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::message::PeerListsRequest* req,
-             ::message::PeerResponse* resp) {
-               return service->GetPeerGrpcServerInfo(ctx, req, resp);
+             const ::message::LogoutRequest* req,
+             ::message::LogoutResponse* resp) {
+               return service->LogoutUser(ctx, req, resp);
              }, this)));
 }
 
-BalancerService::Service::~Service() {
+UserService::Service::~Service() {
 }
 
-::grpc::Status BalancerService::Service::AddNewUserToServer(::grpc::ServerContext* context, const ::message::RegisterToBalancer* request, ::message::GetAllocatedChattingServer* response) {
+::grpc::Status UserService::Service::RegisterUser(::grpc::ServerContext* context, const ::message::UserRegisterRequest* request, ::message::UserRegisterResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status BalancerService::Service::UserLoginToServer(::grpc::ServerContext* context, const ::message::LoginChattingServer* request, ::message::LoginChattingResponse* response) {
+::grpc::Status UserService::Service::LoginUser(::grpc::ServerContext* context, const ::message::LoginRequest* request, ::message::LoginResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status BalancerService::Service::UserLogoutFromServer(::grpc::ServerContext* context, const ::message::LogoutChattingServer* request, ::message::LogoutChattingResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status BalancerService::Service::RegisterChattingServerInstance(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status BalancerService::Service::RegisterChattingGrpcServer(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status BalancerService::Service::ChattingServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status BalancerService::Service::ChattingGrpcServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status BalancerService::Service::GetPeerChattingServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status BalancerService::Service::GetPeerGrpcServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) {
+::grpc::Status UserService::Service::LogoutUser(::grpc::ServerContext* context, const ::message::LogoutRequest* request, ::message::LogoutResponse* response) {
   (void) context;
   (void) request;
   (void) response;
@@ -479,270 +227,541 @@ BalancerService::Service::~Service() {
 }
 
 
-static const char* ResourceService_method_names[] = {
-  "/message.ResourceService/RegisterResourceServerInstance",
-  "/message.ResourceService/RegisterResourceGrpcServer",
-  "/message.ResourceService/ResourceServerShutDown",
-  "/message.ResourceService/ResourceGrpcServerShutDown",
-  "/message.ResourceService/GetPeerResourceServerInfo",
-  "/message.ResourceService/GetPeerResourceGrpcServerInfo",
+static const char* ChattingRegisterService_method_names[] = {
+  "/message.ChattingRegisterService/RegisterInstance",
+  "/message.ChattingRegisterService/RegisterGrpc",
+  "/message.ChattingRegisterService/ShutdownInstance",
+  "/message.ChattingRegisterService/ShutdownGrpc",
+  "/message.ChattingRegisterService/GetInstancePeers",
+  "/message.ChattingRegisterService/GetGrpcPeers",
 };
 
-std::unique_ptr< ResourceService::Stub> ResourceService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+std::unique_ptr< ChattingRegisterService::Stub> ChattingRegisterService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
   (void)options;
-  std::unique_ptr< ResourceService::Stub> stub(new ResourceService::Stub(channel, options));
+  std::unique_ptr< ChattingRegisterService::Stub> stub(new ChattingRegisterService::Stub(channel, options));
   return stub;
 }
 
-ResourceService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_RegisterResourceServerInstance_(ResourceService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RegisterResourceGrpcServer_(ResourceService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ResourceServerShutDown_(ResourceService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ResourceGrpcServerShutDown_(ResourceService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerResourceServerInfo_(ResourceService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetPeerResourceGrpcServerInfo_(ResourceService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+ChattingRegisterService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
+  : channel_(channel), rpcmethod_RegisterInstance_(ChattingRegisterService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RegisterGrpc_(ChattingRegisterService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ShutdownInstance_(ChattingRegisterService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ShutdownGrpc_(ChattingRegisterService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetInstancePeers_(ChattingRegisterService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetGrpcPeers_(ChattingRegisterService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
-::grpc::Status ResourceService::Stub::RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterResourceServerInstance_, context, request, response);
+::grpc::Status ChattingRegisterService::Stub::RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterInstance_, context, request, response);
 }
 
-void ResourceService::Stub::async::RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterResourceServerInstance_, context, request, response, std::move(f));
+void ChattingRegisterService::Stub::async::RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterInstance_, context, request, response, std::move(f));
 }
 
-void ResourceService::Stub::async::RegisterResourceServerInstance(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterResourceServerInstance_, context, request, response, reactor);
+void ChattingRegisterService::Stub::async::RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterInstance_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::PrepareAsyncRegisterResourceServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcRegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterResourceServerInstance_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::PrepareAsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::RegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterInstance_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::AsyncRegisterResourceServerInstanceRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::AsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncRegisterResourceServerInstanceRaw(context, request, cq);
+    this->PrepareAsyncRegisterInstanceRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status ResourceService::Stub::RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterResourceGrpcServer_, context, request, response);
+::grpc::Status ChattingRegisterService::Stub::RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterGrpc_, context, request, response);
 }
 
-void ResourceService::Stub::async::RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterResourceGrpcServer_, context, request, response, std::move(f));
+void ChattingRegisterService::Stub::async::RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterGrpc_, context, request, response, std::move(f));
 }
 
-void ResourceService::Stub::async::RegisterResourceGrpcServer(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterResourceGrpcServer_, context, request, response, reactor);
+void ChattingRegisterService::Stub::async::RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterGrpc_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::PrepareAsyncRegisterResourceGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcRegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterResourceGrpcServer_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::PrepareAsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::RegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterGrpc_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::AsyncRegisterResourceGrpcServerRaw(::grpc::ClientContext* context, const ::message::GrpcRegisterRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::AsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncRegisterResourceGrpcServerRaw(context, request, cq);
+    this->PrepareAsyncRegisterGrpcRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status ResourceService::Stub::ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ResourceServerShutDown_, context, request, response);
+::grpc::Status ChattingRegisterService::Stub::ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ShutdownInstance_, context, request, response);
 }
 
-void ResourceService::Stub::async::ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ResourceServerShutDown_, context, request, response, std::move(f));
+void ChattingRegisterService::Stub::async::ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownInstance_, context, request, response, std::move(f));
 }
 
-void ResourceService::Stub::async::ResourceServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ResourceServerShutDown_, context, request, response, reactor);
+void ChattingRegisterService::Stub::async::ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownInstance_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::PrepareAsyncResourceServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ResourceServerShutDown_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::PrepareAsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::ShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ShutdownInstance_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::AsyncResourceServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::AsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncResourceServerShutDownRaw(context, request, cq);
+    this->PrepareAsyncShutdownInstanceRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status ResourceService::Stub::ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::message::GrpcStatusResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ResourceGrpcServerShutDown_, context, request, response);
+::grpc::Status ChattingRegisterService::Stub::ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ShutdownGrpc_, context, request, response);
 }
 
-void ResourceService::Stub::async::ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ResourceGrpcServerShutDown_, context, request, response, std::move(f));
+void ChattingRegisterService::Stub::async::ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownGrpc_, context, request, response, std::move(f));
 }
 
-void ResourceService::Stub::async::ResourceGrpcServerShutDown(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ResourceGrpcServerShutDown_, context, request, response, reactor);
+void ChattingRegisterService::Stub::async::ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownGrpc_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::PrepareAsyncResourceGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::GrpcStatusResponse, ::message::GrpcShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ResourceGrpcServerShutDown_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::PrepareAsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::ShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ShutdownGrpc_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::GrpcStatusResponse>* ResourceService::Stub::AsyncResourceGrpcServerShutDownRaw(::grpc::ClientContext* context, const ::message::GrpcShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ChattingRegisterService::Stub::AsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncResourceGrpcServerShutDownRaw(context, request, cq);
+    this->PrepareAsyncShutdownGrpcRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status ResourceService::Stub::GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetPeerResourceServerInfo_, context, request, response);
+::grpc::Status ChattingRegisterService::Stub::GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetInstancePeers_, context, request, response);
 }
 
-void ResourceService::Stub::async::GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerResourceServerInfo_, context, request, response, std::move(f));
+void ChattingRegisterService::Stub::async::GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetInstancePeers_, context, request, response, std::move(f));
 }
 
-void ResourceService::Stub::async::GetPeerResourceServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerResourceServerInfo_, context, request, response, reactor);
+void ChattingRegisterService::Stub::async::GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetInstancePeers_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourceService::Stub::PrepareAsyncGetPeerResourceServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerListsRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetPeerResourceServerInfo_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ChattingRegisterService::Stub::PrepareAsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetInstancePeers_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourceService::Stub::AsyncGetPeerResourceServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ChattingRegisterService::Stub::AsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncGetPeerResourceServerInfoRaw(context, request, cq);
+    this->PrepareAsyncGetInstancePeersRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-::grpc::Status ResourceService::Stub::GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::message::PeerResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetPeerResourceGrpcServerInfo_, context, request, response);
+::grpc::Status ChattingRegisterService::Stub::GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetGrpcPeers_, context, request, response);
 }
 
-void ResourceService::Stub::async::GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerResourceGrpcServerInfo_, context, request, response, std::move(f));
+void ChattingRegisterService::Stub::async::GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetGrpcPeers_, context, request, response, std::move(f));
 }
 
-void ResourceService::Stub::async::GetPeerResourceGrpcServerInfo(::grpc::ClientContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetPeerResourceGrpcServerInfo_, context, request, response, reactor);
+void ChattingRegisterService::Stub::async::GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetGrpcPeers_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourceService::Stub::PrepareAsyncGetPeerResourceGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerListsRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetPeerResourceGrpcServerInfo_, context, request);
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ChattingRegisterService::Stub::PrepareAsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetGrpcPeers_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourceService::Stub::AsyncGetPeerResourceGrpcServerInfoRaw(::grpc::ClientContext* context, const ::message::PeerListsRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ChattingRegisterService::Stub::AsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncGetPeerResourceGrpcServerInfoRaw(context, request, cq);
+    this->PrepareAsyncGetGrpcPeersRaw(context, request, cq);
   result->StartCall();
   return result;
 }
 
-ResourceService::Service::Service() {
+ChattingRegisterService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      ResourceService_method_names[0],
+      ChattingRegisterService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< ResourceService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](ResourceService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< ChattingRegisterService::Service, ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChattingRegisterService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::GrpcRegisterRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->RegisterResourceServerInstance(ctx, req, resp);
+             const ::message::RegisterRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->RegisterInstance(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      ResourceService_method_names[1],
+      ChattingRegisterService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< ResourceService::Service, ::message::GrpcRegisterRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](ResourceService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< ChattingRegisterService::Service, ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChattingRegisterService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::GrpcRegisterRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->RegisterResourceGrpcServer(ctx, req, resp);
+             const ::message::RegisterRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->RegisterGrpc(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      ResourceService_method_names[2],
+      ChattingRegisterService_method_names[2],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< ResourceService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](ResourceService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< ChattingRegisterService::Service, ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChattingRegisterService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::GrpcShutdownRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->ResourceServerShutDown(ctx, req, resp);
+             const ::message::ShutdownRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->ShutdownInstance(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      ResourceService_method_names[3],
+      ChattingRegisterService_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< ResourceService::Service, ::message::GrpcShutdownRequest, ::message::GrpcStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](ResourceService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< ChattingRegisterService::Service, ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChattingRegisterService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::GrpcShutdownRequest* req,
-             ::message::GrpcStatusResponse* resp) {
-               return service->ResourceGrpcServerShutDown(ctx, req, resp);
+             const ::message::ShutdownRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->ShutdownGrpc(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      ResourceService_method_names[4],
+      ChattingRegisterService_method_names[4],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< ResourceService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](ResourceService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< ChattingRegisterService::Service, ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChattingRegisterService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::PeerListsRequest* req,
+             const ::message::PeerRequest* req,
              ::message::PeerResponse* resp) {
-               return service->GetPeerResourceServerInfo(ctx, req, resp);
+               return service->GetInstancePeers(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      ResourceService_method_names[5],
+      ChattingRegisterService_method_names[5],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< ResourceService::Service, ::message::PeerListsRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](ResourceService::Service* service,
+      new ::grpc::internal::RpcMethodHandler< ChattingRegisterService::Service, ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ChattingRegisterService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::message::PeerListsRequest* req,
+             const ::message::PeerRequest* req,
              ::message::PeerResponse* resp) {
-               return service->GetPeerResourceGrpcServerInfo(ctx, req, resp);
+               return service->GetGrpcPeers(ctx, req, resp);
              }, this)));
 }
 
-ResourceService::Service::~Service() {
+ChattingRegisterService::Service::~Service() {
 }
 
-::grpc::Status ResourceService::Service::RegisterResourceServerInstance(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) {
+::grpc::Status ChattingRegisterService::Service::RegisterInstance(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status ResourceService::Service::RegisterResourceGrpcServer(::grpc::ServerContext* context, const ::message::GrpcRegisterRequest* request, ::message::GrpcStatusResponse* response) {
+::grpc::Status ChattingRegisterService::Service::RegisterGrpc(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status ResourceService::Service::ResourceServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) {
+::grpc::Status ChattingRegisterService::Service::ShutdownInstance(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status ResourceService::Service::ResourceGrpcServerShutDown(::grpc::ServerContext* context, const ::message::GrpcShutdownRequest* request, ::message::GrpcStatusResponse* response) {
+::grpc::Status ChattingRegisterService::Service::ShutdownGrpc(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status ResourceService::Service::GetPeerResourceServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) {
+::grpc::Status ChattingRegisterService::Service::GetInstancePeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status ResourceService::Service::GetPeerResourceGrpcServerInfo(::grpc::ServerContext* context, const ::message::PeerListsRequest* request, ::message::PeerResponse* response) {
+::grpc::Status ChattingRegisterService::Service::GetGrpcPeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+
+static const char* ResourcesRegisterService_method_names[] = {
+  "/message.ResourcesRegisterService/RegisterInstance",
+  "/message.ResourcesRegisterService/RegisterGrpc",
+  "/message.ResourcesRegisterService/ShutdownInstance",
+  "/message.ResourcesRegisterService/ShutdownGrpc",
+  "/message.ResourcesRegisterService/GetInstancePeers",
+  "/message.ResourcesRegisterService/GetGrpcPeers",
+};
+
+std::unique_ptr< ResourcesRegisterService::Stub> ResourcesRegisterService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+  (void)options;
+  std::unique_ptr< ResourcesRegisterService::Stub> stub(new ResourcesRegisterService::Stub(channel, options));
+  return stub;
+}
+
+ResourcesRegisterService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
+  : channel_(channel), rpcmethod_RegisterInstance_(ResourcesRegisterService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RegisterGrpc_(ResourcesRegisterService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ShutdownInstance_(ResourcesRegisterService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ShutdownGrpc_(ResourcesRegisterService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetInstancePeers_(ResourcesRegisterService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetGrpcPeers_(ResourcesRegisterService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  {}
+
+::grpc::Status ResourcesRegisterService::Stub::RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterInstance_, context, request, response);
+}
+
+void ResourcesRegisterService::Stub::async::RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterInstance_, context, request, response, std::move(f));
+}
+
+void ResourcesRegisterService::Stub::async::RegisterInstance(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterInstance_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::PrepareAsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::RegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterInstance_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::AsyncRegisterInstanceRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncRegisterInstanceRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ResourcesRegisterService::Stub::RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_RegisterGrpc_, context, request, response);
+}
+
+void ResourcesRegisterService::Stub::async::RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterGrpc_, context, request, response, std::move(f));
+}
+
+void ResourcesRegisterService::Stub::async::RegisterGrpc(::grpc::ClientContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_RegisterGrpc_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::PrepareAsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::RegisterRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_RegisterGrpc_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::AsyncRegisterGrpcRaw(::grpc::ClientContext* context, const ::message::RegisterRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncRegisterGrpcRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ResourcesRegisterService::Stub::ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ShutdownInstance_, context, request, response);
+}
+
+void ResourcesRegisterService::Stub::async::ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownInstance_, context, request, response, std::move(f));
+}
+
+void ResourcesRegisterService::Stub::async::ShutdownInstance(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownInstance_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::PrepareAsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::ShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ShutdownInstance_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::AsyncShutdownInstanceRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncShutdownInstanceRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ResourcesRegisterService::Stub::ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::message::StatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ShutdownGrpc_, context, request, response);
+}
+
+void ResourcesRegisterService::Stub::async::ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownGrpc_, context, request, response, std::move(f));
+}
+
+void ResourcesRegisterService::Stub::async::ShutdownGrpc(::grpc::ClientContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ShutdownGrpc_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::PrepareAsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::StatusResponse, ::message::ShutdownRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ShutdownGrpc_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::StatusResponse>* ResourcesRegisterService::Stub::AsyncShutdownGrpcRaw(::grpc::ClientContext* context, const ::message::ShutdownRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncShutdownGrpcRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ResourcesRegisterService::Stub::GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetInstancePeers_, context, request, response);
+}
+
+void ResourcesRegisterService::Stub::async::GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetInstancePeers_, context, request, response, std::move(f));
+}
+
+void ResourcesRegisterService::Stub::async::GetInstancePeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetInstancePeers_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourcesRegisterService::Stub::PrepareAsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetInstancePeers_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourcesRegisterService::Stub::AsyncGetInstancePeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetInstancePeersRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status ResourcesRegisterService::Stub::GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::message::PeerResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetGrpcPeers_, context, request, response);
+}
+
+void ResourcesRegisterService::Stub::async::GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetGrpcPeers_, context, request, response, std::move(f));
+}
+
+void ResourcesRegisterService::Stub::async::GetGrpcPeers(::grpc::ClientContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetGrpcPeers_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourcesRegisterService::Stub::PrepareAsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::message::PeerResponse, ::message::PeerRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetGrpcPeers_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::message::PeerResponse>* ResourcesRegisterService::Stub::AsyncGetGrpcPeersRaw(::grpc::ClientContext* context, const ::message::PeerRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetGrpcPeersRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+ResourcesRegisterService::Service::Service() {
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ResourcesRegisterService_method_names[0],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ResourcesRegisterService::Service, ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ResourcesRegisterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::RegisterRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->RegisterInstance(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ResourcesRegisterService_method_names[1],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ResourcesRegisterService::Service, ::message::RegisterRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ResourcesRegisterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::RegisterRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->RegisterGrpc(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ResourcesRegisterService_method_names[2],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ResourcesRegisterService::Service, ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ResourcesRegisterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::ShutdownRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->ShutdownInstance(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ResourcesRegisterService_method_names[3],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ResourcesRegisterService::Service, ::message::ShutdownRequest, ::message::StatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ResourcesRegisterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::ShutdownRequest* req,
+             ::message::StatusResponse* resp) {
+               return service->ShutdownGrpc(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ResourcesRegisterService_method_names[4],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ResourcesRegisterService::Service, ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ResourcesRegisterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::PeerRequest* req,
+             ::message::PeerResponse* resp) {
+               return service->GetInstancePeers(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ResourcesRegisterService_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< ResourcesRegisterService::Service, ::message::PeerRequest, ::message::PeerResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](ResourcesRegisterService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::message::PeerRequest* req,
+             ::message::PeerResponse* resp) {
+               return service->GetGrpcPeers(ctx, req, resp);
+             }, this)));
+}
+
+ResourcesRegisterService::Service::~Service() {
+}
+
+::grpc::Status ResourcesRegisterService::Service::RegisterInstance(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ResourcesRegisterService::Service::RegisterGrpc(::grpc::ServerContext* context, const ::message::RegisterRequest* request, ::message::StatusResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ResourcesRegisterService::Service::ShutdownInstance(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ResourcesRegisterService::Service::ShutdownGrpc(::grpc::ServerContext* context, const ::message::ShutdownRequest* request, ::message::StatusResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ResourcesRegisterService::Service::GetInstancePeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ResourcesRegisterService::Service::GetGrpcPeers(::grpc::ServerContext* context, const ::message::PeerRequest* request, ::message::PeerResponse* response) {
   (void) context;
   (void) request;
   (void) response;

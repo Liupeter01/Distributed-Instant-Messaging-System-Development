@@ -81,7 +81,10 @@ enum class ServiceStatus : uint8_t {
   GRPC_SERVER_ALREADY_EXISTS,     // GRPC server already exists
   CHATTING_SERVER_NOT_EXISTS,     // chatting server not exist
   CHATTING_SERVER_ALREADY_EXISTS, // chatting server already exists
+  RESOURCES_SERVER_NOT_EXISTS,
+  RESOURCES_SERVER_ALREADY_EXISTS,
   NO_AVAILABLE_CHATTING_SERVER,   // chatting server no available
+  NO_AVAILABLE_RESOURCES_SERVER,
   REDIS_UNKOWN_ERROR,             // redis server error code
   REDIS_CPATCHA_NOT_FOUND,        // redis no cpatcha
   MYSQL_INTERNAL_ERROR,           // mysql error

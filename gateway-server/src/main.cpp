@@ -1,5 +1,5 @@
 #include <config/ServerConfig.hpp>
-#include <grpc/BalanceServicePool.hpp>
+#include <grpc/UserServicePool.hpp>
 #include <grpc/VerificationServicePool.hpp>
 #include <iostream>
 #include <redis/RedisManager.hpp>
@@ -14,7 +14,7 @@ int main() {
      * 2. MySQLConnectionPool
      * 3. RedisConnectionPool
      * 4. VerificationServicePool
-     * 5. BalancerServicePool
+     * 5. UserServicePool
      * */
     [[maybe_unused]] auto &service_pool = IOServicePool::get_instance();
     [[maybe_unused]] auto &sql = mysql::MySQLConnectionPool::get_instance();
@@ -22,7 +22,7 @@ int main() {
     [[maybe_unused]] auto &verification =
         stubpool::VerificationServicePool::get_instance();
     [[maybe_unused]] auto &balance =
-        stubpool::BalancerServicePool::get_instance();
+        stubpool::UserServicePool::get_instance();
 
     /*setting up signal*/
     boost::asio::io_context ioc;

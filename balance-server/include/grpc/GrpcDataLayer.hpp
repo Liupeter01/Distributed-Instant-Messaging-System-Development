@@ -7,9 +7,9 @@
 #include <network/def.hpp>
 #include <optional>
 #include <singleton/singleton.hpp>
+#include <spdlog/spdlog.h>
 #include <tbb/concurrent_hash_map.h>
 #include <type_traits>
-#include <spdlog/spdlog.h>
 
 namespace grpc {
 
@@ -19,8 +19,8 @@ class GrpcResourcesImpl;
 
 namespace details {
 
-          //forward declaration
-          class GrpcDataLayer;
+// forward declaration
+class GrpcDataLayer;
 
 struct ServerInstanceConf {
   ServerInstanceConf(const std::string &host, const std::string &port,
@@ -64,14 +64,13 @@ public:
       /*server name*/ std::string,
       /*server info*/ std::unique_ptr<grpc::details::GRPCServerConf>>;
 
-  template<typename Container>
+  template <typename Container>
   struct is_valid_mapping_type : std::false_type {};
 
-  template<>
+  template <>
   struct is_valid_mapping_type<InstancesMappingType> : std::true_type {};
 
-  template<>
-  struct is_valid_mapping_type<GrpcMappingType> : std::true_type {};
+  template <> struct is_valid_mapping_type<GrpcMappingType> : std::true_type {};
 
 public:
   virtual ~GrpcDataLayer() = default;
@@ -83,7 +82,7 @@ protected:
   auto &getResourcesGRPCServer() { return m_resourcesGRPCServer; }
 
   bool removeItemFromServer(const std::string &server_name, SERVER_TYPE type);
-  bool findItemFromServer(const std::string& server_name, SERVER_TYPE type);
+  bool findItemFromServer(const std::string &server_name, SERVER_TYPE type);
 
   std::optional<std::shared_ptr<grpc::details::ServerInstanceConf>>
   serverInstanceLoadBalancer(
@@ -118,11 +117,11 @@ private:
 
   template <typename Container,
             std::enable_if_t<is_valid_mapping_type<Container>::value, int> = 0>
-  bool findItemFromServer(const Container& container,
-            const std::string& server_name) {
+  bool findItemFromServer(const Container &container,
+                          const std::string &server_name) {
 
-                      typename Container::const_accessor accessor;
-                      return container.find(accessor, server_name);
+    typename Container::const_accessor accessor;
+    return container.find(accessor, server_name);
   }
 
 private:

@@ -7,8 +7,8 @@
 namespace grpc {
 class GrpcUserServiceImpl final : public message::UserService::Service {
 public:
-          GrpcUserServiceImpl();
-          virtual ~GrpcUserServiceImpl() = default;
+  GrpcUserServiceImpl();
+  virtual ~GrpcUserServiceImpl() = default;
 
 public:
   // Register new user UUID and get allocated chatting server

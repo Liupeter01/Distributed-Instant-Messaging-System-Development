@@ -1,8 +1,8 @@
 #include <boost/asio.hpp>
 #include <config/ServerConfig.hpp>
-#include <grpc/GrpcUserServiceImpl.hpp>
 #include <grpc/GrpcChattingImpl.hpp>
 #include <grpc/GrpcResourcesImpl.hpp>
+#include <grpc/GrpcUserServiceImpl.hpp>
 #include <redis/RedisManager.hpp>
 #include <thread>
 

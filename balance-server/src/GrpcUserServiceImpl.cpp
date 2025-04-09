@@ -3,8 +3,7 @@
 #include <tools/tools.hpp>
 
 grpc::GrpcUserServiceImpl::GrpcUserServiceImpl() {
-          spdlog::info(
-                    "[Balance Server]: Start To Receive User Requests");
+  spdlog::info("[Balance Server]: Start To Receive User Requests");
 }
 
 // Register new user UUID and get allocated chatting server

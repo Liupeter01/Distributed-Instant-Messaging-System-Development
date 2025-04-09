@@ -40,24 +40,22 @@ bool grpc::details::GrpcDataLayer::removeItemFromServer(
   return false;
 }
 
-bool grpc::details::GrpcDataLayer::findItemFromServer(const std::string& server_name, SERVER_TYPE type) {
-          if (type == SERVER_TYPE::CHATTING_SERVER_INSTANCE) {
-                    return findItemFromServer<InstancesMappingType>(
-                              m_chattingServerInstances, server_name);
-          }
-          else if (type == SERVER_TYPE::RESOURCES_SERVER_INSTANCE) {
-                    return findItemFromServer<InstancesMappingType>(
-                              m_resourcesServerInstances, server_name);
-          }
-          else if (type == SERVER_TYPE::CHATTING_GRPC_SERVER) {
-                    return findItemFromServer<GrpcMappingType>(
-                              m_chattingGRPCServer, server_name);
-          }
-          else if (type == SERVER_TYPE::RESOURCES_GRPC_SERVER) {
-                    return findItemFromServer<GrpcMappingType>(
-                              m_resourcesGRPCServer, server_name);
-          }
-          return false;
+bool grpc::details::GrpcDataLayer::findItemFromServer(
+    const std::string &server_name, SERVER_TYPE type) {
+  if (type == SERVER_TYPE::CHATTING_SERVER_INSTANCE) {
+    return findItemFromServer<InstancesMappingType>(m_chattingServerInstances,
+                                                    server_name);
+  } else if (type == SERVER_TYPE::RESOURCES_SERVER_INSTANCE) {
+    return findItemFromServer<InstancesMappingType>(m_resourcesServerInstances,
+                                                    server_name);
+  } else if (type == SERVER_TYPE::CHATTING_GRPC_SERVER) {
+    return findItemFromServer<GrpcMappingType>(m_chattingGRPCServer,
+                                               server_name);
+  } else if (type == SERVER_TYPE::RESOURCES_GRPC_SERVER) {
+    return findItemFromServer<GrpcMappingType>(m_resourcesGRPCServer,
+                                               server_name);
+  }
+  return false;
 }
 
 std::optional<std::shared_ptr<grpc::details::ServerInstanceConf>>

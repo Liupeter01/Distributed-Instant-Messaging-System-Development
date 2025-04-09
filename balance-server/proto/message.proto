@@ -26,9 +26,7 @@ service UserService {
   rpc LogoutUser(LogoutRequest) returns (LogoutResponse);
 }
 
-message UserRegisterRequest {
-  int32 uuid = 1;
-}
+message UserRegisterRequest { int32 uuid = 1; }
 
 message UserRegisterResponse {
   int32 error = 1;
@@ -42,21 +40,17 @@ message LoginRequest {
   string token = 2;
 }
 
-message LoginResponse {
-  int32 error = 1;
-}
+message LoginResponse { int32 error = 1; }
 
 message LogoutRequest {
   int32 uuid = 1;
   string token = 2;
 }
 
-message LogoutResponse {
-  int32 error = 1;
-}
+message LogoutResponse { int32 error = 1; }
 
-service ChattingRegisterService{
-            // Chatting server related
+service ChattingRegisterService {
+  // Chatting server related
   rpc RegisterInstance(RegisterRequest) returns (StatusResponse);
   rpc RegisterGrpc(RegisterRequest) returns (StatusResponse);
   rpc ShutdownInstance(ShutdownRequest) returns (StatusResponse);
@@ -65,8 +59,8 @@ service ChattingRegisterService{
   rpc GetGrpcPeers(PeerRequest) returns (PeerResponse);
 }
 
-service ResourcesRegisterService{
-            // Resource server related
+service ResourcesRegisterService {
+  // Resource server related
   rpc RegisterInstance(RegisterRequest) returns (StatusResponse);
   rpc RegisterGrpc(RegisterRequest) returns (StatusResponse);
   rpc ShutdownInstance(ShutdownRequest) returns (StatusResponse);
@@ -81,21 +75,13 @@ message ServerInfo {
   string port = 3;
 }
 
-message RegisterRequest {
-  ServerInfo info = 1;
-}
+message RegisterRequest { ServerInfo info = 1; }
 
-message ShutdownRequest {
-  string cur_server = 1;
-}
+message ShutdownRequest { string cur_server = 1; }
 
-message StatusResponse {
-  int32 error = 1;
-}
+message StatusResponse { int32 error = 1; }
 
-message PeerRequest {
-  string cur_server = 1;
-}
+message PeerRequest { string cur_server = 1; }
 
 message PeerResponse {
   int32 error = 1;

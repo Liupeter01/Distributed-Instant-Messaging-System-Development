@@ -347,7 +347,37 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
   return grpc::Status::OK;
 }
 
-// std::string grpc::GrpcBalancerImpl::userTokenGenerator() {
-//   boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
-//   return boost::uuids::to_string(uuid_gen);
-// }
+::grpc::Status grpc::GrpcResourcesImpl::RegisterInstance(::grpc::ServerContext* context,
+          const ::message::RegisterRequest* request,
+          ::message::StatusResponse* response) {
+
+}
+
+::grpc::Status grpc::GrpcResourcesImpl::RegisterGrpc(::grpc::ServerContext* context,
+          const ::message::RegisterRequest* request,
+          ::message::StatusResponse* response) {
+}
+
+::grpc::Status grpc::GrpcResourcesImpl::ShutdownInstance(::grpc::ServerContext* context,
+          const ::message::ShutdownRequest* request,
+          ::message::StatusResponse* response) {
+
+}
+
+::grpc::Status grpc::GrpcResourcesImpl::ShutdownGrpc(::grpc::ServerContext* context,
+          const ::message::ShutdownRequest* request,
+          ::message::StatusResponse* response) {
+
+}
+
+::grpc::Status grpc::GrpcResourcesImpl::GetInstancePeers(::grpc::ServerContext* context,
+          const ::message::PeerRequest* request,
+          ::message::PeerResponse* response) {
+
+}
+
+::grpc::Status grpc::GrpcResourcesImpl::GetGrpcPeers(::grpc::ServerContext* context,
+          const ::message::PeerRequest* request,
+          ::message::PeerResponse* response) {
+
+}

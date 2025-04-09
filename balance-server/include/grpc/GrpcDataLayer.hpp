@@ -19,6 +19,9 @@ class GrpcResourcesImpl;
 
 namespace details {
 
+          //forward declaration
+          class GrpcDataLayer;
+
 struct ServerInstanceConf {
   ServerInstanceConf(const std::string &host, const std::string &port,
                      const std::string &name);
@@ -37,18 +40,6 @@ struct GRPCServerConf {
   std::string _name;
 };
 
-//forward declaration
-class GrpcDataLayer;
-
-template<typename Container>
-struct is_valid_mapping_type : std::false_type {};
-
-template<>
-struct is_valid_mapping_type<GrpcDataLayer::InstancesMappingType> : std::true_type {};
-
-template<>
-struct is_valid_mapping_type<GrpcDataLayer::GrpcMappingType> : std::true_type {};
-
 enum class SERVER_TYPE {
   CHATTING_SERVER_INSTANCE,
   RESOURCES_SERVER_INSTANCE,
@@ -59,6 +50,9 @@ enum class SERVER_TYPE {
 class GrpcDataLayer : public Singleton<GrpcDataLayer> {
   friend class Singleton<GrpcDataLayer>;
   friend class grpc::GrpcUserServiceImpl;
+  friend class grpc::GrpcChattingImpl;
+  friend class GrpcResourcesImpl;
+
   GrpcDataLayer() = default;
 
 public:
@@ -70,6 +64,15 @@ public:
       /*server name*/ std::string,
       /*server info*/ std::unique_ptr<grpc::details::GRPCServerConf>>;
 
+  template<typename Container>
+  struct is_valid_mapping_type : std::false_type {};
+
+  template<>
+  struct is_valid_mapping_type<InstancesMappingType> : std::true_type {};
+
+  template<>
+  struct is_valid_mapping_type<GrpcMappingType> : std::true_type {};
+
 public:
   virtual ~GrpcDataLayer() = default;
 
@@ -80,6 +83,7 @@ protected:
   auto &getResourcesGRPCServer() { return m_resourcesGRPCServer; }
 
   bool removeItemFromServer(const std::string &server_name, SERVER_TYPE type);
+  bool findItemFromServer(const std::string& server_name, SERVER_TYPE type);
 
   std::optional<std::shared_ptr<grpc::details::ServerInstanceConf>>
   serverInstanceLoadBalancer(
@@ -110,6 +114,15 @@ private:
       return true;
     }
     return false;
+  }
+
+  template <typename Container,
+            std::enable_if_t<is_valid_mapping_type<Container>::value, int> = 0>
+  bool findItemFromServer(const Container& container,
+            const std::string& server_name) {
+
+                      typename Container::const_accessor accessor;
+                      return container.find(accessor, server_name);
   }
 
 private:

@@ -1,7 +1,7 @@
 #pragma once
-#ifndef GRPCBALANCESERVICE_HPP_
-#define GRPCBALANCESERVICE_HPP_
-#include <grpc/BalanceServicePool.hpp>
+#ifndef GRPCUSERSERVICE_HPP_
+#define GRPCUSERSERVICE_HPP_
+#include <grpc/UserServicePool.hpp>
 #include <grpcpp/client_context.h>
 #include <grpcpp/support/status.h>
 #include <message/message.grpc.pb.h>
@@ -9,22 +9,23 @@
 #include <network/def.hpp>
 #include <service/ConnectionPool.hpp>
 
-struct gRPCBalancerService {
+struct gRPCGrpcUserService {
   // pass user's uuid parameter to the server, and returns available server
   // address to user
-  static message::GetAllocatedChattingServer
+  static message::UserRegisterResponse
   addNewUserToServer(std::size_t uuid) {
+
     grpc::ClientContext context;
-    message::RegisterToBalancer request;
-    message::GetAllocatedChattingServer response;
+    message::UserRegisterRequest request;
+    message::UserRegisterResponse response;
     request.set_uuid(uuid);
 
-    connection::ConnectionRAII<stubpool::BalancerServicePool,
-                               message::BalancerService::Stub>
+    connection::ConnectionRAII<stubpool::UserServicePool,
+                               message::UserService::Stub>
         raii;
 
     grpc::Status status =
-        raii->get()->AddNewUserToServer(&context, request, &response);
+        raii->get()->RegisterUser(&context, request, &response);
 
     ///*error occured*/
     if (!status.ok()) {
@@ -33,20 +34,20 @@ struct gRPCBalancerService {
     return response;
   }
 
-  static message::LoginChattingResponse
+  static message::LoginResponse
   userLoginToServer(std::size_t uuid, const std::string &token) {
     grpc::ClientContext context;
-    message::LoginChattingServer request;
-    message::LoginChattingResponse response;
+    message::LoginRequest request;
+    message::LoginResponse response;
     request.set_uuid(uuid);
     request.set_token(token);
 
-    connection::ConnectionRAII<stubpool::BalancerServicePool,
-                               message::BalancerService::Stub>
+    connection::ConnectionRAII<stubpool::UserServicePool,
+                               message::UserService::Stub>
         raii;
 
     grpc::Status status =
-        raii->get()->UserLoginToServer(&context, request, &response);
+        raii->get()->LoginUser(&context, request, &response);
 
     ///*error occured*/
     if (!status.ok()) {

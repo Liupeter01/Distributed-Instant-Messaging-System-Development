@@ -1,10 +1,7 @@
-#include "spdlog/spdlog.h"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <spdlog/spdlog.h>
+#include <grpc/GrpcDataLayer.hpp>
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcResourcesImpl.hpp>
-#include <mutex>
 #include <redis/RedisManager.hpp>
 
 grpc::GrpcResourcesImpl::GrpcResourcesImpl() {}
@@ -347,37 +344,30 @@ grpc::GrpcResourcesImpl::serverLoadBalancer() {
   return grpc::Status::OK;
 }
 
-::grpc::Status grpc::GrpcResourcesImpl::RegisterInstance(::grpc::ServerContext* context,
-          const ::message::RegisterRequest* request,
-          ::message::StatusResponse* response) {
+::grpc::Status grpc::GrpcResourcesImpl::RegisterInstance(
+    ::grpc::ServerContext *context, const ::message::RegisterRequest *request,
+    ::message::StatusResponse *response) {}
 
-}
+::grpc::Status
+grpc::GrpcResourcesImpl::RegisterGrpc(::grpc::ServerContext *context,
+                                      const ::message::RegisterRequest *request,
+                                      ::message::StatusResponse *response) {}
 
-::grpc::Status grpc::GrpcResourcesImpl::RegisterGrpc(::grpc::ServerContext* context,
-          const ::message::RegisterRequest* request,
-          ::message::StatusResponse* response) {
-}
+::grpc::Status grpc::GrpcResourcesImpl::ShutdownInstance(
+    ::grpc::ServerContext *context, const ::message::ShutdownRequest *request,
+    ::message::StatusResponse *response) {}
 
-::grpc::Status grpc::GrpcResourcesImpl::ShutdownInstance(::grpc::ServerContext* context,
-          const ::message::ShutdownRequest* request,
-          ::message::StatusResponse* response) {
+::grpc::Status
+grpc::GrpcResourcesImpl::ShutdownGrpc(::grpc::ServerContext *context,
+                                      const ::message::ShutdownRequest *request,
+                                      ::message::StatusResponse *response) {}
 
-}
+::grpc::Status
+grpc::GrpcResourcesImpl::GetInstancePeers(::grpc::ServerContext *context,
+                                          const ::message::PeerRequest *request,
+                                          ::message::PeerResponse *response) {}
 
-::grpc::Status grpc::GrpcResourcesImpl::ShutdownGrpc(::grpc::ServerContext* context,
-          const ::message::ShutdownRequest* request,
-          ::message::StatusResponse* response) {
-
-}
-
-::grpc::Status grpc::GrpcResourcesImpl::GetInstancePeers(::grpc::ServerContext* context,
-          const ::message::PeerRequest* request,
-          ::message::PeerResponse* response) {
-
-}
-
-::grpc::Status grpc::GrpcResourcesImpl::GetGrpcPeers(::grpc::ServerContext* context,
-          const ::message::PeerRequest* request,
-          ::message::PeerResponse* response) {
-
-}
+::grpc::Status
+grpc::GrpcResourcesImpl::GetGrpcPeers(::grpc::ServerContext *context,
+                                      const ::message::PeerRequest *request,
+                                      ::message::PeerResponse *response) {}

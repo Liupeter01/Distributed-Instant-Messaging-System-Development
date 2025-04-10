@@ -37,8 +37,8 @@ void UserManager::alterUserSession(const std::string &uuid,
 }
 
 void UserManager::teminate() {
-          std::for_each(m_uuid2Session.begin(), m_uuid2Session.end(), [](std::shared_ptr<Session>& session) {
-                    session->closeSession();
+          std::for_each(m_uuid2Session.begin(), m_uuid2Session.end(), [](decltype(*m_uuid2Session.begin())& pair) {
+                    pair.second->closeSession();
                     });
           m_uuid2Session.clear();
 }

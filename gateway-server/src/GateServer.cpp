@@ -7,11 +7,11 @@ GateServer::GateServer(boost::asio::io_context &_ioc, unsigned short port)
     : m_ioc(_ioc),
       m_acceptor(_ioc, boost::asio::ip::tcp::endpoint(
                            boost::asio::ip::address_v4::any(), port)) {
-  spdlog::info("Gateway Server activated, listen on port {}", port);
+  spdlog::info("[Gateway Server]: Server Activated! Listening On Port {}", port);
   this->serverStart();
 }
 
-GateServer::~GateServer() { spdlog::critical("Gateway Server Shutting Down!"); }
+GateServer::~GateServer() { spdlog::critical("[Gateway Server]: Server Shutting Down!"); }
 
 void GateServer::serverStart() {
   boost::asio::io_context &ioc =
@@ -39,7 +39,7 @@ void GateServer::handleAccept(std::shared_ptr<Session<GateServer>> session,
 
   } else /*error occured!*/
   {
-    spdlog::info("GateWay Server Accept {} failed", session->s_uuid);
+    spdlog::warn("[Gateway Server]: Accept {} failed", session->s_uuid);
     this->terminateSession(session->s_uuid);
   }
 

@@ -1,17 +1,12 @@
 #include <absl/strings/escaping.h> /*base64*/
-#include <boost/json.hpp>
-#include <boost/json/object.hpp>
-#include <boost/json/parse.hpp>
 #include <config/ServerConfig.hpp>
 #include <dispatcher/FileProcessingDispatcher.hpp>
 #include <filesystem>
 #include <fstream>
 #include <handler/RequestHandlerNode.hpp>
-#include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/Session.hpp>
 #include <server/UserNameCard.hpp>
-#include <service/ConnectionPool.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
 
@@ -73,6 +68,30 @@ void handler::RequestHandlerNode::commit(
   m_cv.notify_one();
 }
 
+/*parse Json*/
+bool handler::RequestHandlerNode::parseJson(std::shared_ptr<Session> session, NodePtr& recv,
+          boost::json::object& src_obj) {
+          std::optional<std::string> body = recv->get_msg_body();
+
+          if (!body) {
+                    generateErrorMessage("Failed to parse JSON data",
+                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return false;
+          }
+
+          try {
+                    src_obj = boost::json::parse(body.value()).as_object();
+          }
+          catch (const boost::json::system_error& e) {
+                    generateErrorMessage("Invalid JSON format",
+                              ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return false;
+          }
+          return true;
+}
+
 void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
                                                        ServiceType type,
                                                        ServiceStatus status,
@@ -80,7 +99,7 @@ void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
 
   boost::json::object obj;
   obj["error"] = static_cast<uint8_t>(status);
-  spdlog::error(log);
+  spdlog::warn("[Resources Server]: " + log);
   conn->sendMessage(type, boost::json::serialize(obj));
 }
 
@@ -148,24 +167,7 @@ void handler::RequestHandlerNode::handlingLogin(
   boost::json::object src_obj;
   boost::json::object result;
 
-  std::optional<std::string> body = recv->get_msg_body();
-  /*recv message error*/
-  if (!body.has_value()) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_LOGINRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
-
-  // prevent parse error
-  try {
-    src_obj = boost::json::parse(body.value()).as_object();
-  } catch (const boost::json::system_error &e) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_LOGINRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
+  parseJson(session, recv, src_obj);
 
   // Parsing failed
   if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
@@ -211,6 +213,11 @@ void handler::RequestHandlerNode::handlingLogin(
 void handler::RequestHandlerNode::handlingLogout(
     ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
+          boost::json::object src_obj;
+          boost::json::object result;
+
+          parseJson(session, recv, src_obj);
+
   /*
    * sub user connection counter for current server
    * 1. HGET not exist: Current Chatting server didn't setting up connection
@@ -230,34 +237,13 @@ void handler::RequestHandlerNode::handlingLogout(
 void handler::RequestHandlerNode::handlingFileUploading(
     ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
+          /*output file*/
+          std::ofstream out;
+
   boost::json::object src_obj;
   boost::json::object dst_root;
 
-  /*output file*/
-  std::ofstream out;
-
-  std::optional<std::string> body = recv->get_msg_body();
-  /*recv message error*/
-  if (!body.has_value()) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    spdlog::warn("[Resources Server]: Msg Body Parse Error!");
-    return;
-  }
-
-  // prevent parse error
-  try {
-    src_obj = boost::json::parse(body.value()).as_object();
-  } catch (const boost::json::system_error &e) {
-
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    spdlog::warn("[Resources Server]: Json Obj Parse Error! Reason = {}",
-                 e.what());
-    return;
-  }
+  parseJson(session, recv, src_obj);
 
   // Parsing json object
   if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
@@ -338,8 +324,7 @@ void handler::RequestHandlerNode::handlingFileUploading(
  * 2. HGET exist: Increment by 1
  */
 void handler::RequestHandlerNode::incrementConnection() {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -365,8 +350,7 @@ void handler::RequestHandlerNode::incrementConnection() {
  * 2. HGET exist: Decrement by 1
  */
 void handler::RequestHandlerNode::decrementConnection() {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -386,14 +370,12 @@ void handler::RequestHandlerNode::decrementConnection() {
 }
 
 bool handler::RequestHandlerNode::tagCurrentUser(const std::string &uuid) {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
   return raii->get()->setValue(server_prefix + uuid,
                                ServerConfig::get_instance()->GrpcServerName);
 }
 
 bool handler::RequestHandlerNode::untagCurrentUser(const std::string &uuid) {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
   return raii->get()->delPair(server_prefix + uuid);
 }

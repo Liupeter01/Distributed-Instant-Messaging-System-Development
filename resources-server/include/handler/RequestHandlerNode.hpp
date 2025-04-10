@@ -12,6 +12,11 @@
 #include <server/Session.hpp>
 #include <thread>
 #include <unordered_map>
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+#include <redis/RedisManager.hpp>
+#include <service/ConnectionPool.hpp>
 
 namespace handler {
 
@@ -24,6 +29,8 @@ public:
   using CallbackFunc =
       std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
 
+  using  RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>;
+
 public:
   RequestHandlerNode();
   RequestHandlerNode(const std::size_t id);
@@ -33,6 +40,10 @@ public:
   const std::size_t getId() const;
 
   void commit(pair recv_node, [[maybe_unused]] SessionPtr live_extend);
+
+  static bool parseJson(std::shared_ptr<Session> session, NodePtr& recv,
+            boost::json::object& src_obj);
+
   static void generateErrorMessage(const std::string &log, ServiceType type,
                                    ServiceStatus status, SessionPtr conn);
 

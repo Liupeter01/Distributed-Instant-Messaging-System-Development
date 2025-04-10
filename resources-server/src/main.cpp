@@ -28,10 +28,11 @@ int main() {
       std::abort();
     }
 
-    auto response = gRPCResourcesRegisterService::registerResourcesServerInstance(
-        ServerConfig::get_instance()->GrpcServerName,
-        ServerConfig::get_instance()->GrpcServerHost,
-        std::to_string(ServerConfig::get_instance()->ResourceServerPort));
+    auto response =
+        gRPCResourcesRegisterService::registerResourcesServerInstance(
+            ServerConfig::get_instance()->GrpcServerName,
+            ServerConfig::get_instance()->GrpcServerHost,
+            std::to_string(ServerConfig::get_instance()->ResourceServerPort));
 
     if (response.error() !=
         static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
@@ -44,7 +45,8 @@ int main() {
     }
 
     spdlog::info(
-              "[{}] Register Resources Server Instance To Balancer Successful", ServerConfig::get_instance()->GrpcServerName);
+        "[{}] Register Resources Server Instance To Balancer Successful",
+        ServerConfig::get_instance()->GrpcServerName);
 
     /*setting up signal*/
     boost::asio::io_context ioc;
@@ -99,7 +101,8 @@ int main() {
     }
 
     spdlog::info(
-        "[{}] Unregister Resources Server Instance From Balancer Successful", ServerConfig::get_instance()->GrpcServerName);
+        "[{}] Unregister Resources Server Instance From Balancer Successful",
+        ServerConfig::get_instance()->GrpcServerName);
 
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());

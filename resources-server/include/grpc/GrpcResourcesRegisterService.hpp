@@ -1,19 +1,19 @@
 #pragma once
 #ifndef _GRPCRESOURCESSERVICE_HPP_
 #define _GRPCRESOURCESSERVICE_HPP_
+#include <grpc/ResourcesRegisterServicePool.hpp>
 #include <grpcpp/client_context.h>
 #include <grpcpp/support/status.h>
 #include <message/message.grpc.pb.h>
 #include <message/message.pb.h>
-#include <string_view>
 #include <service/ConnectionPool.hpp>
-#include <grpc/ResourcesRegisterServicePool.hpp>
+#include <string_view>
 
 struct gRPCResourcesRegisterService {
 
-          using  ConnectionRAII = 
-                    connection::ConnectionRAII<stubpool::ResourcesRegisterServicePool,
-                    message::ResourcesRegisterService::Stub>;
+  using ConnectionRAII =
+      connection::ConnectionRAII<stubpool::ResourcesRegisterServicePool,
+                                 message::ResourcesRegisterService::Stub>;
 
   static message::PeerResponse
   getPeerResourcesServerLists(const std::string &cur_name);

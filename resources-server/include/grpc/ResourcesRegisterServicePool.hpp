@@ -10,7 +10,8 @@
 namespace stubpool {
 class ResourcesRegisterServicePool
     : public connection::ConnectionPool<
-          ResourcesRegisterServicePool, typename message::ResourcesRegisterService::Stub> {
+          ResourcesRegisterServicePool,
+          typename message::ResourcesRegisterService::Stub> {
   using self = ResourcesRegisterServicePool;
   using data_type = typename message::ResourcesRegisterService::Stub;
   using context = data_type;
@@ -28,7 +29,9 @@ class ResourcesRegisterServicePool
         m_cred(grpc::InsecureChannelCredentials()) {
 
     auto address = fmt::format("{}:{}", m_host, m_port);
-    spdlog::info("[{}]: ResourcesRegisterService Connected To Balance Server {}", address);
+    spdlog::info(
+        "[{}]: ResourcesRegisterService Connected To Balance Server {}",
+        address);
 
     /*creating multiple stub*/
     for (std::size_t i = 0; i < m_queue_size; ++i) {

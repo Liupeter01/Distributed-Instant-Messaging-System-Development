@@ -1,8 +1,8 @@
 #include <grpc/GrpcResourcesRegisterService.hpp>
 #include <network/def.hpp>
 
-message::PeerResponse
-gRPCResourcesRegisterService::getPeerResourcesServerLists(const std::string &cur_name) {
+message::PeerResponse gRPCResourcesRegisterService::getPeerResourcesServerLists(
+    const std::string &cur_name) {
 
   grpc::ClientContext context;
   message::PeerRequest request;
@@ -21,7 +21,7 @@ gRPCResourcesRegisterService::getPeerResourcesServerLists(const std::string &cur
   return response;
 }
 
-message::PeerResponse 
+message::PeerResponse
 gRPCResourcesRegisterService::getPeerResourcesGrpcServerLists(
     const std::string &cur_name) {
 
@@ -32,8 +32,7 @@ gRPCResourcesRegisterService::getPeerResourcesGrpcServerLists(
   request.set_cur_server(cur_name);
 
   ConnectionRAII raii;
-  grpc::Status status =
-      raii->get()->GetGrpcPeers(&context, request, &response);
+  grpc::Status status = raii->get()->GetGrpcPeers(&context, request, &response);
 
   ///*error occured*/
   if (!status.ok()) {
@@ -43,9 +42,8 @@ gRPCResourcesRegisterService::getPeerResourcesGrpcServerLists(
 }
 
 message::StatusResponse
-gRPCResourcesRegisterService::registerResourcesServerInstance(const std::string &name,
-                                                      const std::string &host,
-                                                      const std::string &port) {
+gRPCResourcesRegisterService::registerResourcesServerInstance(
+    const std::string &name, const std::string &host, const std::string &port) {
 
   grpc::ClientContext context;
   message::RegisterRequest request;
@@ -85,8 +83,7 @@ gRPCResourcesRegisterService::registerResourcesGrpcServer(
   *request.mutable_info() = info;
 
   ConnectionRAII raii;
-  grpc::Status status =
-      raii->get()->RegisterGrpc(&context, request, &response);
+  grpc::Status status = raii->get()->RegisterGrpc(&context, request, &response);
 
   ///*error occured*/
   if (!status.ok()) {
@@ -117,7 +114,8 @@ gRPCResourcesRegisterService::resourcesServerShutdown(const std::string &name) {
 }
 
 message::StatusResponse
-gRPCResourcesRegisterService::grpcResourcesServerShutdown(const std::string &name) {
+gRPCResourcesRegisterService::grpcResourcesServerShutdown(
+    const std::string &name) {
 
   grpc::ClientContext context;
   message::ShutdownRequest request;
@@ -127,8 +125,7 @@ gRPCResourcesRegisterService::grpcResourcesServerShutdown(const std::string &nam
 
   ConnectionRAII raii;
 
-  grpc::Status status =
-      raii->get()->ShutdownGrpc(&context, request, &response);
+  grpc::Status status = raii->get()->ShutdownGrpc(&context, request, &response);
 
   ///*error occured*/
   if (!status.ok()) {

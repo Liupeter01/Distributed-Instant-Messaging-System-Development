@@ -973,8 +973,8 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
             return;
   }
 
-  // Query which server the sender belongs to
-  std::optional<std::string> server_op = raii->get()->checkValue(server_prefix + sender_uuid);
+  // Query which server the receiver belongs to
+  std::optional<std::string> server_op = raii->get()->checkValue(server_prefix + receiver_uuid);
   if (!server_op) {
             spdlog::warn("[{}] Cannot Find Sender {}'s Server Info In  Redis", 
                       ServerConfig::get_instance()->GrpcServerName,

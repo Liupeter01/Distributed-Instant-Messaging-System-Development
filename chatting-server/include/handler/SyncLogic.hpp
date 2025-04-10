@@ -15,6 +15,12 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+#include <service/ConnectionPool.hpp>
+#include <sql/MySQLConnectionPool.hpp>
+#include <redis/RedisManager.hpp>
 
 /*declaration*/
 struct UserNameCard;
@@ -23,14 +29,15 @@ struct UserFriendRequest;
 class SyncLogic : public Singleton<SyncLogic> {
   friend class Singleton<SyncLogic>;
 
+  using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>;
+  using MySQLRAII = connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>;
+
 public:
   using SessionPtr = std::shared_ptr<Session>;
   using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
   using pair = std::pair<SessionPtr, NodePtr>;
-
-private:
   using CallbackFunc =
-      std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
+            std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
 
 public:
   ~SyncLogic();
@@ -67,6 +74,9 @@ private:
 
   /*delete user belonged server in redis*/
   bool untagCurrentUser(const std::string &uuid);
+
+  /*parse Json*/
+  bool parseJson(std::shared_ptr<Session> session, NodePtr &recv, boost::json::object& src_obj);
 
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,

@@ -69,27 +69,27 @@ void handler::RequestHandlerNode::commit(
 }
 
 /*parse Json*/
-bool handler::RequestHandlerNode::parseJson(std::shared_ptr<Session> session, NodePtr& recv,
-          boost::json::object& src_obj) {
-          std::optional<std::string> body = recv->get_msg_body();
+bool handler::RequestHandlerNode::parseJson(std::shared_ptr<Session> session,
+                                            NodePtr &recv,
+                                            boost::json::object &src_obj) {
+  std::optional<std::string> body = recv->get_msg_body();
 
-          if (!body) {
-                    generateErrorMessage("Failed to parse JSON data",
-                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return false;
-          }
+  if (!body) {
+    generateErrorMessage("Failed to parse JSON data",
+                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return false;
+  }
 
-          try {
-                    src_obj = boost::json::parse(body.value()).as_object();
-          }
-          catch (const boost::json::system_error& e) {
-                    generateErrorMessage("Invalid JSON format",
-                              ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return false;
-          }
-          return true;
+  try {
+    src_obj = boost::json::parse(body.value()).as_object();
+  } catch (const boost::json::system_error &e) {
+    generateErrorMessage("Invalid JSON format",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return false;
+  }
+  return true;
 }
 
 void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
@@ -213,10 +213,10 @@ void handler::RequestHandlerNode::handlingLogin(
 void handler::RequestHandlerNode::handlingLogout(
     ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
-          boost::json::object src_obj;
-          boost::json::object result;
+  boost::json::object src_obj;
+  boost::json::object result;
 
-          parseJson(session, recv, src_obj);
+  parseJson(session, recv, src_obj);
 
   /*
    * sub user connection counter for current server
@@ -237,8 +237,8 @@ void handler::RequestHandlerNode::handlingLogout(
 void handler::RequestHandlerNode::handlingFileUploading(
     ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
-          /*output file*/
-          std::ofstream out;
+  /*output file*/
+  std::ofstream out;
 
   boost::json::object src_obj;
   boost::json::object dst_root;
@@ -324,7 +324,7 @@ void handler::RequestHandlerNode::handlingFileUploading(
  * 2. HGET exist: Increment by 1
  */
 void handler::RequestHandlerNode::incrementConnection() {
-          RedisRAII raii;
+  RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -350,7 +350,7 @@ void handler::RequestHandlerNode::incrementConnection() {
  * 2. HGET exist: Decrement by 1
  */
 void handler::RequestHandlerNode::decrementConnection() {
-          RedisRAII raii;
+  RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -370,12 +370,12 @@ void handler::RequestHandlerNode::decrementConnection() {
 }
 
 bool handler::RequestHandlerNode::tagCurrentUser(const std::string &uuid) {
-          RedisRAII raii;
+  RedisRAII raii;
   return raii->get()->setValue(server_prefix + uuid,
                                ServerConfig::get_instance()->GrpcServerName);
 }
 
 bool handler::RequestHandlerNode::untagCurrentUser(const std::string &uuid) {
-          RedisRAII raii;
+  RedisRAII raii;
   return raii->get()->delPair(server_prefix + uuid);
 }

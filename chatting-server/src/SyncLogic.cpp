@@ -116,13 +116,13 @@ void SyncLogic::commit(pair recv_node) {
 }
 
 void SyncLogic::shutdown() {
-          m_stop = true;
-          m_cv.notify_all();
+  m_stop = true;
+  m_cv.notify_all();
 
-          /*join the working thread*/
-          if (m_working.joinable()) {
-                    m_working.join();
-          }
+  /*join the working thread*/
+  if (m_working.joinable()) {
+    m_working.join();
+  }
 }
 
 /*
@@ -158,7 +158,7 @@ void SyncLogic::incrementConnection() {
  * 2. HGET exist: Decrement by 1
  */
 void SyncLogic::decrementConnection() {
-          RedisRAII raii;
+  RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -178,7 +178,7 @@ void SyncLogic::decrementConnection() {
 }
 
 bool SyncLogic::tagCurrentUser(const std::string &uuid) {
-          RedisRAII raii;
+  RedisRAII raii;
 
   /*Distributed Lock is going to be added to the code in the early future.*/
   return raii->get()->setValue(server_prefix + uuid,
@@ -186,7 +186,7 @@ bool SyncLogic::tagCurrentUser(const std::string &uuid) {
 }
 
 bool SyncLogic::untagCurrentUser(const std::string &uuid) {
-          RedisRAII raii;
+  RedisRAII raii;
 
   /*Distributed Lock is going to be added to the code in the early future.*/
   return raii->get()->delPair(server_prefix + uuid);
@@ -485,8 +485,8 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
                                    std::shared_ptr<Session> session,
                                    NodePtr recv) {
 
-          /*connection pool RAII*/
-          MySQLRAII mysql;
+  /*connection pool RAII*/
+  MySQLRAII mysql;
 
   boost::json::object src_obj;  /*store json from client*/
   boost::json::object dst_root; /*store json from client*/
@@ -504,15 +504,16 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
   std::string username =
       boost::json::value_to<std::string>(src_obj["username"]);
   spdlog::info("[{}] User {} Searching For User {} ",
-            ServerConfig::get_instance()->GrpcServerName,
-            session->s_uuid, username);
+               ServerConfig::get_instance()->GrpcServerName, session->s_uuid,
+               username);
 
   /*search username in mysql to get uuid*/
-  std::optional<std::size_t> uuid_op =  mysql->get()->getUUIDByUsername(username);
+  std::optional<std::size_t> uuid_op =
+      mysql->get()->getUUIDByUsername(username);
 
   if (!uuid_op.has_value()) {
-            spdlog::warn("[{}] {} Can not find a single user in MySQL and Redis",
-                      ServerConfig::get_instance()->GrpcServerName, username);
+    spdlog::warn("[{}] {} Can not find a single user in MySQL and Redis",
+                 ServerConfig::get_instance()->GrpcServerName, username);
 
     generateErrorMessage("No Username Found In DB",
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
@@ -525,8 +526,8 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
 
   /*when user info not found!*/
   if (!card_op.has_value()) {
-    spdlog::warn("[{}] No {}'s Profile Found!", 
-              ServerConfig::get_instance()->GrpcServerName, uuid_op.value());
+    spdlog::warn("[{}] No {}'s Profile Found!",
+                 ServerConfig::get_instance()->GrpcServerName, uuid_op.value());
     generateErrorMessage("No User Account Found",
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::SEARCHING_USERNAME_NOT_FOUND, session);
@@ -551,9 +552,9 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
                                              std::shared_ptr<Session> session,
                                              NodePtr recv) {
 
-          /*connection pool RAII*/
-          RedisRAII raii;
-          MySQLRAII mysql;
+  /*connection pool RAII*/
+  RedisRAII raii;
+  MySQLRAII mysql;
 
   boost::json::object src_root;    /*store json from client*/
   boost::json::object result_root; /*send processing result back to src user*/

@@ -1,7 +1,7 @@
-#include <network/def.hpp>
 #include <boost/json.hpp>
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
+#include <network/def.hpp>
 #include <server/UserManager.hpp>
 
 std::string UserManager::redis_server_login = "redis_server";
@@ -19,57 +19,56 @@ UserManager::~UserManager() { m_uuid2Session.clear(); }
 std::optional<std::shared_ptr<Session>>
 UserManager::getSession(const std::string &uuid) {
 
-          typename ContainerType::const_accessor accessor;
-          if (m_uuid2Session.find(accessor, uuid)) {
-                    return accessor->second;
-          }
-          return std::nullopt;
+  typename ContainerType::const_accessor accessor;
+  if (m_uuid2Session.find(accessor, uuid)) {
+    return accessor->second;
+  }
+  return std::nullopt;
 }
 
 void UserManager::removeUsrSession(const std::string &uuid) {
   typename ContainerType::accessor accessor;
   if (m_uuid2Session.find(accessor, uuid)) {
-            /*remove the item from the container*/
-            accessor->second->closeSession();
-            m_uuid2Session.erase(accessor);
+    /*remove the item from the container*/
+    accessor->second->closeSession();
+    m_uuid2Session.erase(accessor);
   }
 }
 
 void UserManager::alterUserSession(const std::string &uuid,
                                    std::shared_ptr<Session> session) {
 
-          //safty consideration
-          removeUsrSession(uuid);
+  // safty consideration
+  removeUsrSession(uuid);
 
-          m_uuid2Session.insert(
-                    std::pair<std::string, std::shared_ptr<Session>>(uuid, session));
+  m_uuid2Session.insert(
+      std::pair<std::string, std::shared_ptr<Session>>(uuid, session));
 }
 
 void UserManager::teminate() {
 
-          connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-                    raii;
+  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
+      raii;
 
-          std::for_each(m_uuid2Session.begin(), m_uuid2Session.end(), 
-                    [this,  &raii](decltype(*m_uuid2Session.begin()) & pair) {
+  std::for_each(m_uuid2Session.begin(), m_uuid2Session.end(),
+                [this, &raii](decltype(*m_uuid2Session.begin()) &pair) {
+                  UserManager::kick(raii, pair.second);
+                });
 
-                              UserManager::kick(raii, pair.second);
-                    });
-
-          m_uuid2Session.clear();
+  m_uuid2Session.clear();
 }
 
-void UserManager::kick(RedisRAII& raii, std::shared_ptr<Session> session) {
+void UserManager::kick(RedisRAII &raii, std::shared_ptr<Session> session) {
 
-          boost::json::object logout;
-          logout["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
-          logout["uuid"] = session->get_user_uuid();
+  boost::json::object logout;
+  logout["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
+  logout["uuid"] = session->get_user_uuid();
 
-          session->sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
-                    boost::json::serialize(logout));
+  session->sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
+                       boost::json::serialize(logout));
 
-          /*Remove from Redis*/
-          raii->get()->delPair(server_prefix + session->get_user_uuid());
+  /*Remove from Redis*/
+  raii->get()->delPair(server_prefix + session->get_user_uuid());
 
-          session->closeSession();
+  session->closeSession();
 }

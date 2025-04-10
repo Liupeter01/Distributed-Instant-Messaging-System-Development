@@ -14,8 +14,8 @@ class UserManager : public Singleton<UserManager> {
   UserManager();
 
   using ContainerType = tbb::concurrent_hash_map<
-            std::string,
-            /*user belonged session*/ std::shared_ptr<Session>>;
+      std::string,
+      /*user belonged session*/ std::shared_ptr<Session>>;
 
 public:
   ~UserManager();
@@ -25,9 +25,9 @@ public:
                         std::shared_ptr<Session> session);
 
 protected:
-          void teminate();
+  void teminate();
 
 private:
-          ContainerType m_uuid2Session;
+  ContainerType m_uuid2Session;
 };
 #endif //_USERMANAGER_HPP_

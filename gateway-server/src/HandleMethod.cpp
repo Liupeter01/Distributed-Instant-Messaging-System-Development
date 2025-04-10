@@ -1,7 +1,7 @@
 #include <boost/json.hpp>
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
-#include <grpc/GrpcBalanceService.hpp>
+#include <grpc/GrpcUserService.hpp>
 #include <grpc/GrpcVerificationService.hpp>
 #include <handler/HandleMethod.hpp>
 #include <http/HttpConnection.hpp>
@@ -338,7 +338,7 @@ void HandleMethod::registerPostCallBacks() {
          *pass user's uuid parameter to the server, and returns available server
          *address to user
          */
-        auto response = gRPCBalancerService::addNewUserToServer(uuid);
+        auto response = gRPCGrpcUserService::addNewUserToServer(uuid);
 
         if (response.error() !=
             static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {

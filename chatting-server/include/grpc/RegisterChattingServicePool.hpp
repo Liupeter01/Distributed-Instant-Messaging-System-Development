@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _CHATTINGERVICEPOOL_HPP_
-#define _CHATTINGSERVICEPOOL_HPP_
+#ifndef _REGISTERCHATTINGSERVICEPOOL_HPP_
+#define _REGISTERCHATTINGSERVICEPOOL_HPP_
 #include <config/ServerConfig.hpp>
 #include <grpcpp/grpcpp.h>
 #include <message/message.grpc.pb.h>
@@ -8,38 +8,44 @@
 #include <spdlog/spdlog.h>
 
 namespace stubpool {
-class BalancerServicePool
+
+class RegisterChattingServicePool
     : public connection::ConnectionPool<
-          BalancerServicePool, typename message::BalancerService::Stub> {
-  using self = BalancerServicePool;
-  using data_type = typename message::BalancerService::Stub;
+          RegisterChattingServicePool,
+          typename message::ChattingRegisterService::Stub> {
+
+  using self = RegisterChattingServicePool;
+  using data_type = typename message::ChattingRegisterService::Stub;
   using context = data_type;
   using context_ptr = std::unique_ptr<data_type>;
-  friend class Singleton<BalancerServicePool>;
+  friend class Singleton<self>;
 
   grpc::string m_host;
   grpc::string m_port;
   std::shared_ptr<grpc::ChannelCredentials> m_cred;
 
-  BalancerServicePool()
+  RegisterChattingServicePool()
       : connection::ConnectionPool<self, data_type>(),
         m_host(ServerConfig::get_instance()->BalanceServiceAddress),
         m_port(ServerConfig::get_instance()->BalanceServicePort),
         m_cred(grpc::InsecureChannelCredentials()) {
 
     auto address = fmt::format("{}:{}", m_host, m_port);
-    spdlog::info("Connected to balance server {}", address);
+    spdlog::info(
+        "[{}]: RegisterChattingServicePool Connected To Balance Server {}",
+        ServerConfig::get_instance()->GrpcServerName, address);
 
     /*creating multiple stub*/
     for (std::size_t i = 0; i < m_queue_size; ++i) {
-      m_stub_queue.push(std::move(message::BalancerService::NewStub(
+      m_stub_queue.push(std::move(message::ChattingRegisterService::NewStub(
           grpc::CreateChannel(address, m_cred))));
     }
   }
 
 public:
-  ~BalancerServicePool() = default;
+  ~RegisterChattingServicePool() = default;
 };
+
 } // namespace stubpool
 
-#endif // !_STUBPOOL_HPP_
+#endif // _REGISTERCHATTINGSERVICEPOOL_HPP_

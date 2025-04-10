@@ -1,17 +1,15 @@
 #pragma once
-#ifndef _GRPCRESOURCESIMPL_HPP_
-#define _GRPCRESOURCESIMPL_HPP_
+#ifndef _GRPCCHATTINGIMPL_HPP_
+#define _GRPCCHATTINGIMPL_HPP_
 #include <grpcpp/grpcpp.h>
 #include <message/message.grpc.pb.h>
 
 namespace grpc {
-
-class GrpcResourcesImpl final
-    : public message::ResourcesRegisterService::Service {
-
+class GrpcChattingImpl final
+    : public message::ChattingRegisterService::Service {
 public:
-  GrpcResourcesImpl();
-  virtual ~GrpcResourcesImpl() = default;
+  GrpcChattingImpl();
+  virtual ~GrpcChattingImpl() = default;
 
 public:
   virtual ::grpc::Status
@@ -36,4 +34,5 @@ public:
                                       ::message::PeerResponse *response);
 };
 } // namespace grpc
-#endif
+
+#endif //_GRPCCHATTINGIMPL_HPP_

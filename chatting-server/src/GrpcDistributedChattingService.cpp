@@ -1,6 +1,6 @@
 #include <config/ServerConfig.hpp>
-#include <grpc/GrpcBalanceService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
+#include <grpc/GrpcRegisterChattingService.hpp>
 
 gRPCDistributedChattingService::gRPCDistributedChattingService() {
   updateGrpcPeerLists();
@@ -13,14 +13,16 @@ void gRPCDistributedChattingService::updateGrpcPeerLists() {
 
   /*pass current server name as a parameter to the balance server, and returns
    * all peers*/
-  auto response = gRPCBalancerService::getPeerGrpcServerLists(
+  auto response = gRPCGrpcRegisterChattingService::getPeerGrpcServerLists(
       ServerConfig::get_instance()->GrpcServerName);
 
   if (response.error() !=
       static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
-    spdlog::error("[Balance Server] try retrieve peer servers' info failed!, "
-                  "error code {}",
-                  response.error());
+
+    spdlog::info(
+        "[{}] Trying To Retrieve Peer Server's Info Failed, Error Code: {}",
+        ServerConfig::get_instance()->GrpcServerName, response.error());
+
     std::abort();
   }
 

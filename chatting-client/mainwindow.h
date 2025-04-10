@@ -21,7 +21,16 @@ public:
   MainWindow(QWidget *parent = nullptr);
   virtual ~MainWindow();
 
+signals:
+  void signal_connection_status(bool status);
+
+private slots:
+  void slot_connection_status(bool status);
+
 private:
+  void registerSignal();
+  void registerNetworkSignal();
+
   void setFramelessWindow(QDialog *dialog);
   void displayDefaultWindow(QWidget *window);
   void switchingToRegInterface();

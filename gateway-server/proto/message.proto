@@ -15,32 +15,33 @@ message GetVerificationResponse {
   string message = 3;
 }
 
-/*prepared for balance service*/
-service BalancerService {
-  // pass user's uuid parameter to the server, and returns available server
-  // address to user
-  rpc AddNewUserToServer(RegisterToBalancer)
-      returns (GetAllocatedChattingServer) {}
+service UserService {
+  // Register new user UUID and get allocated chatting server
+  rpc RegisterUser(UserRegisterRequest) returns (UserRegisterResponse);
 
-  // user send SERVICE_LOGINSERVER request
-  rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
+  // User login
+  rpc LoginUser(LoginRequest) returns (LoginResponse);
 }
 
-// register new uuid to balance and ask for chatting server allocation
-message RegisterToBalancer { int32 uuid = 1; }
+message UserRegisterRequest { int32 uuid = 1; }
 
-// get server host & port & token of one chatting server
-message GetAllocatedChattingServer {
+message UserRegisterResponse {
   int32 error = 1;
   string host = 2;
   string port = 3;
   string token = 4;
 }
 
-// transfer uuid and token to balanceserver to check validation
-message LoginChattingServer {
+message LoginRequest {
   int32 uuid = 1;
   string token = 2;
 }
 
-message LoginChattingResponse { int32 error = 1; }
+message LoginResponse { int32 error = 1; }
+
+message LogoutRequest {
+  int32 uuid = 1;
+  string token = 2;
+}
+
+message LogoutResponse { int32 error = 1; }

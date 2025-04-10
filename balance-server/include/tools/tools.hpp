@@ -1,6 +1,9 @@
 #pragma once
 #ifndef _TOOLS_HPP_
 #define _TOOLS_HPP_
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <hiredis.h>
 #include <memory>
 #include <optional>
@@ -8,6 +11,12 @@
 #include <type_traits>
 
 namespace tools {
+
+static std::string userTokenGenerator() {
+  boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
+  return boost::uuids::to_string(uuid_gen);
+}
+
 template <typename _Ty> class ResourcesWrapper {
 public:
   ResourcesWrapper(_Ty *ctx) : m_ctx(ctx, [](_Ty *ptr) { /*do nothing*/ }) {}

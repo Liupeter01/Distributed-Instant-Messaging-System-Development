@@ -1,8 +1,8 @@
 #pragma once
 #ifndef _GRPCDISTRIBUTEDCHATTINGSERVICE_HPP_
 #define _GRPCDISTRIBUTEDCHATTINGSERVICE_HPP_
-#include <grpc/BalanceServicePool.hpp>
 #include <grpc/DistributedChattingServicePool.hpp>
+#include <grpc/RegisterChattingServicePool.hpp>
 #include <network/def.hpp>
 #include <optional>
 #include <unordered_map>

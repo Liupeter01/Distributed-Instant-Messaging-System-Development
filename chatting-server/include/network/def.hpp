@@ -81,13 +81,16 @@ enum class ServiceStatus : uint8_t {
   GRPC_SERVER_ALREADY_EXISTS,     // GRPC server already exists
   CHATTING_SERVER_NOT_EXISTS,     // chatting server not exist
   CHATTING_SERVER_ALREADY_EXISTS, // chatting server already exists
-  NO_AVAILABLE_CHATTING_SERVER,   // chatting server no available
-  REDIS_UNKOWN_ERROR,             // redis server error code
-  REDIS_CPATCHA_NOT_FOUND,        // redis no cpatcha
-  MYSQL_INTERNAL_ERROR,           // mysql error
-  MYSQL_MISSING_INFO,             // mysql missing account info
-  MYSQL_ACCOUNT_NOT_EXISTS,       // mysql account not exists
-  LOGIN_INFO_ERROR,               // login info error
+  RESOURCES_SERVER_NOT_EXISTS,
+  RESOURCES_SERVER_ALREADY_EXISTS,
+  NO_AVAILABLE_CHATTING_SERVER, // chatting server no available
+  NO_AVAILABLE_RESOURCES_SERVER,
+  REDIS_UNKOWN_ERROR,       // redis server error code
+  REDIS_CPATCHA_NOT_FOUND,  // redis no cpatcha
+  MYSQL_INTERNAL_ERROR,     // mysql error
+  MYSQL_MISSING_INFO,       // mysql missing account info
+  MYSQL_ACCOUNT_NOT_EXISTS, // mysql account not exists
+  LOGIN_INFO_ERROR,         // login info error
   LOGIN_UNSUCCESSFUL, // common login uncessfully reason, due to internel error
   LOGIN_FOR_MULTIPLE_TIMES, // this user have already logined!
   LOGOUT_UNSUCCESSFUL,      // common logout uncessfully reason, due to internel

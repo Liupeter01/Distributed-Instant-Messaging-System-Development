@@ -35,6 +35,8 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
   /*register signal for ui display*/
   registerSignal();
 
+  registerNetworkEvent();
+
   /*register Qaction for search edit ui widget*/
   registerSearchEditAction();
 
@@ -69,13 +71,15 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
   Tools::loadImgResources({"chat_icon_normal.png", "chat_icon_hover.png",
                            "chat_icon_clicked.png", "contact_list_normal.png",
                            "contact_list_hover.png",
-                           "contact_list_clicked.png"},
+                           "contact_list_clicked.png",
+                           "logout.png"},
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);
 
   /*set chatting page as default*/
   Tools::setQLableImage(ui->my_chat, "chat_icon_normal.png");
   Tools::setQLableImage(ui->my_contact, "contact_list_normal.png");
+  Tools::setQLableImage(ui->logout,"logout.png");
 
   emit ui->my_chat->clicked();
 
@@ -128,6 +132,12 @@ void ChattingDlgMainFrame::registerSignal() {
 
     /*when contact button was clicked, then display contact list*/
     this->slot_display_contact_list();
+  });
+
+  connect(ui->logout, &OnceClickableQLabel::clicked, this, [this](){
+      emit signal_teminate_chatting_server(
+          UserAccountManager::get_instance()->get_uuid(),
+          UserAccountManager::get_instance()->get_token());
   });
 
   connect(ui->my_contact, &SideBarWidget::update_display, this,
@@ -209,6 +219,14 @@ void ChattingDlgMainFrame::registerSignal() {
           this, &ChattingDlgMainFrame::slot_sync_chat_msg_on_local);
 }
 
+void ChattingDlgMainFrame::registerNetworkEvent()
+{
+    connect(this, &ChattingDlgMainFrame::signal_teminate_chatting_server,
+       TCPNetworkConnection::get_instance().get(),
+           &TCPNetworkConnection::signal_teminate_chatting_server
+        );
+}
+
 void ChattingDlgMainFrame::registerSearchEditAction() {
   /*add a search icon*/
   m_searchAction = new QAction(ui->search_user_edit);
@@ -226,8 +244,6 @@ void ChattingDlgMainFrame::registerSearchEditAction() {
 
   /*put it on the back position of line edit*/
   ui->search_user_edit->addAction(m_cancelAction, QLineEdit::TrailingPosition);
-
-  // connect(ui->search_user_edit, )
 }
 
 void ChattingDlgMainFrame::registerSearchEditSignal() {
@@ -946,12 +962,6 @@ ChattingDlgMainFrame::findChattingHistoryWidget(const QString &friend_uuid) {
   } else {
     qDebug() << "We found this Widget On QListWidget, uuid = " << friend_uuid;
     return it->second;
-  }
-}
-
-void ChattingDlgMainFrame::slot_connection_status(bool status) {
-  if (!status) {
-    emit signal_log_out();
   }
 }
 

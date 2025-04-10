@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "tcpnetworkconnection.h"
+#include <useraccountmanager.hpp>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_login(nullptr),
@@ -10,10 +11,26 @@ MainWindow::MainWindow(QWidget *parent)
 {
   ui->setupUi(this);
 
+    registerSignal();
+    registerNetworkSignal();
+
   switchingToLoginDialog();
 }
 
 MainWindow::~MainWindow() { delete ui; }
+
+void MainWindow::registerSignal()
+{
+    connect(this, &MainWindow::signal_connection_status,
+            this, &MainWindow::slot_connection_status);
+}
+
+void MainWindow::registerNetworkSignal()
+{
+    connect(TCPNetworkConnection::get_instance().get(),
+            &TCPNetworkConnection::signal_connection_status,
+            this, &MainWindow::signal_connection_status);
+}
 
 void MainWindow::displayDefaultWindow(QWidget *window) {
   setCentralWidget(window);
@@ -73,11 +90,21 @@ void MainWindow::swithcingToChattingInf() {
   m_chattingMainFrame = new ChattingDlgMainFrame(this);
 
   /*when service disconnected, then goes back to login dialog*/
-  connect(m_chattingMainFrame, &ChattingDlgMainFrame::signal_log_out, this,
-          &MainWindow::switchingToLoginDialog);
+  // connect(m_chattingMainFrame, &ChattingDlgMainFrame::signal_log_out, this,
+  //         &MainWindow::switchingToLoginDialog);
 
   setFixedSize(m_chattingMainFrame->maximumSize());
 
   setFramelessWindow(m_chattingMainFrame);
   displayDefaultWindow(m_chattingMainFrame);
+}
+
+void MainWindow::slot_connection_status(bool status)
+{
+    //when status = false, then chatting connection terminate!
+    if(!status){
+
+        UserAccountManager::get_instance()->clear();
+        switchingToLoginDialog();
+    }
 }

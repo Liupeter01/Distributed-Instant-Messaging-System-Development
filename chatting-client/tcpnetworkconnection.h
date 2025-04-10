@@ -71,6 +71,8 @@ protected:
 private slots:
   void slot_connect2_chatting_server();
   void slot_connect2_resources_server();
+
+  void slot_terminate_chatting_server(const QString &uuid, const QString& token);
   void slot_terminate_resources_server();
 
   /*Send signals to a unified slot function for processing,
@@ -84,7 +86,11 @@ private slots:
 signals:
   void signal_connect2_chatting_server();
   void signal_connect2_resources_server();
+
   void signal_terminate_resources_server();
+
+  /*send logout network message only!*/
+  void signal_teminate_chatting_server(const QString &uuid, const QString& token);
 
   /*forward resources server's message to a standlone logic thread*/
   void signal_resources_logic_handler(const uint16_t id, const QJsonObject obj);

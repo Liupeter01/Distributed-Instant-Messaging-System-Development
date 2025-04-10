@@ -3,7 +3,6 @@
 #define _GRPCDATALAYER_HPP_
 #include <atomic>
 #include <memory>
-#include <mutex>
 #include <network/def.hpp>
 #include <optional>
 #include <singleton/singleton.hpp>

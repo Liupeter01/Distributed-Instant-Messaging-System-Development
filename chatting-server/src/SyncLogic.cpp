@@ -115,6 +115,16 @@ void SyncLogic::commit(pair recv_node) {
   m_cv.notify_one();
 }
 
+void SyncLogic::shutdown() {
+          m_stop = true;
+          m_cv.notify_all();
+
+          /*join the working thread*/
+          if (m_working.joinable()) {
+                    m_working.join();
+          }
+}
+
 /*
  * add user connection counter for current server
  * 1. HGET not exist: Current Chatting server didn't setting up connection
@@ -122,8 +132,7 @@ void SyncLogic::commit(pair recv_node) {
  * 2. HGET exist: Increment by 1
  */
 void SyncLogic::incrementConnection() {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+  RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -149,8 +158,7 @@ void SyncLogic::incrementConnection() {
  * 2. HGET exist: Decrement by 1
  */
 void SyncLogic::decrementConnection() {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -170,8 +178,7 @@ void SyncLogic::decrementConnection() {
 }
 
 bool SyncLogic::tagCurrentUser(const std::string &uuid) {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
 
   /*Distributed Lock is going to be added to the code in the early future.*/
   return raii->get()->setValue(server_prefix + uuid,
@@ -179,8 +186,7 @@ bool SyncLogic::tagCurrentUser(const std::string &uuid) {
 }
 
 bool SyncLogic::untagCurrentUser(const std::string &uuid) {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+          RedisRAII raii;
 
   /*Distributed Lock is going to be added to the code in the early future.*/
   return raii->get()->delPair(server_prefix + uuid);
@@ -411,24 +417,7 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   boost::json::object src_obj;
   boost::json::object result_root; /*send processing result back to src user*/
 
-  std::optional<std::string> body = recv->get_msg_body();
-  /*recv message error*/
-  if (!body.has_value()) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_LOGOUTRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
-
-  // prevent parse error
-  try {
-    src_obj = boost::json::parse(body.value()).as_object();
-  } catch (const boost::json::system_error &e) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_LOGOUTRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
+  parseJson(session, recv, src_obj);
 
   // Parsing failed
   if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
@@ -441,7 +430,7 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
   std::string token = boost::json::value_to<std::string>(src_obj["token"]);
 
-  spdlog::info("[{}] UUID = {} Trying to Close Connection with Token {}",
+  spdlog::info("[{}] UUID {} Trying to Close Connection with Token {}",
                ServerConfig::get_instance()->GrpcServerName, uuid, token);
 
   auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
@@ -458,7 +447,7 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   if (response.error() !=
       static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
 
-    spdlog::warn("[{}] UUID = {} Trying to Logout Failed! Error Code: {}",
+    spdlog::warn("[{}] UUID {} Trying to Logout Failed! Error Code: {}",
                  ServerConfig::get_instance()->GrpcServerName, uuid,
                  response.error());
 
@@ -479,7 +468,7 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   /*delete user belonged server in redis*/
   if (untagCurrentUser(session->s_uuid)) {
 
-    spdlog::info("[{}] UUID = {} Was Removed From Redis Cache Successfully",
+    spdlog::info("[{}] UUID {} Was Removed From Redis Cache Successfully",
                  ServerConfig::get_instance()->GrpcServerName, uuid);
   }
 
@@ -496,6 +485,9 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
                                    std::shared_ptr<Session> session,
                                    NodePtr recv) {
 
+          /*connection pool RAII*/
+          MySQLRAII mysql;
+
   boost::json::object src_obj;  /*store json from client*/
   boost::json::object dst_root; /*store json from client*/
 
@@ -511,20 +503,17 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
 
   std::string username =
       boost::json::value_to<std::string>(src_obj["username"]);
-  spdlog::info("[User UUID = {}] Searching For User {} ", session->s_uuid,
-               username);
+  spdlog::info("[{}] User {} Searching For User {} ",
+            ServerConfig::get_instance()->GrpcServerName,
+            session->s_uuid, username);
 
   /*search username in mysql to get uuid*/
-  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
-      mysql;
-
-  std::optional<std::size_t> uuid_op =
-      mysql->get()->getUUIDByUsername(username);
+  std::optional<std::size_t> uuid_op =  mysql->get()->getUUIDByUsername(username);
 
   if (!uuid_op.has_value()) {
-    spdlog::warn(
-        "[Username = {}] Can not find a single user in MySQL and Redis",
-        username);
+            spdlog::warn("[{}] {} Can not find a single user in MySQL and Redis",
+                      ServerConfig::get_instance()->GrpcServerName, username);
+
     generateErrorMessage("No Username Found In DB",
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::SEARCHING_USERNAME_NOT_FOUND, session);
@@ -536,7 +525,8 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
 
   /*when user info not found!*/
   if (!card_op.has_value()) {
-    spdlog::warn("[UUID = {}] No User Profile Found!", uuid_op.value());
+    spdlog::warn("[{}] No {}'s Profile Found!", 
+              ServerConfig::get_instance()->GrpcServerName, uuid_op.value());
     generateErrorMessage("No User Account Found",
                          ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
                          ServiceStatus::SEARCHING_USERNAME_NOT_FOUND, session);
@@ -560,6 +550,10 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
 void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
                                              std::shared_ptr<Session> session,
                                              NodePtr recv) {
+
+          /*connection pool RAII*/
+          RedisRAII raii;
+          MySQLRAII mysql;
 
   boost::json::object src_root;    /*store json from client*/
   boost::json::object result_root; /*send processing result back to src user*/
@@ -603,8 +597,6 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
   }
 
   /*insert friend request info into mysql db*/
-  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
-      mysql;
   if (!mysql->get()->createFriendRequest(src_uuid_value_op.value(),
                                          dst_uuid_value_op.value(), nickname,
                                          msg)) {
@@ -624,8 +616,6 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
    * Search For User Belonged Server Cache in Redis
    * find key = server_prefix + dst_uuid in redis, GET
    */
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
   std::optional<std::string> server_op =
       raii->get()->checkValue(server_prefix + dst_uuid);
 
@@ -1094,24 +1084,7 @@ void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
   boost::json::object src_root;    /*store json from client*/
   boost::json::object result_root; /*send processing result back to dst user*/
 
-  std::optional<std::string> body = recv->get_msg_body();
-  /*recv message error*/
-  if (!body.has_value()) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
-
-  // prevent parse error
-  try {
-    src_root = boost::json::parse(body.value()).as_object();
-  } catch (const boost::json::system_error &e) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
+  parseJson(session, recv, src_root);
 }
 
 /*Handling the user send chatting text msg to others*/
@@ -1121,24 +1094,7 @@ void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
   boost::json::object src_root;    /*store json from client*/
   boost::json::object result_root; /*send processing result back to dst user*/
 
-  std::optional<std::string> body = recv->get_msg_body();
-  /*recv message error*/
-  if (!body.has_value()) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
-
-  // prevent parse error
-  try {
-    src_root = boost::json::parse(body.value()).as_object();
-  } catch (const boost::json::system_error &e) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    return;
-  }
+  parseJson(session, recv, src_root);
 }
 
 /*get user's basic info(name, age, sex, ...) from redis*/
@@ -1259,19 +1215,7 @@ SyncLogic::getAuthFriendsInfo(const std::string &dst_uuid,
   }
 
   /*search it in mysql*/
-  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
-      mysql;
-
+  MySQLRAII mysql;
   return mysql->get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
                                                interval);
-}
-
-void SyncLogic::shutdown() {
-  m_stop = true;
-  m_cv.notify_all();
-
-  /*join the working thread*/
-  if (m_working.joinable()) {
-    m_working.join();
-  }
 }

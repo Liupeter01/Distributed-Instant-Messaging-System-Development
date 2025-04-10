@@ -31,6 +31,7 @@ class ResourcesRegisterServicePool
     auto address = fmt::format("{}:{}", m_host, m_port);
     spdlog::info(
         "[{}]: ResourcesRegisterService Connected To Balance Server {}",
+              ServerConfig::get_instance()->GrpcServerName,
         address);
 
     /*creating multiple stub*/

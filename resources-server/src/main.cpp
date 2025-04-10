@@ -1,6 +1,6 @@
 #include <config/ServerConfig.hpp>
-#include <grpc/GrpcResourcesService.hpp>
-#include <grpc/ResourcesServicePool.hpp>
+#include <grpc/GrpcResourcesRegisterService.hpp>
+#include <grpc/ResourcesRegisterServicePool.hpp>
 #include <handler/SyncLogic.hpp>
 #include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
@@ -17,34 +17,25 @@ int main() {
     [[maybe_unused]] auto &mysql = mysql::MySQLConnectionPool::get_instance();
     [[maybe_unused]] auto &redis = redis::RedisConnectionPool::get_instance();
     [[maybe_unused]] auto &resources_pool =
-        stubpool::ResourcesServicePool::get_instance();
+        stubpool::ResourcesRegisterServicePool::get_instance();
 
     /*chatting server port and grpc server port should not be same!!*/
     if (ServerConfig::get_instance()->GrpcServerPort ==
         ServerConfig::get_instance()->ResourceServerPort) {
-      spdlog::error("[Resources Service {}]: Resources Server's Port Should Be "
+      spdlog::error("[{}]: Resources Server's Port Should Be "
                     "Different Comparing to GRPC Server!",
                     ServerConfig::get_instance()->GrpcServerName);
       std::abort();
     }
 
-    ///*gRPC server*/
-    // std::string address =
-    //           fmt::format("{}:{}",
-    //           ServerConfig::get_instance()->GrpcServerHost,
-    //                     ServerConfig::get_instance()->GrpcServerPort);
-
-    // spdlog::info("Current Resources RPC Server Started Running On {}",
-    // address);
-
-    auto response = gRPCResourcesService::registerResourcesServerInstance(
+    auto response = gRPCResourcesRegisterService::registerResourcesServerInstance(
         ServerConfig::get_instance()->GrpcServerName,
         ServerConfig::get_instance()->GrpcServerHost,
         std::to_string(ServerConfig::get_instance()->ResourceServerPort));
 
     if (response.error() !=
         static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
-      spdlog::critical("[Resources Service {}] Balance-Server Not Available! "
+      spdlog::critical("[{}] Balance-Server Not Available! "
                        "Try register Resources Server Instance Failed!, "
                        "error code {}",
                        ServerConfig::get_instance()->GrpcServerName,
@@ -53,7 +44,7 @@ int main() {
     }
 
     spdlog::info(
-        "[Resources Server] Register Resources Server Instance Successful");
+              "[{}] Register Resources Server Instance To Balancer Successful", ServerConfig::get_instance()->GrpcServerName);
 
     /*setting up signal*/
     boost::asio::io_context ioc;
@@ -95,7 +86,7 @@ int main() {
      * Resources Server Shutdown
      * Delete current server
      */
-    response = gRPCResourcesService::resourcesServerShutdown(
+    response = gRPCResourcesRegisterService::resourcesServerShutdown(
         ServerConfig::get_instance()->GrpcServerName);
 
     if (response.error() !=
@@ -108,7 +99,7 @@ int main() {
     }
 
     spdlog::info(
-        "[Resources Server] Unregister Resources Server Instance Successful");
+        "[{}] Unregister Resources Server Instance From Balancer Successful", ServerConfig::get_instance()->GrpcServerName);
 
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());

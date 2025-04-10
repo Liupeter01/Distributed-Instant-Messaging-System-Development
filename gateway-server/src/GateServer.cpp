@@ -7,11 +7,14 @@ GateServer::GateServer(boost::asio::io_context &_ioc, unsigned short port)
     : m_ioc(_ioc),
       m_acceptor(_ioc, boost::asio::ip::tcp::endpoint(
                            boost::asio::ip::address_v4::any(), port)) {
-  spdlog::info("[Gateway Server]: Server Activated! Listening On Port {}", port);
+  spdlog::info("[Gateway Server]: Server Activated! Listening On Port {}",
+               port);
   this->serverStart();
 }
 
-GateServer::~GateServer() { spdlog::critical("[Gateway Server]: Server Shutting Down!"); }
+GateServer::~GateServer() {
+  spdlog::critical("[Gateway Server]: Server Shutting Down!");
+}
 
 void GateServer::serverStart() {
   boost::asio::io_context &ioc =

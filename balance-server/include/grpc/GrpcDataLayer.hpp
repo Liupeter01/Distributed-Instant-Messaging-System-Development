@@ -51,7 +51,7 @@ class GrpcDataLayer : public Singleton<GrpcDataLayer> {
   friend class Singleton<GrpcDataLayer>;
   friend class grpc::GrpcUserServiceImpl;
   friend class grpc::GrpcChattingImpl;
-  friend class GrpcResourcesImpl;
+  friend class grpc::GrpcResourcesImpl;
 
   GrpcDataLayer() = default;
 

@@ -21,8 +21,7 @@ int main() {
     [[maybe_unused]] auto &redis = redis::RedisConnectionPool::get_instance();
     [[maybe_unused]] auto &verification =
         stubpool::VerificationServicePool::get_instance();
-    [[maybe_unused]] auto &balance =
-        stubpool::UserServicePool::get_instance();
+    [[maybe_unused]] auto &balance = stubpool::UserServicePool::get_instance();
 
     /*setting up signal*/
     boost::asio::io_context ioc;

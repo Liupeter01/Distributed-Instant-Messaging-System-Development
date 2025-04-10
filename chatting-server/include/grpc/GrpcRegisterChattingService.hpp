@@ -9,10 +9,11 @@
 #include <network/def.hpp>
 #include <service/ConnectionPool.hpp>
 
-struct gRPCGrpcRegisterChattingService{
+struct gRPCGrpcRegisterChattingService {
 
-          using  ConnectionRAII = connection::ConnectionRAII<stubpool::RegisterChattingServicePool,
-                    message::ChattingRegisterService::Stub>;
+  using ConnectionRAII =
+      connection::ConnectionRAII<stubpool::RegisterChattingServicePool,
+                                 message::ChattingRegisterService::Stub>;
 
   static message::PeerResponse
   getPeerChattingServerLists(const std::string &cur_name);
@@ -25,15 +26,14 @@ struct gRPCGrpcRegisterChattingService{
                                  const std::string &host,
                                  const std::string &port);
 
-  static message::StatusResponse
-  registerGrpcServer(const std::string &name, const std::string &host,
-                     const std::string &port);
+  static message::StatusResponse registerGrpcServer(const std::string &name,
+                                                    const std::string &host,
+                                                    const std::string &port);
 
   static message::StatusResponse
   chattingServerShutdown(const std::string &name);
 
-  static message::StatusResponse
-  grpcServerShutdown(const std::string &name);
+  static message::StatusResponse grpcServerShutdown(const std::string &name);
 };
 
-#endif //CHATTINGREGISTERSERVICE
+#endif // CHATTINGREGISTERSERVICE

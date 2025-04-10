@@ -1,6 +1,6 @@
 #include <config/ServerConfig.hpp>
-#include <grpc/GrpcRegisterChattingService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
+#include <grpc/GrpcRegisterChattingService.hpp>
 
 gRPCDistributedChattingService::gRPCDistributedChattingService() {
   updateGrpcPeerLists();

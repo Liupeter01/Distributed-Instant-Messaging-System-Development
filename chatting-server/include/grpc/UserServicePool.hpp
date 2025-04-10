@@ -9,13 +9,13 @@
 
 namespace stubpool {
 class UserServicePool
-    : public connection::ConnectionPool<
-          UserServicePool, typename message::UserService::Stub> {
+    : public connection::ConnectionPool<UserServicePool,
+                                        typename message::UserService::Stub> {
   using self = UserServicePool;
   using data_type = typename message::UserService::Stub;
   using context = data_type;
   using context_ptr = std::unique_ptr<data_type>;
-  friend class Singleton<self >;
+  friend class Singleton<self>;
 
   grpc::string m_host;
   grpc::string m_port;
@@ -29,12 +29,12 @@ class UserServicePool
 
     auto address = fmt::format("{}:{}", m_host, m_port);
     spdlog::info("[{}]: UserServicePool Connected To Balance Server {}",
-              ServerConfig::get_instance()->GrpcServerName, address);
+                 ServerConfig::get_instance()->GrpcServerName, address);
 
     /*creating multiple stub*/
     for (std::size_t i = 0; i < m_queue_size; ++i) {
-      m_stub_queue.push(std::move(message::UserService::NewStub(
-          grpc::CreateChannel(address, m_cred))));
+      m_stub_queue.push(std::move(
+          message::UserService::NewStub(grpc::CreateChannel(address, m_cred))));
     }
   }
 

@@ -11,8 +11,8 @@
 
 struct gRPCGrpcUserService {
 
-  static message::LoginResponse
-  userLoginToServer(std::size_t uuid, const std::string &token) {
+  static message::LoginResponse userLoginToServer(std::size_t uuid,
+                                                  const std::string &token) {
     grpc::ClientContext context;
     message::LoginRequest request;
     message::LoginResponse response;
@@ -23,8 +23,7 @@ struct gRPCGrpcUserService {
                                message::UserService::Stub>
         raii;
 
-    grpc::Status status =
-        raii->get()->LoginUser(&context, request, &response);
+    grpc::Status status = raii->get()->LoginUser(&context, request, &response);
 
     ///*error occured*/
     if (!status.ok()) {
@@ -34,26 +33,25 @@ struct gRPCGrpcUserService {
   }
 
   static message::LogoutResponse
-  userLogoutFromServer(const std::size_t uuid, const std::string& token) {
-            grpc::ClientContext context;
-            message::LogoutRequest request;
-            message::LogoutResponse response;
+  userLogoutFromServer(const std::size_t uuid, const std::string &token) {
+    grpc::ClientContext context;
+    message::LogoutRequest request;
+    message::LogoutResponse response;
 
-            request.set_uuid(uuid);
-            request.set_token(token);
+    request.set_uuid(uuid);
+    request.set_token(token);
 
-            connection::ConnectionRAII<stubpool::UserServicePool,
-                      message::UserService::Stub>
-                      raii;
+    connection::ConnectionRAII<stubpool::UserServicePool,
+                               message::UserService::Stub>
+        raii;
 
-            grpc::Status status =
-                      raii->get()->LogoutUser(&context, request, &response);
+    grpc::Status status = raii->get()->LogoutUser(&context, request, &response);
 
-            ///*error occured*/
-            if (!status.ok()) {
-                      response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-            }
-            return response;
+    ///*error occured*/
+    if (!status.ok()) {
+      response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+    }
+    return response;
   }
 };
 

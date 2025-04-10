@@ -9,8 +9,8 @@
 
 namespace stubpool {
 class UserServicePool
-    : public connection::ConnectionPool<
-          UserServicePool, typename message::UserService::Stub> {
+    : public connection::ConnectionPool<UserServicePool,
+                                        typename message::UserService::Stub> {
   using self = UserServicePool;
   using data_type = typename message::UserService::Stub;
   using context = data_type;
@@ -32,8 +32,8 @@ class UserServicePool
 
     /*creating multiple stub*/
     for (std::size_t i = 0; i < m_queue_size; ++i) {
-      m_stub_queue.push(std::move(message::UserService::NewStub(
-          grpc::CreateChannel(address, m_cred))));
+      m_stub_queue.push(std::move(
+          message::UserService::NewStub(grpc::CreateChannel(address, m_cred))));
     }
   }
 

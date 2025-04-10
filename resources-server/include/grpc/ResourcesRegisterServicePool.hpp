@@ -8,37 +8,37 @@
 #include <spdlog/spdlog.h>
 
 namespace stubpool {
-class ResourcesServicePool
+class ResourcesRegisterServicePool
     : public connection::ConnectionPool<
-          ResourcesServicePool, typename message::ResourceService::Stub> {
-  using self = ResourcesServicePool;
-  using data_type = typename message::ResourceService::Stub;
+          ResourcesRegisterServicePool, typename message::ResourcesRegisterService::Stub> {
+  using self = ResourcesRegisterServicePool;
+  using data_type = typename message::ResourcesRegisterService::Stub;
   using context = data_type;
   using context_ptr = std::unique_ptr<data_type>;
-  friend class Singleton<ResourcesServicePool>;
+  friend class Singleton<self>;
 
   grpc::string m_host;
   grpc::string m_port;
   std::shared_ptr<grpc::ChannelCredentials> m_cred;
 
-  ResourcesServicePool()
+  ResourcesRegisterServicePool()
       : connection::ConnectionPool<self, data_type>(),
         m_host(ServerConfig::get_instance()->BalanceServiceAddress),
         m_port(ServerConfig::get_instance()->BalanceServicePort),
         m_cred(grpc::InsecureChannelCredentials()) {
 
     auto address = fmt::format("{}:{}", m_host, m_port);
-    spdlog::info("Connected to Balance Server {}", address);
+    spdlog::info("[{}]: ResourcesRegisterService Connected To Balance Server {}", address);
 
     /*creating multiple stub*/
     for (std::size_t i = 0; i < m_queue_size; ++i) {
-      m_stub_queue.push(std::move(message::ResourceService::NewStub(
+      m_stub_queue.push(std::move(message::ResourcesRegisterService::NewStub(
           grpc::CreateChannel(address, m_cred))));
     }
   }
 
 public:
-  ~ResourcesServicePool() = default;
+  ~ResourcesRegisterServicePool() = default;
 };
 } // namespace stubpool
 

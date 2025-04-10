@@ -52,7 +52,6 @@ message PeerResponse {
   repeated ServerInfo lists = 2;
 }
 
-
 /*prepared for distributed chatting service*/
 service DistributedChattingService {
 

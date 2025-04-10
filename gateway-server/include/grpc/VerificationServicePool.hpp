@@ -24,7 +24,8 @@ class VerificationServicePool
       : connection::ConnectionPool<self, data_type>(),
         m_addr(ServerConfig::get_instance()->VerificationServerAddress),
         m_cred(grpc::InsecureChannelCredentials()) {
-    spdlog::info("Connected to verification server addr {}", m_addr.c_str());
+    spdlog::info("[Gateway Server]: Connected To Verification Server {}",
+                 m_addr.c_str());
 
     /*creating multiple stub*/
     for (std::size_t i = 0; i < m_queue_size; ++i) {

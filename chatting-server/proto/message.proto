@@ -1,52 +1,37 @@
 syntax = "proto3";
 package message;
 
-/*prepared for balance service*/
-service BalancerService {
+service UserService {
+  // User login
+  rpc LoginUser(LoginRequest) returns (LoginResponse);
 
-  // user send SERVICE_LOGINSERVER request
-  rpc UserLoginToServer(LoginChattingServer) returns (LoginChattingResponse) {}
-  rpc UserLogoutFromServer(LogoutChattingServer)
-      returns (LogoutChattingResponse) {}
-
-  // register current chatting server to balance server
-  rpc RegisterChattingServerInstance(GrpcRegisterRequest)
-      returns (GrpcStatusResponse) {}
-
-  // register current grpc server which belongs to chattingserver to balance
-  // server
-  rpc RegisterChattingGrpcServer(GrpcRegisterRequest)
-      returns (GrpcStatusResponse) {}
-
-  // when chatting server shutdown delete its existance in balance server
-  rpc ChattingServerShutDown(GrpcShutdownRequest) returns (GrpcStatusResponse) {
-  }
-
-  // when chatting grpc server shutdown delete its existance in balance server
-  rpc ChattingGrpcServerShutDown(GrpcShutdownRequest)
-      returns (GrpcStatusResponse) {}
-
-  // chatting server acquires other servers info through this service
-  rpc GetPeerChattingServerInfo(PeerListsRequest) returns (PeerResponse) {}
-
-  // chatting server acquires other chatting servers' grpc connection info
-  rpc GetPeerGrpcServerInfo(PeerListsRequest) returns (PeerResponse) {}
+  // User logout
+  rpc LogoutUser(LogoutRequest) returns (LogoutResponse);
 }
 
-// transfer uuid and token to balanceserver to check validation
-message LoginChattingServer {
+message LoginRequest {
   int32 uuid = 1;
   string token = 2;
 }
 
-message LoginChattingResponse { int32 error = 1; }
+message LoginResponse { int32 error = 1; }
 
-message LogoutChattingServer {
+message LogoutRequest {
   int32 uuid = 1;
   string token = 2;
 }
 
-message LogoutChattingResponse { int32 error = 1; }
+message LogoutResponse { int32 error = 1; }
+
+service ChattingRegisterService {
+  // Chatting server related
+  rpc RegisterInstance(RegisterRequest) returns (StatusResponse);
+  rpc RegisterGrpc(RegisterRequest) returns (StatusResponse);
+  rpc ShutdownInstance(ShutdownRequest) returns (StatusResponse);
+  rpc ShutdownGrpc(ShutdownRequest) returns (StatusResponse);
+  rpc GetInstancePeers(PeerRequest) returns (PeerResponse);
+  rpc GetGrpcPeers(PeerRequest) returns (PeerResponse);
+}
 
 message ServerInfo {
   string name = 1;
@@ -54,20 +39,18 @@ message ServerInfo {
   string port = 3;
 }
 
-message PeerListsRequest {
-  // current server's name
-  string cur_server = 1;
-}
+message RegisterRequest { ServerInfo info = 1; }
 
-// return a array of servers ip address through balancer services
+message ShutdownRequest { string cur_server = 1; }
+
+message StatusResponse { int32 error = 1; }
+
+message PeerRequest { string cur_server = 1; }
+
 message PeerResponse {
   int32 error = 1;
   repeated ServerInfo lists = 2;
 }
-
-message GrpcRegisterRequest { ServerInfo info = 1; }
-message GrpcShutdownRequest { string cur_server = 1; }
-message GrpcStatusResponse { int32 error = 1; }
 
 /*prepared for distributed chatting service*/
 service DistributedChattingService {

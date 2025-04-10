@@ -1,6 +1,6 @@
 #include <config/ServerConfig.hpp>
-#include <grpc/GrpcBalanceService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
+#include <grpc/GrpcRegisterChattingService.hpp>
 
 gRPCDistributedChattingService::gRPCDistributedChattingService() {
   updateGrpcPeerLists();
@@ -13,7 +13,7 @@ void gRPCDistributedChattingService::updateGrpcPeerLists() {
 
   /*pass current server name as a parameter to the balance server, and returns
    * all peers*/
-  auto response = gRPCBalancerService::getPeerGrpcServerLists(
+  auto response = gRPCGrpcRegisterChattingService::getPeerGrpcServerLists(
       ServerConfig::get_instance()->GrpcServerName);
 
   if (response.error() !=

@@ -2,6 +2,9 @@
 #ifndef _REQUEST_HANDLER_NODE_HPP_
 #define _REQUEST_HANDLER_NODE_HPP_
 #include <atomic>
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
 #include <buffer/MsgNode.hpp>
 #include <condition_variable>
 #include <memory>
@@ -9,7 +12,9 @@
 #include <network/def.hpp>
 #include <optional>
 #include <queue>
+#include <redis/RedisManager.hpp>
 #include <server/Session.hpp>
+#include <service/ConnectionPool.hpp>
 #include <thread>
 #include <unordered_map>
 
@@ -24,6 +29,9 @@ public:
   using CallbackFunc =
       std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
 
+  using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,
+                                               redis::RedisContext>;
+
 public:
   RequestHandlerNode();
   RequestHandlerNode(const std::size_t id);
@@ -33,6 +41,10 @@ public:
   const std::size_t getId() const;
 
   void commit(pair recv_node, [[maybe_unused]] SessionPtr live_extend);
+
+  static bool parseJson(std::shared_ptr<Session> session, NodePtr &recv,
+                        boost::json::object &src_obj);
+
   static void generateErrorMessage(const std::string &log, ServiceType type,
                                    ServiceStatus status, SessionPtr conn);
 

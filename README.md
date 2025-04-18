@@ -48,13 +48,9 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 
 **Technical Highlights:**
 
-- Gateway service provides **stateful HTTP interfaces** and integrates load balancing functionality.
+- Gateway service provides **stateless HTTP interfaces** and integrates load balancing functionality.
 - Chat service supports **asynchronous message forwarding** with reliable TCP long connections.
-- Achieved support for **8000+ concurrent connections** on a single server, with distributed deployment supporting **10K-20K active users**.
-
-
-
-**we are going to use boringssl instead of openssl for gRPC framework**
+- Achieved support for **8k~10k+ concurrent connections** on a single server, with distributed deployment supporting **10K-20K active users**.
 
 
 
@@ -66,7 +62,7 @@ Captcha-server imported `ioredis`, `grpc-js`, `pproto-loader`, `nodemailer`, `uu
 
 #### Balance-server
 
-- Manages load balancing and server resource allocation.
+Manages load balancing and server resource allocation.
 
 ### Resources-server
 
@@ -76,7 +72,7 @@ Responsible for storing user-uploaded files and ensuring secure file access.
 
 1. User Login`(SERVICE_LOGINSERVER)`
 
-2. ~~User Logout`SERVICE_LOGOUTSERVER`~~
+2. User Logout`SERVICE_LOGOUTSERVER`
 
 3. User Search For Peers`(SERVICE_SEARCHUSERNAME)`
 
@@ -126,307 +122,355 @@ Ensure you have the following installed:
 
 ### Basic Infrastructures
 
+- 
+
 **It's strongly suggested to use docker to build up those services ^_^**
 
 **If you intended to pass a host directory, please use absolute path.**
 
-1. Redis Memory Database
+#### Redis Memory Database
 
-   Create a local volume on host machine and editing configration files. **Please don't forget to change your password.**
+- Create a local volume on host machine and editing configration files. **Please don't forget to change your password.**
 
-   ```bash
-   #if you are using windows, please download WSL2
-   mkdir -p /path/to/redis/{conf,data} 
-   cat > /path/to/redis/conf/redis.conf <<EOF
-   # bind 192.168.1.100 10.0.0.1     # listens on two specific IPv4 addresses
-   # bind 127.0.0.1 ::1              # listens on loopback IPv4 and IPv6
-   # bind * -::*                     # like the default, all available interfaces
-   # bind 127.0.0.1 -::1
-   protected-mode no
-   port 6379
-   tcp-backlog 511
-   timeout 0
-   tcp-keepalive 300
-   daemonize no
-   pidfile /var/run/redis_6379.pid
-   loglevel notice
-   logfile ""
-   databases 16
-   always-show-logo no
-   set-proc-title yes
-   proc-title-template "{title} {listen-addr} {server-mode}"
-   locale-collate ""
-   stop-writes-on-bgsave-error yes
-   rdbcompression yes
-   rdbchecksum yes
-   dbfilename dump.rdb
-   rdb-del-sync-files no
-   dir ./
-   #---------------------------password--------------------------------------------
-   requirepass 123456
-   #---------------------------------------------------------------------------------
-   replica-serve-stale-data yes
-   replica-read-only yes
-   repl-diskless-sync yes
-   repl-diskless-sync-delay 5
-   repl-diskless-sync-max-replicas 0
-   repl-diskless-load disabled
-   repl-disable-tcp-nodelay no
-   replica-priority 100
-   acllog-max-len 128
-   lazyfree-lazy-eviction no
-   lazyfree-lazy-expire no
-   lazyfree-lazy-server-del no
-   replica-lazy-flush no
-   lazyfree-lazy-user-del no
-   lazyfree-lazy-user-flush no
-   oom-score-adj no
-   oom-score-adj-values 0 200 800
-   disable-thp yes
-   appendonly no
-   appendfilename "appendonly.aof"
-   appenddirname "appendonlydir"
-   appendfsync everysec
-   no-appendfsync-on-rewrite no
-   auto-aof-rewrite-percentage 100
-   auto-aof-rewrite-min-size 64mb
-   aof-load-truncated yes
-   aof-use-rdb-preamble yes
-   aof-timestamp-enabled no
-   slowlog-log-slower-than 10000
-   slowlog-max-len 128
-   latency-monitor-threshold 0
-   notify-keyspace-events ""
-   hash-max-listpack-entries 512
-   hash-max-listpack-value 64
-   list-max-listpack-size -2
-   list-compress-depth 0
-   set-max-intset-entries 512
-   set-max-listpack-entries 128
-   set-max-listpack-value 64
-   zset-max-listpack-entries 128
-   zset-max-listpack-value 64
-   hll-sparse-max-bytes 3000
-   stream-node-max-bytes 4096
-   stream-node-max-entries 100
-   activerehashing yes
-   client-output-buffer-limit normal 0 0 0
-   client-output-buffer-limit replica 256mb 64mb 60
-   client-output-buffer-limit pubsub 32mb 8mb 60
-   hz 10
-   dynamic-hz yes
-   aof-rewrite-incremental-fsync yes
-   rdb-save-incremental-fsync yes
-   jemalloc-bg-thread yes
-   EOF
-   ```
+  ```ini
+  #if you are using windows, please download WSL2
+  mkdir -p /path/to/redis/{conf,data} 
+  cat > /path/to/redis/conf/redis.conf <<EOF
+  # bind 192.168.1.100 10.0.0.1     # listens on two specific IPv4 addresses
+  # bind 127.0.0.1 ::1              # listens on loopback IPv4 and IPv6
+  # bind * -::*                     # like the default, all available interfaces
+  # bind 127.0.0.1 -::1
+  protected-mode no
+  port 6379
+  tcp-backlog 511
+  timeout 0
+  tcp-keepalive 300
+  daemonize no
+  pidfile /var/run/redis_6379.pid
+  loglevel notice
+  logfile ""
+  databases 16
+  always-show-logo no
+  set-proc-title yes
+  proc-title-template "{title} {listen-addr} {server-mode}"
+  locale-collate ""
+  stop-writes-on-bgsave-error yes
+  rdbcompression yes
+  rdbchecksum yes
+  dbfilename dump.rdb
+  rdb-del-sync-files no
+  dir ./
+  #---------------------------password--------------------------------------------
+  requirepass 123456
+  #---------------------------------------------------------------------------------
+  replica-serve-stale-data yes
+  replica-read-only yes
+  repl-diskless-sync yes
+  repl-diskless-sync-delay 5
+  repl-diskless-sync-max-replicas 0
+  repl-diskless-load disabled
+  repl-disable-tcp-nodelay no
+  replica-priority 100
+  acllog-max-len 128
+  lazyfree-lazy-eviction no
+  lazyfree-lazy-expire no
+  lazyfree-lazy-server-del no
+  replica-lazy-flush no
+  lazyfree-lazy-user-del no
+  lazyfree-lazy-user-flush no
+  oom-score-adj no
+  oom-score-adj-values 0 200 800
+  disable-thp yes
+  appendonly no
+  appendfilename "appendonly.aof"
+  appenddirname "appendonlydir"
+  appendfsync everysec
+  no-appendfsync-on-rewrite no
+  auto-aof-rewrite-percentage 100
+  auto-aof-rewrite-min-size 64mb
+  aof-load-truncated yes
+  aof-use-rdb-preamble yes
+  aof-timestamp-enabled no
+  slowlog-log-slower-than 10000
+  slowlog-max-len 128
+  latency-monitor-threshold 0
+  notify-keyspace-events ""
+  hash-max-listpack-entries 512
+  hash-max-listpack-value 64
+  list-max-listpack-size -2
+  list-compress-depth 0
+  set-max-intset-entries 512
+  set-max-listpack-entries 128
+  set-max-listpack-value 64
+  zset-max-listpack-entries 128
+  zset-max-listpack-value 64
+  hll-sparse-max-bytes 3000
+  stream-node-max-bytes 4096
+  stream-node-max-entries 100
+  activerehashing yes
+  client-output-buffer-limit normal 0 0 0
+  client-output-buffer-limit replica 256mb 64mb 60
+  client-output-buffer-limit pubsub 32mb 8mb 60
+  hz 10
+  dynamic-hz yes
+  aof-rewrite-incremental-fsync yes
+  rdb-save-incremental-fsync yes
+  jemalloc-bg-thread yes
+  EOF
+  ```
 
-   Creating a `Redis` container and execute following commands.
+- Creating a `Redis` container and execute following commands.
 
-   ```bash
-   docker pull redis:7.2.4  #Pull the official docker image from Docker hub
-   docker run \
-       --restart always \
-       -p 16379:6379 --name redis \
-       --privileged=true \
-       -v /path/to/redis/conf/redis.conf:/etc/redis/redis.conf \
-       -v /path/to/redis/data:/data:rw \
-       -d redis:7.2.4 redis-server /etc/redis/redis.conf \
-       --appendonly yes
-   ```
+  ```bash
+  docker pull redis:7.2.4  #Pull the official docker image from Docker hub
+  docker run \
+      --restart always \
+      -p 16379:6379 --name redis \
+      --privileged=true \
+      -v /path/to/redis/conf/redis.conf:/etc/redis/redis.conf \
+      -v /path/to/redis/data:/data:rw \
+      -d redis:7.2.4 redis-server /etc/redis/redis.conf \
+      --appendonly yes
+  ```
 
-   Entering `Redis` container and access to command line `redis-cli`.
+- Entering `Redis` container and access to command line `redis-cli`.
 
-   ```bash
-   docker exec -it redis bash  #entering redis
-   redis-cli            #login redis db
-   ```
+  ```bash
+  docker exec -it redis bash  #entering redis
+  redis-cli            #login redis db
+  ```
 
-2. MySQL Database
+  
 
-   Create a local volume on host machine and editing configration files. **Please don't forget to change your password.**
+#### MySQL Database
 
-   ```bash
-   #if you are using windows, please download WSL2
-   mkdir -p /path/to/mysql/{conf,data} 
-   touch /path/to/mysql/conf/my.cnf #create
-   cat > /path/to/redis/conf/redis.conf <<EOF
-   [mysqld]
-   default-authentication-plugin=mysql_native_password
-   skip-host-cache
-   skip-name-resolve
-   datadir=/var/lib/mysql
-   socket=/var/run/mysqld/mysqld.sock
-   secure-file-priv=/var/lib/mysql-files
-   user=mysql
-   character-set-server=utf8
-   max_connections=200
-   max_connect_errors=10
-   pid-file=/var/run/mysqld/mysqld.pid
-   [client]
-   socket=/var/run/mysqld/mysqld.sock
-   default-character-set=utf8
-   !includedir /etc/mysql/conf.d/
-   EOF
-   ```
+- Create a local volume on host machine and editing configration files. **Please don't forget to change your password.**
 
-   Creating a `MySQL` container and execute following commands.
+  ```ini
+  #if you are using windows, please download WSL2
+  mkdir -p /path/to/mysql/{conf,data} 
+  touch /path/to/mysql/conf/my.cnf #create
+  cat > /path/to/redis/conf/redis.conf <<EOF
+  [mysqld]
+  default-authentication-plugin=mysql_native_password
+  skip-host-cache
+  skip-name-resolve
+  datadir=/var/lib/mysql
+  socket=/var/run/mysqld/mysqld.sock
+  secure-file-priv=/var/lib/mysql-files
+  user=mysql
+  character-set-server=utf8
+  max_connections=200
+  max_connect_errors=10
+  pid-file=/var/run/mysqld/mysqld.pid
+  [client]
+  socket=/var/run/mysqld/mysqld.sock
+  default-character-set=utf8
+  !includedir /etc/mysql/conf.d/
+  EOF
+  ```
 
-   ```bash
-   docker pull mysql:8.0  #Pull the official docker image from Docker hub
-   docker run --restart=on-failure:3 -d \
-       -v /path/to/mysql/conf:/etc/mysql/conf.d \
-       -v /path/to/mysql/data:/var/lib/mysql \
-       -e MYSQL_ROOT_PASSWORD="your_password" \
-       -p 3307:3306 --name "your_container_name" \
-       mysql:8.0
-   ```
+- Creating a `MySQL` container and execute following commands.
 
-   Entering `MySQL` container and access to `mysql` command line.
+  ```bash
+  docker pull mysql:8.0  #Pull the official docker image from Docker hub
+  docker run --restart=on-failure:3 -d \
+      -v /path/to/mysql/conf:/etc/mysql/conf.d \
+      -v /path/to/mysql/data:/var/lib/mysql \
+      -e MYSQL_ROOT_PASSWORD="your_password" \
+      -p 3307:3306 --name "your_container_name" \
+      mysql:8.0
+  ```
 
-   ```bash
-   docker exec -it "your_container_name" bash  #entering mysql
-   mysql -uroot -p"your_password"                #login mysql db ( -u: root by default, -p password)
-   ```
+- Entering `MySQL` container and access to `mysql` command line.
 
-   Initialize `MySQL` database with following `SQL` commands to create DB and table schemas.
+  ```bash
+  docker exec -it "your_container_name" bash  #entering mysql
+  mysql -uroot -p"your_password"                #login mysql db ( -u: root by default, -p password)
+  ```
 
-   ```sql
-   CREATE DATABASE chatting;
-   
-   -- Create Authentication Table
-   CREATE TABLE chatting.Authentication (
-       uuid INT AUTO_INCREMENT PRIMARY KEY,
-       username VARCHAR(50) NOT NULL UNIQUE,
-       password VARCHAR(255) NOT NULL,
-       email VARCHAR(100) UNIQUE
-    );
-   
-    -- Create UserProfile Table
-    CREATE TABLE chatting.UserProfile (
-       uuid INT PRIMARY KEY,
-       avatar VARCHAR(255),
-       nickname VARCHAR(50),
-       description TEXT,
-       sex BOOL,
-       FOREIGN KEY (uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
-    );
-   
-   -- Create Friend Request Table
-   CREATE TABLE chatting.FriendRequest(
-       id INT AUTO_INCREMENT PRIMARY KEY,
-    src_uuid INT NOT NULL,
-       dst_uuid INT NOT NULL,
-       nickname VARCHAR(255),
-       message VARCHAR(255),
-       status BOOL, -- request status
-       FOREIGN KEY (src_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE,
-       FOREIGN KEY (dst_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
+- Initialize `MySQL` database with following `SQL` commands to create DB and table schemas.
+
+  ```sql
+  CREATE DATABASE chatting;
+  
+  -- Create Authentication Table
+  CREATE TABLE chatting.Authentication (
+      uuid INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(50) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      email VARCHAR(100) UNIQUE
    );
-   
-   -- Create Auth Friend Table
-   CREATE TABLE chatting.AuthFriend(
-       id INT AUTO_INCREMENT PRIMARY KEY,
-    self_uuid INT NOT NULL,
-       friend_uuid INT NOT NULL,
-    alternative_name VARCHAR(255), --
-       FOREIGN KEY (self_uuid ) REFERENCES Authentication(uuid) ON DELETE CASCADE,
-       FOREIGN KEY ( friend_uuid ) REFERENCES Authentication(uuid) ON DELETE CASCADE
+  
+   -- Create UserProfile Table
+   CREATE TABLE chatting.UserProfile (
+      uuid INT PRIMARY KEY,
+      avatar VARCHAR(255),
+      nickname VARCHAR(50),
+      description TEXT,
+      sex BOOL,
+      FOREIGN KEY (uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
    );
-   
-   CREATE UNIQUE INDEX idx_self_friend ON chatting.AuthFriend(self_uuid ASC, friend_uuid ASC) USING BTREE;
-   ```
+  
+  -- Create Friend Request Table
+  CREATE TABLE chatting.FriendRequest(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+   src_uuid INT NOT NULL,
+      dst_uuid INT NOT NULL,
+      nickname VARCHAR(255),
+      message VARCHAR(255),
+      status BOOL, -- request status
+      FOREIGN KEY (src_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE,
+      FOREIGN KEY (dst_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
+  );
+  
+  -- Create Auth Friend Table
+  CREATE TABLE chatting.AuthFriend(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+   self_uuid INT NOT NULL,
+      friend_uuid INT NOT NULL,
+   alternative_name VARCHAR(255), --
+      FOREIGN KEY (self_uuid ) REFERENCES Authentication(uuid) ON DELETE CASCADE,
+      FOREIGN KEY ( friend_uuid ) REFERENCES Authentication(uuid) ON DELETE CASCADE
+  );
+  
+  CREATE UNIQUE INDEX idx_self_friend ON chatting.AuthFriend(self_uuid ASC, friend_uuid ASC) USING BTREE;
+  ```
+
+  
 
 ### Servers' Configurations
 
 Most of those basic configurations are using *.ini file, except `Captcha-server`.
 
-1. Captcha-server**(config.json)**
+#### Captcha-server**(config.json)**
 
-   ```bash
-   {
-         "email": {
-                   "host": "please set to your email host name",
-                   "port": "please set to your email port",
-                   "username": "please set to your email address",
-                   "password": "please use your own authorized code"
-         },
-         "mysql": {
-                   "host": "127.0.0.1",
-                   "port": 3307,
-                   "password": 123456
-         },
-         "redis": {
-                   "host": "127.0.0.1",
-                   "port": 16379,
-                   "password": 123456
-         }
-   }
-   ```
+```bash
+{
+      "email": {
+                "host": "please set to your email host name",
+                "port": "please set to your email port",
+                "username": "please set to your email address",
+                "password": "please use your own authorized code"
+      },
+      "mysql": {
+                "host": "127.0.0.1",
+                "port": 3307,
+                "password": 123456
+      },
+      "redis": {
+                "host": "127.0.0.1",
+                "port": 16379,
+                "password": 123456
+      }
+}
+```
 
-2. Gateway-server**(config.ini)**
+#### Gateway-server**(config.ini)**
 
-   ```ini
-   [GateServer]
-   port = 8080
-   [VerificationServer]
-   host=127.0.0.1
-   port = 65500
-   [MySQL]
-   username=root
-   password=123456
-   database=chatting
-   host=localhost
-   port=3307
-   #timeoutsetting(s) for heart pulse
-   timeout=60 
-   [Redis]
-   host=127.0.0.1
-   port=16379
-   password=123456
-   [BalanceService]
-   host=127.0.0.1
-   port=59900
-   ```
+```ini
+[GateServer]
+port = 8080
 
-3. Balance-server**(config.ini)**
+[VerificationServer]
+host=192.168.0.218
+port = 65500
 
-   ```ini
-   [BalanceService]
-   host=127.0.0.1
-   port=59900
-   [Redis]
-   host=127.0.0.1
-   port=16379
-   password=123456
-   ```
+[MySQL]
+username=root
+password=123456
+database=chatting
+host=localhost
+port=3307
+timeout=60          #timeoutsetting seconds
 
-4. Chatting-server**(config.ini)**
+[Redis]
+host=127.0.0.1
+port=16379
+password=123456
 
-   ```ini
-   [BalanceService]
-   host=127.0.0.1
-   port=59900
-   [gRPCServer]
-   server_name=ChattingServer0
-   host=127.0.0.1
-   port=64400
-   [ChattingServer]
-   port=60000
-   send_queue_size=1000
-   [Redis]
-   host=127.0.0.1
-   port=16379
-   password=123456
-   [MySQL]
-   username=root
-   password=123456
-   database=chatting
-   host=localhost
-   port=3307
-   #timeoutsetting(s) for heart pulse
-   timeout=60
-   ```
+[BalanceService]
+host=192.168.0.218
+port=59900
+```
+
+#### Balance-server**(config.ini)**
+
+```ini
+[BalanceService]
+host=192.168.0.218
+port=59900
+
+[Redis]
+host=127.0.0.1
+port=16379
+password=123456
+```
+
+#### Chatting-server**(config.ini)**
+
+```ini
+[BalanceService]
+host=192.168.0.218
+port=59900
+
+[gRPCServer]
+server_name=ChattingServer0
+host=192.168.0.218
+port=64400
+
+[ChattingServer]
+port=60000
+send_queue_size=1000
+
+[Redis]
+host=127.0.0.1
+port=16379
+password=123456
+
+[MySQL]
+username=root
+password=123456
+database=chatting
+host=localhost
+port=3307
+timeout=60          #timeoutsetting seconds
+```
+
+#### Resources Server**(config.ini)**
+
+```ini
+[ResourcesServer]
+host=192.168.0.218
+port = 62232
+send_queue_size=100000
+msg_length=131072
+
+[Output]
+path= data
+
+[BalanceService]
+host=192.168.0.218
+port=59900
+
+[gRPCServer]
+server_name=ResourcesServer0
+host=192.168.0.218
+port=64422
+
+[MySQL]
+username=root
+password=123456
+database=chatting
+host=localhost
+port=3307
+timeout=60          #timeoutsetting seconds
+
+[Redis]
+host=192.168.0.218
+port=16379
+password=123456
+```
 
 
 
@@ -620,11 +664,19 @@ endif()
 
 ### Client
 
-1. Main page
+#### Main page
 
-![](./assets/client_main.png)
+![clioent_login](./assets/clioent_login.gif)
 
-2. Register page
+
+
+#### Logout
+
+![client_logout](./assets/client_logout.gif)
+
+
+
+#### Register page
 
 ![](./assets/register_empty.png)
 
@@ -632,35 +684,67 @@ endif()
 
 ![](./assets/after_reg.png)
 
-3. Chatting Main Dialog
 
-<img src="./assets/client_interface_1.png" alt="client_interface_1" style="zoom: 67%;" />
 
-4. Search and add new contact
+#### Search and add new contact(For Friending Request Sender)
 
-<img src="./assets/client_interface_4.png" alt="image-20241008180452143" style="zoom:67%;" />
+![friend_request_sender](./assets/friend_request_sender.gif)
 
-<img src="./assets/client_interface_2.png" alt="image-20241001102111981" style="zoom:67%;" />
 
-5. Add New Friend Page
 
-<img src="./assets/client_interface_3.png" alt="client_interface_3" style="zoom:67%;" />
+#### Confirm to add new friend(For Friending request receiver)
 
-6. Contact's Profile Page
+![](./assets/friend_request_receiver.gif)
 
-   ![image-20241211180726323](./assets/contactsprofile.png)
 
-![image-20241211180919045](./assets/sendmsgthroughinternet.png)
+
+#### File Transfer(Preview-only **NOT** integrated yet)
+
+**Because of efficiency issue, Currently, there is no log system on resources-server**
+
+![](./assets/file_transfer_demo.gif)
+
+
 
 ### Server
 
-1. Server
+#### Gateway-server Initialize 
 
-   ![server_1](./assets/server_1.png)
+![image-20250418130235975](./assets/Gateway-server.png)
 
-2. Captcha-server
+#### Gateway-server Login Status
 
-   Sending verification code to the user
+![image-20250418132907995](./assets/Gateway-server0.png)
+
+#### Balance-server  Initialize 
+
+![image-20250418125916536](./assets/balance_server.png)
+
+#### Balance-server Token Register
+
+![image-20250418132642056](./assets/balance_server0.png)
+
+#### Balance-server Handling other grpc servers' closing event
+
+![image-20250418135044688](./assets/balance_server1.png)
+
+#### Chatting-server  Initialize 
+
+![image-20250418130138408](./assets/Chatting-server.png)
+
+#### Chatting-server Handling Login
+
+![image-20250418132808066](./assets/Chatting-server0.png)
+
+#### Chatting-server Handling Logout
+
+![image-20250418134829389](./assets/Chatting-server1.png)
+
+#### Resources-server Initialize 
+
+![image-20250418130352138](./assets/Resources-server.png)
+
+#### Captcha-server
 
 <img src="./assets/verification.png" style="zoom: 67%;" />
 

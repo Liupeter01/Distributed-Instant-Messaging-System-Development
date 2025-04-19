@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include "tcpnetworkconnection.h"
 #include <useraccountmanager.hpp>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_login(nullptr),
@@ -101,8 +102,9 @@ void MainWindow::slot_connection_status(bool status)
 {
     //when status = false, then chatting connection terminate!
     if(status){
-
         UserAccountManager::get_instance()->clear();
+        QMessageBox::information(this, "Offline Alert",
+                                 "Same account logged in from a different location, this session has been logged out.");
         switchingToLoginDialog();
     }
 }

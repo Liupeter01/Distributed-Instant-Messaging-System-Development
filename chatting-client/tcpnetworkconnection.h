@@ -74,6 +74,7 @@ private slots:
 
   void slot_terminate_chatting_server(const QString &uuid, const QString& token);
   void slot_terminate_resources_server();
+  void terminate_chatting_server();
 
   /*Send signals to a unified slot function for processing,
    * implementing a queue mechanism and ensuring thread safety.
@@ -108,6 +109,9 @@ signals:
 
   /*login to server failed*/
   void signal_login_failed(ServiceStatus status);
+
+  /*logout from server*/
+  void signal_logout_status(bool status);
 
   /*if login success, then switch to chatting dialog*/
   void signal_switch_chatting_dialog();

@@ -31,12 +31,8 @@ TCPNetworkConnection::TCPNetworkConnection()
 
 TCPNetworkConnection::~TCPNetworkConnection() {
 
-  if (m_chatting_server_socket.isOpen()) {
-    m_chatting_server_socket.close();
-  }
-  if (m_resources_server_socket.isOpen()) {
-    m_resources_server_socket.close();
-  }
+  terminate_chatting_server();
+  slot_terminate_resources_server();
 }
 
 void TCPNetworkConnection::registerNetworkEvent() {
@@ -58,6 +54,9 @@ void TCPNetworkConnection::registerNetworkEvent() {
   connect(this, &TCPNetworkConnection::signal_resources_logic_handler,
           LogicMethod::get_instance().get(),
           &LogicMethod::signal_resources_logic_handler);
+
+  connect(this, &TCPNetworkConnection::signal_logout_status,
+          this, &TCPNetworkConnection::terminate_chatting_server);
 }
 
 void TCPNetworkConnection::registerSocketSignal() {
@@ -75,6 +74,8 @@ void TCPNetworkConnection::registerSocketSignal() {
   /*server disconnected*/
   connect(&m_chatting_server_socket, &QTcpSocket::disconnected, [this]() {
     qDebug() << "server chatting disconnected";
+
+    emit signal_logout_status(true);
     emit signal_connection_status(false);
   });
 
@@ -101,6 +102,7 @@ void TCPNetworkConnection::registerErrorHandling() {
         qDebug() << "Connection To chatting server Tcp error: "
                  << m_chatting_server_socket.errorString();
         emit signal_connection_status(false);
+        emit signal_logout_status(true);
       });
 
   connect(
@@ -335,14 +337,13 @@ void TCPNetworkConnection::registerCallback() {
             /*error occured!*/
             if (!json.contains("error")) {
                 qDebug() << "Json Parse Error!";
-                emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
+                emit signal_logout_status(true);
                 return;
             }
             if (json["error"].toInt() !=
                 static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
                 qDebug() << "Login Server Error!";
-                emit signal_login_failed(
-                    static_cast<ServiceStatus>(json["error"].toInt()));
+                emit signal_logout_status(true);
                 return;
             }
 
@@ -607,6 +608,13 @@ void TCPNetworkConnection::slot_terminate_resources_server() {
 
     if(m_resources_server_socket.isOpen()){
         m_resources_server_socket.close();
+    }
+}
+
+void TCPNetworkConnection::terminate_chatting_server()
+{
+    if (m_chatting_server_socket.isOpen()) {
+        m_chatting_server_socket.close();
     }
 }
 

@@ -17,7 +17,10 @@ public:
   void startAccept();
 
 private:
+          //waiting to be closed
+          void moveUserToTerminationZone(const std::string& user_uuid);
   void terminateConnection(const std::string &user_uuid);
+  void terminateConnection(const std::string& user_uuid, const std::string& expected_session_id);
   void handleAccept(std::shared_ptr<Session> session,
                     boost::system::error_code ec);
 

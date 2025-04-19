@@ -22,25 +22,19 @@ class UserManager : public Singleton<UserManager> {
 public:
   ~UserManager();
   std::optional<std::shared_ptr<Session>> getSession(const std::string &uuid);
-  void removeUsrSession(const std::string &uuid);
-  void alterUserSession(const std::string &uuid,
-                        std::shared_ptr<Session> session);
+  bool  removeUsrSession(const std::string &uuid);
+  bool  removeUsrSession(const std::string& uuid, const std::string& session_id);
+  void createUserSession(const std::string& uuid,
+            std::shared_ptr<Session> session);
 
-  static void kick(RedisRAII &raii, std::shared_ptr<Session> session);
+  /*we do not need to teminate the user at once, we just put them to another structure*/
+  bool  moveUserToTerminationZone(const std::string& uuid);
 
 protected:
   void teminate();
 
 private:
-  /*redis*/
-  static std::string redis_server_login;
-
-  /*store user base info in redis*/
-  static std::string user_prefix;
-
-  /*store the server name that this user belongs to*/
-  static std::string server_prefix;
-
   ContainerType m_uuid2Session;
+  ContainerType m_waitingToBeClosed;
 };
 #endif //_USERMANAGER_HPP_

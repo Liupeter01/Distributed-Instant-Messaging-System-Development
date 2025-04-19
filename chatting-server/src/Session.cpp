@@ -1,3 +1,4 @@
+#include <tools/tools.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -6,6 +7,15 @@
 #include <server/AsyncServer.hpp>
 #include <server/Session.hpp>
 #include <spdlog/spdlog.h>
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+
+/*store the current session id that this user belongs to*/
+std::string Session::session_prefix = "session_";
+
+/*store the server name that this user belongs to*/
+std::string Session::server_prefix = "uuid_";
 
 Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
     : s_closed(false), s_socket(_ioc), s_gate(my_gate),
@@ -37,28 +47,56 @@ void Session::startSession() {
   }
 }
 
-void Session::setUUID(const std::string &uuid) { s_uuid = uuid; }
-
 void Session::closeSession() {
-  s_closed = true;
+          if (s_closed) return;
+          s_closed = true;
 
-  if (s_socket.is_open()) {
-    s_socket.close();
-  }
+          if (s_socket.is_open()) {
+                    boost::system::error_code ec;
+                    s_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+                    s_socket.close(ec);
+          }
 }
 
 void Session::terminateAndRemoveFromServer(const std::string &user_uuid) {
   s_gate->terminateConnection(user_uuid);
 }
 
+void Session::terminateAndRemoveFromServer(const std::string& user_uuid, const std::string& expected_session_id) {
+  s_gate->terminateConnection(user_uuid, expected_session_id);
+}
+
+void Session::removeRedisCache(const std::string& uuid, const std::string& session_id) {
+          /*we need to add distributed-lock here to remove session-id and user id*/
+          RedisRAII raii;
+          if (auto opt = raii->get()->acquire(uuid, uuid, 10, 10, redis::TimeUnit::Milliseconds); opt) {
+
+                    //Get user id which Current UUID Belongs to
+                    auto redis_user_id = raii->get()->checkValue(server_prefix + uuid);
+
+                    //Get Session id which Current UUID Belongs to
+                    auto redis_session_id = raii->get()->checkValue(session_prefix + uuid);
+
+                    if (redis_user_id.has_value() && redis_session_id.has_value()) {
+                              auto& r_user_id = *redis_user_id;
+                              auto& r_session_id = *redis_session_id;
+
+                              /*If THERE IS NO other server already modify this value*/
+                              if (r_session_id == session_id) {
+                                        //Remove the pair relation of server_[uuid]<->[WHICH SERVER]
+                                        raii->get()->delPair(server_prefix + uuid);
+
+                                        //Remove the pair relation of session_[uuid]<->[SESSION_NUMBER]
+                                        raii->get()->delPair(session_prefix + uuid);
+                              }
+                    }
+
+                    raii->get()->release(uuid, uuid);
+          }
+}
+
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
   try {
-    // if (m_send_queue.size() >
-    // ServerConfig::get_instance()->ResourceQueueSize) {
-    //   spdlog::warn("Client [UUID = {}] Sending Queue is full!");
-    //   return;
-    // }
-
     /*inside SendNode ctor, temporary must be modifiable*/
     std::string temporary = message;
 
@@ -121,13 +159,17 @@ void Session::handle_header(std::shared_ptr<Session> session,
   try {
     /*error occured*/
     if (ec) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn("[{}] Client Session {} UUID {} Header Error! Exit Due To "
                    "Header Error "
                    ", Error message {}",
                    ServerConfig::get_instance()->GrpcServerName,
                    session->s_session_id, session->s_uuid, ec.message());
+
+      //remove redis cache, including uuid and session id, Integrated with distributed lock
+      removeRedisCache(session->get_user_uuid(), session->get_session_id());
+
+      /*this is the real socket.close method, because the client teminate the connection*/
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       return;
     }
@@ -219,12 +261,18 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
   try {
     /*error occured*/
     if (ec) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
 
       spdlog::warn(
-          "[{}] Client Session {} UUID {} Exit Anomaly! Error message {}",
-          ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
-          session->s_uuid, ec.message());
+                "[{}] Client Session {} UUID {} Exit Anomaly! Error message {}",
+                ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+                session->s_uuid, ec.message());
+
+      //remove redis cache, including uuid and session id
+      //Integrated with distributed lock
+      removeRedisCache(session->get_user_uuid(), session->get_session_id());
+
+      /*this is the real socket.close method, because the client teminate the connection*/
+      terminateAndRemoveFromServer(session->get_user_uuid());
 
       return;
     }
@@ -270,3 +318,15 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
 const std::string &Session::get_user_uuid() const { return s_uuid; }
 
 const std::string &Session::get_session_id() const { return s_session_id; }
+
+void Session::sendOfflineMessage() {
+          boost::json::object logout;
+
+          logout["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
+          logout["uuid"] = get_user_uuid();
+
+        sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
+                    boost::json::serialize(logout));
+
+        s_gate->moveUserToTerminationZone(get_user_uuid());
+}

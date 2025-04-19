@@ -45,18 +45,46 @@ public:
   ~SyncLogic();
   void commit(pair recv_node);
 
-public:
-  static void generateErrorMessage(const std::string &log, ServiceType type,
-                                   ServiceStatus status, SessionPtr conn);
+protected:
+          /*parse Json*/
+          bool parseJson(std::shared_ptr<Session> session, NodePtr& recv,
+                    boost::json::object& src_obj);
 
-  /*
-   * get user's basic info(name, age, sex, ...) from redis
-   * 1. we are going to search for info inside redis first, if nothing found,
-   * then goto 2
-   * 2. searching for user info inside mysql
-   */
-  static std::optional<std::unique_ptr<UserNameCard>>
-  getUserBasicInfo(const std::string &key);
+          static void generateErrorMessage(const std::string& log, ServiceType type,
+                    ServiceStatus status, SessionPtr conn);
+
+          /*
+           * get user's basic info(name, age, sex, ...) from redis
+           * 1. we are going to search for info inside redis first, if nothing found,
+           * then goto 2
+           * 2. searching for user info inside mysql
+           */
+          static std::optional<std::unique_ptr<UserNameCard>>
+                    getUserBasicInfo(const std::string& key);
+
+          /*
+ * get friend request list from the database
+ * @param: startpos: get friend request from the index[startpos]
+ * @param: interval: how many requests are going to acquire [startpos,
+ * startpos + interval)
+ */
+          std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
+                    getFriendRequestInfo(const std::string& dst_uuid,
+                              const std::size_t start_pos = 0,
+                              const std::size_t interval = 10);
+
+          /*
+           * acquire Friend List
+           * get existing authenticated bid-directional friend from database
+           * @param: startpos: get friend from the index[startpos]
+           * @param: interval: how many friends re going to acquire [startpos, startpos
+           * + interval)
+           */
+          std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+                    getAuthFriendsInfo(const std::string& dst_uuid,
+                              const std::size_t start_pos = 0,
+                              const std::size_t interval = 10);
+
 
 private:
   SyncLogic();
@@ -71,15 +99,20 @@ private:
   void incrementConnection();
   void decrementConnection();
 
+  static std::optional<std::string>
+  checkCurrentUser([[maybe_unused]] RedisRAII& raii, const std::string& uuid);
+
   /*store this user belonged server into redis*/
-  bool tagCurrentUser(const std::string &uuid);
+  static bool labelCurrentUser([[maybe_unused]] RedisRAII& raii, const std::string& uuid);
 
-  /*delete user belonged server in redis*/
-  bool untagCurrentUser(const std::string &uuid);
+  /*store this user belonged session id into redis*/
+  static bool labelUserSessionID([[maybe_unused]] RedisRAII& raii,
+                                                    const std::string& uuid, 
+                                                    const std::string& session_id);
 
-  /*parse Json*/
-  bool parseJson(std::shared_ptr<Session> session, NodePtr &recv,
-                 boost::json::object &src_obj);
+  static void updateRedisCache([[maybe_unused]] RedisRAII& raii, 
+                                                    const std::string& uuid, 
+                                                    std::shared_ptr<Session> session);
 
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,
@@ -112,29 +145,6 @@ private:
   void handlingVideoChatMsg(ServiceType srv_type,
                             std::shared_ptr<Session> session, NodePtr recv);
 
-  /*
-   * get friend request list from the database
-   * @param: startpos: get friend request from the index[startpos]
-   * @param: interval: how many requests are going to acquire [startpos,
-   * startpos + interval)
-   */
-  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
-  getFriendRequestInfo(const std::string &dst_uuid,
-                       const std::size_t start_pos = 0,
-                       const std::size_t interval = 10);
-
-  /*
-   * acquire Friend List
-   * get existing authenticated bid-directional friend from database
-   * @param: startpos: get friend from the index[startpos]
-   * @param: interval: how many friends re going to acquire [startpos, startpos
-   * + interval)
-   */
-  std::optional<std::vector<std::unique_ptr<UserNameCard>>>
-  getAuthFriendsInfo(const std::string &dst_uuid,
-                     const std::size_t start_pos = 0,
-                     const std::size_t interval = 10);
-
 public:
   /*redis*/
   static std::string redis_server_login;
@@ -144,6 +154,9 @@ public:
 
   /*store the server name that this user belongs to*/
   static std::string server_prefix;
+
+  /*store the current session id that this user belongs to*/
+  static std::string session_prefix;
 
 private:
   std::atomic<bool> m_stop;

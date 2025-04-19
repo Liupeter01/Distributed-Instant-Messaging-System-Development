@@ -18,6 +18,9 @@ std::string SyncLogic::user_prefix = "user_info_";
 /*store the server name that this user belongs to*/
 std::string SyncLogic::server_prefix = "uuid_";
 
+/*store the current session id that this user belongs to*/
+std::string SyncLogic::session_prefix = "session_";
+
 SyncLogic::SyncLogic() : m_stop(false) {
   /*register callbacks*/
   registerCallbacks();
@@ -177,19 +180,88 @@ void SyncLogic::decrementConnection() {
                              std::to_string(--new_number));
 }
 
-bool SyncLogic::tagCurrentUser(const std::string &uuid) {
-  RedisRAII raii;
-
-  /*Distributed Lock is going to be added to the code in the early future.*/
-  return raii->get()->setValue(server_prefix + uuid,
-                               ServerConfig::get_instance()->GrpcServerName);
+/*
+* check user status current online status, with distributed lock support
+* is this user current on any other server?
+*/
+std::optional<std::string> 
+SyncLogic::checkCurrentUser(RedisRAII& raii, const std::string& uuid) {
+  return raii->get()->checkValue(server_prefix + uuid);
 }
 
-bool SyncLogic::untagCurrentUser(const std::string &uuid) {
-  RedisRAII raii;
+bool SyncLogic::labelCurrentUser(RedisRAII& raii, const std::string &uuid) {
 
-  /*Distributed Lock is going to be added to the code in the early future.*/
-  return raii->get()->delPair(server_prefix + uuid);
+          const auto key = server_prefix + uuid;
+
+  return raii->get()->delPair(key) &&
+            raii->get()->setValue(key,
+                      ServerConfig::get_instance()->GrpcServerName);
+}
+
+/*store this user belonged session id into redis*/
+bool  SyncLogic::labelUserSessionID([[maybe_unused]] RedisRAII& raii, 
+                                                            const std::string& uuid, 
+                                                            const std::string&session_id){
+
+          const auto key = session_prefix + uuid;
+
+          return raii->get()->delPair(key) &&
+                    raii->get()->setValue(key, session_id);
+}
+
+void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII& raii, 
+                                                            const std::string& uuid, 
+                                                             std::shared_ptr<Session> session) {
+       
+          auto& new_session = session;
+          auto& new_session_id = session->get_session_id();
+
+          /*Distributed-Lock on lock:[uuid], waiting time = 10ms, EX = 10ms*/
+          auto get_distributed_lock = raii->get()->acquire(uuid, uuid, 10, 10, redis::TimeUnit::Milliseconds);
+
+          if (!get_distributed_lock.has_value()) {
+                    spdlog::error("[{}] UUID = {} Distributed-Lock Acquire Failed!",
+                              ServerConfig::get_instance()->GrpcServerName, uuid);
+                    return;
+          }
+
+          spdlog::info("[{}] UUID = {} Acquire Distributed-Lock Successful!", 
+                    ServerConfig::get_instance()->GrpcServerName, uuid);
+
+          /* check user current online status, with distributed lock support */
+          if (auto status = checkCurrentUser(raii, uuid)) {
+                    const auto& current = *status;
+
+                    /*this user existing on current server*/
+                    if (current == ServerConfig::get_instance()->GrpcServerName) {
+                              /*Get Existing old session object and send offline message then delete it from server*/
+                              if (auto kick_session = UserManager::get_instance()->getSession(uuid); kick_session) {
+                                        auto& old_session = *kick_session;
+                                        old_session->sendOfflineMessage();
+                                        old_session->terminateAndRemoveFromServer(uuid, old_session->get_session_id());
+                              }
+                    }
+                    /*This user  Already Logined On Other Server*/
+                    else {
+                              spdlog::info("[{}] UUID = {} Has Already Logined On Other [{}] GRPC Server, Executing Distributed Kick Method!",
+                                        ServerConfig::get_instance()->GrpcServerName, uuid, current);
+
+                              //grpc::
+                    }
+          }
+
+          /* store this user belonged server & session idinto redis */
+          if (!labelCurrentUser(raii, uuid) || !labelUserSessionID(raii, uuid, new_session_id)) {
+                    spdlog::error("[{}] UUID={} & Session ID={} Can Not Be Written To Redis Cache! Error Occured!",
+                              ServerConfig::get_instance()->GrpcServerName, uuid, new_session_id);
+          }
+
+          /*store this user belonged server into redis*/
+          spdlog::info("[{}] UUID={}& Session ID={} Has Written To Redis Cache",
+                    ServerConfig::get_instance()->GrpcServerName, uuid, new_session_id);
+
+          //release lock
+          raii->get()->release(uuid, uuid);
 }
 
 /*parse Json*/
@@ -267,6 +339,8 @@ void SyncLogic::execute(pair &&node) {
 void SyncLogic::handlingLogin(ServiceType srv_type,
                               std::shared_ptr<Session> session, NodePtr recv) {
 
+          RedisRAII raii;
+
   boost::json::object src_obj;
   boost::json::object redis_root;
 
@@ -312,6 +386,15 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     return;
   }
 
+  /*update redis cache*/
+  updateRedisCache(raii, uuid, session);
+
+  /*bind uuid with a session*/
+  session->setUUID(uuid);
+
+  /* add user uuid and session as a pair and store it inside usermanager */
+  UserManager::get_instance()->createUserSession(uuid, session);
+
   /*
    * get user's basic info(name, age, sex, ...) from redis
    * 1. we are going to search for info inside redis first, if nothing found,
@@ -330,12 +413,6 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
                          ServiceStatus::LOGIN_INFO_ERROR, session);
     return;
   }
-
-  /*bind uuid with a session*/
-  session->setUUID(uuid);
-
-  /* add user uuid and session as a pair and store it inside usermanager */
-  UserManager::get_instance()->alterUserSession(uuid, session);
 
   /*returning info to client*/
   std::shared_ptr<UserNameCard> info = info_str.value();
@@ -402,17 +479,12 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
    * 2. HGET exist: Increment by 1
    */
   incrementConnection();
-
-  /*store this user belonged server into redis*/
-  if (!tagCurrentUser(uuid)) {
-
-    spdlog::warn("[{}] UUID = {} Was Written in Redis Cache Successfully",
-                 ServerConfig::get_instance()->GrpcServerName, uuid);
-  }
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,
                                std::shared_ptr<Session> session, NodePtr recv) {
+
+          RedisRAII raii;
 
   boost::json::object src_obj;
   boost::json::object result_root; /*send processing result back to src user*/
@@ -457,28 +529,19 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
     return;
   }
 
+  session->sendOfflineMessage();
+  session->terminateAndRemoveFromServer(uuid, session->get_session_id());
+
+  spdlog::info("[{}] UUID {} Was Removed From Redis Cache And Kick Out Of Server Successfully",
+            ServerConfig::get_instance()->GrpcServerName, uuid);
+
   /*
-   * sub user connection counter for current server
-   * 1. HGET not exist: Current Chatting server didn't setting up connection
-   * counter
-   * 2. HGET exist: Decrement by 1
-   */
+ * sub user connection counter for current server
+ * 1. HGET not exist: Current Chatting server didn't setting up connection
+ * counter
+ * 2. HGET exist: Decrement by 1
+ */
   decrementConnection();
-
-  /*delete user belonged server in redis*/
-  if (untagCurrentUser(session->s_uuid)) {
-
-    spdlog::info("[{}] UUID {} Was Removed From Redis Cache Successfully",
-                 ServerConfig::get_instance()->GrpcServerName, uuid);
-  }
-
-  result_root["error"] = response.error();
-  result_root["uuid"] = session->s_uuid;
-
-  session->sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
-                       boost::json::serialize(result_root));
-
-  session->s_gate->terminateConnection(session->s_uuid);
 }
 
 void SyncLogic::handlingUserSearch(ServiceType srv_type,

@@ -21,15 +21,13 @@ MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::registerSignal()
 {
-    connect(this, &MainWindow::signal_connection_status,
-            this, &MainWindow::slot_connection_status);
 }
 
 void MainWindow::registerNetworkSignal()
 {
     connect(TCPNetworkConnection::get_instance().get(),
-            &TCPNetworkConnection::signal_connection_status,
-            this, &MainWindow::signal_connection_status);
+            &TCPNetworkConnection::signal_logout_status,
+            this, &MainWindow::slot_connection_status);
 }
 
 void MainWindow::displayDefaultWindow(QWidget *window) {
@@ -102,7 +100,7 @@ void MainWindow::swithcingToChattingInf() {
 void MainWindow::slot_connection_status(bool status)
 {
     //when status = false, then chatting connection terminate!
-    if(!status){
+    if(status){
 
         UserAccountManager::get_instance()->clear();
         switchingToLoginDialog();

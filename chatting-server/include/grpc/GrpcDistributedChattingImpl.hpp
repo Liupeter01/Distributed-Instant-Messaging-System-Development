@@ -18,6 +18,12 @@ public:
   virtual ~GrpcDistributedChattingImpl();
 
 public:
+          // if another user has already logined on other server, then force it to quit!
+          virtual ::grpc::Status 
+                    ForceTerminateLoginedUser(::grpc::ServerContext* context,
+                    const ::message::TerminationRequest* request,
+                    ::message::TerminationResponse* response);
+
   // A send friend request message to another user B
   virtual ::grpc::Status
   SendFriendRequest(::grpc::ServerContext *context,

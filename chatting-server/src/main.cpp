@@ -119,7 +119,7 @@ int main() {
     if (!get_distributed_lock.has_value()) {
               spdlog::error("[{}] Acquire Distributed-Lock In Startup Phase Failed!",
                         ServerConfig::get_instance()->GrpcServerName);
-              return;
+              return 0;
     }
     spdlog::info("[{}] Acquire Distributed-Lock In Startup Phase Successful!",
               ServerConfig::get_instance()->GrpcServerName);
@@ -131,13 +131,14 @@ int main() {
               spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache During Startup Phase! Error Occured!",
                         ServerConfig::get_instance()->GrpcServerName);
     }
+    else {
+              spdlog::info("[{}] Now Current Server Init During Startup Phase Successful",
+                        ServerConfig::get_instance()->GrpcServerName);
+    }
 
     //release lock
     raii->get()->release(
               ServerConfig::get_instance()->GrpcServerName,
-              ServerConfig::get_instance()->GrpcServerName);
-
-    spdlog::info("[{}] Now Current Server Init During Startup Phase Successful",
               ServerConfig::get_instance()->GrpcServerName);
 
     /*create chatting server*/
@@ -158,7 +159,7 @@ int main() {
      * Chatting server shutdown
      * Delete current chatting server connection counter by using HDEL
      */
-    auto get_distributed_lock = raii->get()->acquire(
+    get_distributed_lock = raii->get()->acquire(
               ServerConfig::get_instance()->GrpcServerName,
               ServerConfig::get_instance()->GrpcServerName,
               10, 10, redis::TimeUnit::Milliseconds);
@@ -166,7 +167,7 @@ int main() {
     if (!get_distributed_lock.has_value()) {
               spdlog::error("[{}] Acquire Distributed-Lock In Shutdown Phase Failed!",
                         ServerConfig::get_instance()->GrpcServerName);
-              return;
+              return 0;
     }
 
     if (!raii->get()->delValueFromHash(redis_server_login,
@@ -175,13 +176,14 @@ int main() {
               spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache During Shutdown Phase! Error Occured!",
                         ServerConfig::get_instance()->GrpcServerName);
     }
+    else {
+              spdlog::info("[{}] Now Current Server Init During Shutdown Phase Successful",
+                        ServerConfig::get_instance()->GrpcServerName);
+    }
 
     //release lock
     raii->get()->release(
               ServerConfig::get_instance()->GrpcServerName,
-              ServerConfig::get_instance()->GrpcServerName);
-
-    spdlog::info("[{}] Now Current Server Init During Shutdown Phase Successful",
               ServerConfig::get_instance()->GrpcServerName);
 
     /*

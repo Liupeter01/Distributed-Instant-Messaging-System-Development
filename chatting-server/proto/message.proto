@@ -55,6 +55,9 @@ message PeerResponse {
 /*prepared for distributed chatting service*/
 service DistributedChattingService {
 
+//if another user has already logined on other server, then force it to quit!
+rpc ForceTerminateLoginedUser(TerminationRequest) returns(TerminationResponse) {}
+
   // A send friend request message to another user B
   rpc SendFriendRequest(FriendRequest) returns (FriendResponse) {}
 
@@ -68,6 +71,16 @@ service DistributedChattingService {
   rpc SendChattingTextMsg(ChattingTextMsgRequest)
       returns (ChattingTextMsgResponse) {}
 }
+
+message TerminationRequest{
+          int32 kick_uuid = 1;
+}
+
+message TerminationResponse{
+            int32 error = 1;
+            int32 kick_uuid = 2;
+}
+
 
 /*
  * A send friend request message to another user B and

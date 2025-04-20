@@ -97,7 +97,6 @@ private:
 
   /*client enter current server*/
   void incrementConnection();
-  void decrementConnection();
 
   static std::optional<std::string>
   checkCurrentUser([[maybe_unused]] RedisRAII& raii, const std::string& uuid);

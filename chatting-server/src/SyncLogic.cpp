@@ -137,6 +137,20 @@ void SyncLogic::shutdown() {
 void SyncLogic::incrementConnection() {
   RedisRAII raii;
 
+  auto get_distributed_lock = raii->get()->acquire(
+            ServerConfig::get_instance()->GrpcServerName,
+            ServerConfig::get_instance()->GrpcServerName,
+            10, 10, redis::TimeUnit::Milliseconds);
+
+  if (!get_distributed_lock.has_value()) {
+            spdlog::error("[{}] Acquire Distributed-Lock In IncrementConnection Failed!",
+                      ServerConfig::get_instance()->GrpcServerName);
+            return;
+  }
+
+  spdlog::info("[{}] Acquire Distributed-Lock In  IncrementConnection Successful!",
+            ServerConfig::get_instance()->GrpcServerName);
+
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
       redis_server_login, ServerConfig::get_instance()->GrpcServerName);
@@ -149,35 +163,22 @@ void SyncLogic::incrementConnection() {
   }
 
   /*incerment and set value to hash by using HSET*/
-  raii->get()->setValue2Hash(redis_server_login,
-                             ServerConfig::get_instance()->GrpcServerName,
-                             std::to_string(++new_number));
-}
-
-/*
- *  sub user connection counter for current server
- * 1. HGET not exist: Current Chatting server didn't setting up connection
- * counter
- * 2. HGET exist: Decrement by 1
- */
-void SyncLogic::decrementConnection() {
-  RedisRAII raii;
-
-  /*try to acquire value from redis*/
-  std::optional<std::string> counter = raii->get()->getValueFromHash(
-      redis_server_login, ServerConfig::get_instance()->GrpcServerName);
-
-  std::size_t new_number(0);
-
-  /* redis has this value then read it from redis*/
-  if (counter.has_value()) {
-    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
+  if (!raii->get()->setValue2Hash(redis_server_login,
+            ServerConfig::get_instance()->GrpcServerName,
+            std::to_string(++new_number))) {
+  
+            spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
+                      ServerConfig::get_instance()->GrpcServerName);
   }
 
-  /*decerment and set value to hash by using HSET*/
-  raii->get()->setValue2Hash(redis_server_login,
-                             ServerConfig::get_instance()->GrpcServerName,
-                             std::to_string(--new_number));
+  //release lock
+  raii->get()->release(
+            ServerConfig::get_instance()->GrpcServerName,
+            ServerConfig::get_instance()->GrpcServerName);
+
+  /*store this user belonged server into redis*/
+  spdlog::info("[{}] Now {} Client Has Connected To Current Server",
+            ServerConfig::get_instance()->GrpcServerName, new_number);
 }
 
 /*
@@ -213,6 +214,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII& raii,
                                                             const std::string& uuid, 
                                                              std::shared_ptr<Session> session) {
        
+          auto uuid_int = std::stoi(uuid);
           auto& new_session = session;
           auto& new_session_id = session->get_session_id();
 
@@ -244,9 +246,26 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII& raii,
                     /*This user  Already Logined On Other Server*/
                     else {
                               spdlog::info("[{}] UUID = {} Has Already Logined On Other [{}] GRPC Server, Executing Distributed Kick Method!",
-                                        ServerConfig::get_instance()->GrpcServerName, uuid, current);
+                                        current, uuid, current);
 
-                              //grpc::
+                              message::TerminationRequest req;
+                              req.set_kick_uuid(uuid_int);
+                              auto response = gRPCDistributedChattingService::get_instance()->forceTerminateLoginedUser(current, req);
+                           
+                              if (response.error() != static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)
+                                        || response.kick_uuid() != uuid_int) {
+
+                                        spdlog::warn("[{}] Trying to Executing Distributed Kick Method On Other [{}] GRPC Server Failed",
+                                                  ServerConfig::get_instance()->GrpcServerName, current);
+
+                                        generateErrorMessage("Internel Server Error",
+                                                  ServiceType::SERVICE_LOGINRESPONSE,
+                                                  ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+
+                                        //release lock
+                                        raii->get()->release(uuid, uuid);
+                                        return;
+                              }
                     }
           }
 

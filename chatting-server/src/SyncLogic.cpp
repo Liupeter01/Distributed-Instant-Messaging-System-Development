@@ -553,14 +553,6 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
 
   spdlog::info("[{}] UUID {} Was Removed From Redis Cache And Kick Out Of Server Successfully",
             ServerConfig::get_instance()->GrpcServerName, uuid);
-
-  /*
- * sub user connection counter for current server
- * 1. HGET not exist: Current Chatting server didn't setting up connection
- * counter
- * 2. HGET exist: Decrement by 1
- */
-  decrementConnection();
 }
 
 void SyncLogic::handlingUserSearch(ServiceType srv_type,

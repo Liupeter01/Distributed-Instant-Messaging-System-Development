@@ -1,6 +1,5 @@
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcDataLayer.hpp>
-#include <redis/RedisManager.hpp>
 
 grpc::details::ServerInstanceConf::ServerInstanceConf(const std::string &host,
                                                       const std::string &port,
@@ -69,28 +68,58 @@ grpc::details::GrpcDataLayer::chattingInstanceLoadBalancer() {
   decltype(m_chattingServerInstances)::iterator min_server =
       m_chattingServerInstances.begin();
 
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+  RedisRAII raii;
+
+  //Acquire Lock
+  auto get_distributed_lock = raii->get()->acquire(
+            min_server->first,
+            min_server->first,
+            10, 10, redis::TimeUnit::Milliseconds);
+
+  if (!get_distributed_lock.has_value()) {
+            spdlog::error("[Balance Server] Acquire Distributed-Lock In {} Failed!", min_server->first);
+            return std::nullopt;
+  }
 
   /*find key = login and field = server_name in redis, HGET*/
   std::optional<std::string> counter =
       raii->get()->getValueFromHash(redis_server_login, min_server->first);
+
+  //Release Lock
+  raii->get()->release(min_server->first, min_server->first);
 
   /*
    * if redis doesn't have this key&field in DB, then set the max value
    * or retrieve the counter number from Mem DB
    */
   min_server->second->_connections =
-      !counter.has_value() ? INT_MAX : std::stoi(counter.value());
+      !counter.has_value() ? std::numeric_limits<std::size_t>::max() : std::stoi(counter.value());
 
   /*for loop all the servers(including peer server)*/
   for (auto server = m_chattingServerInstances.begin();
        server != m_chattingServerInstances.end(); ++server) {
 
-    /*ignore current */
-    if (server->first != min_server->first) {
+          /*ignore current */
+            if (server->first == min_server->first) {
+                      continue;
+            }
+
+            //Acquire Lock
+            auto get_distributed_lock = raii->get()->acquire(
+                      server->first,
+                      server->first,
+                      10, 10, redis::TimeUnit::Milliseconds);
+
+            if (!get_distributed_lock.has_value()) {
+                      spdlog::error("[Balance Server] Acquire Distributed-Lock In {} Failed!", server->first);
+                      return std::nullopt;
+            }
+
       std::optional<std::string> counter =
           raii->get()->getValueFromHash(redis_server_login, server->first);
+
+      //Release Lock
+      raii->get()->release(server->first, server->first);
 
       /*
        * if redis doesn't have this key&field in DB, then set the max
@@ -98,13 +127,13 @@ grpc::details::GrpcDataLayer::chattingInstanceLoadBalancer() {
        * or retrieve the counter number from Mem DB
        */
       server->second->_connections =
-          !counter.has_value() ? INT_MAX : std::stoi(counter.value());
+          !counter.has_value() ? std::numeric_limits<std::size_t>::max() : std::stoi(counter.value());
 
       if (server->second->_connections < min_server->second->_connections) {
         min_server = server;
       }
-    }
   }
+
   return std::make_shared<grpc::details::ServerInstanceConf>(
       min_server->second->_host, min_server->second->_port,
       min_server->second->_name);

@@ -10,12 +10,17 @@
 #include <service/ConnectionPool.hpp>
 #include <buffer/ByteOrderConverter.hpp>
 
+namespace grpc{
+          class GrpcDistributedChattingImpl;
+}
+
 class AsyncServer;
 class SyncLogic;
 
 class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
+  friend class grpc::GrpcDistributedChattingImpl;
 
   using Recv = RecvNode<std::string, ByteOrderConverter>;
   using Send = SendNode<std::string, ByteOrderConverterReverse>;
@@ -52,11 +57,22 @@ protected:
                     std::size_t bytes_transferred);
 
 private:
-  void terminateAndRemoveFromServer(const std::string &user_uuid);
+          /*
+          *  sub user connection counter for current server
+          * 1. HGET not exist: Current Chatting server didn't setting up connection
+          * counter
+          * 2. HGET exist: Decrement by 1
+          */
+          void decrementConnection();
+
+          void terminateAndRemoveFromServer(const std::string &user_uuid);
   void terminateAndRemoveFromServer(const std::string& user_uuid, const std::string& expected_session_id);
   static void removeRedisCache(const std::string& uuid, const std::string& session_id);
 
 private:
+          /*redis*/
+          static std::string redis_server_login;
+
           /*store the server name that this user belongs to*/
           static std::string server_prefix;
 

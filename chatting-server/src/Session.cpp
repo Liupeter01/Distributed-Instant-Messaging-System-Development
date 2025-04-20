@@ -17,6 +17,9 @@ std::string Session::session_prefix = "session_";
 /*store the server name that this user belongs to*/
 std::string Session::server_prefix = "uuid_";
 
+/*redis*/
+std::string Session::redis_server_login = "redis_server";
+
 Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
     : s_closed(false), s_socket(_ioc), s_gate(my_gate),
       m_write_in_progress(false),
@@ -171,6 +174,8 @@ void Session::handle_header(std::shared_ptr<Session> session,
       /*this is the real socket.close method, because the client teminate the connection*/
       terminateAndRemoveFromServer(session->get_user_uuid());
 
+      decrementConnection();
+
       return;
     }
 
@@ -274,6 +279,8 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
       /*this is the real socket.close method, because the client teminate the connection*/
       terminateAndRemoveFromServer(session->get_user_uuid());
 
+      decrementConnection();
+
       return;
     }
 
@@ -329,4 +336,51 @@ void Session::sendOfflineMessage() {
                     boost::json::serialize(logout));
 
         s_gate->moveUserToTerminationZone(get_user_uuid());
+}
+
+void Session::decrementConnection() {
+          RedisRAII raii;
+
+          auto get_distributed_lock = raii->get()->acquire(
+                    ServerConfig::get_instance()->GrpcServerName,
+                    ServerConfig::get_instance()->GrpcServerName,
+                    10, 10, redis::TimeUnit::Milliseconds);
+
+          if (!get_distributed_lock.has_value()) {
+                    spdlog::error("[{}] Acquire Distributed-Lock In DecrementConnection Failed!",
+                              ServerConfig::get_instance()->GrpcServerName);
+                    return;
+          }
+
+          spdlog::info("[{}] Acquire Distributed-Lock In DecrementConnection Successful!",
+                    ServerConfig::get_instance()->GrpcServerName);
+
+          /*try to acquire value from redis*/
+          std::optional<std::string> counter = raii->get()->getValueFromHash(
+                    redis_server_login, ServerConfig::get_instance()->GrpcServerName);
+
+          std::size_t new_number(0);
+
+          /* redis has this value then read it from redis*/
+          if (counter.has_value()) {
+                    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
+          }
+
+          /*decerment and set value to hash by using HSET*/
+          if (!raii->get()->setValue2Hash(redis_server_login,
+                    ServerConfig::get_instance()->GrpcServerName,
+                    std::to_string(--new_number))) {
+
+                    spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
+                              ServerConfig::get_instance()->GrpcServerName);
+          }
+
+          //release lock
+          raii->get()->release(
+                    ServerConfig::get_instance()->GrpcServerName,
+                    ServerConfig::get_instance()->GrpcServerName);
+
+          /*store this user belonged server into redis*/
+          spdlog::info("[{}] Now {} Client Has Connected To Current Server",
+                    ServerConfig::get_instance()->GrpcServerName, new_number);
 }

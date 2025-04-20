@@ -14,6 +14,10 @@ class gRPCDistributedChattingService
 
 public:
   virtual ~gRPCDistributedChattingService() = default;
+  message::TerminationResponse 
+            forceTerminateLoginedUser(const std::string& server_name,
+            const message::TerminationRequest&req);
+
   message::FriendResponse sendFriendRequest(const std::string &server_name,
                                             const message::FriendRequest &req);
   message::FriendResponse

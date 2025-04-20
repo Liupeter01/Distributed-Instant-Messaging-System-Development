@@ -111,9 +111,34 @@ int main() {
     /*set current server connection counter value(0) to hash by using HSET*/
     connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
         raii;
-    raii->get()->setValue2Hash(redis_server_login,
-                               ServerConfig::get_instance()->GrpcServerName,
-                               std::to_string(0));
+    auto get_distributed_lock = raii->get()->acquire(
+              ServerConfig::get_instance()->GrpcServerName,
+              ServerConfig::get_instance()->GrpcServerName,
+              10, 10, redis::TimeUnit::Milliseconds);
+
+    if (!get_distributed_lock.has_value()) {
+              spdlog::error("[{}] Acquire Distributed-Lock In Startup Phase Failed!",
+                        ServerConfig::get_instance()->GrpcServerName);
+              return;
+    }
+    spdlog::info("[{}] Acquire Distributed-Lock In Startup Phase Successful!",
+              ServerConfig::get_instance()->GrpcServerName);
+
+    if (!raii->get()->setValue2Hash(redis_server_login,
+              ServerConfig::get_instance()->GrpcServerName,
+              std::to_string(0))) {
+
+              spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache During Startup Phase! Error Occured!",
+                        ServerConfig::get_instance()->GrpcServerName);
+    }
+
+    //release lock
+    raii->get()->release(
+              ServerConfig::get_instance()->GrpcServerName,
+              ServerConfig::get_instance()->GrpcServerName);
+
+    spdlog::info("[{}] Now Current Server Init During Startup Phase Successful",
+              ServerConfig::get_instance()->GrpcServerName);
 
     /*create chatting server*/
     std::shared_ptr<AsyncServer> async = std::make_shared<AsyncServer>(
@@ -133,8 +158,31 @@ int main() {
      * Chatting server shutdown
      * Delete current chatting server connection counter by using HDEL
      */
-    raii->get()->delValueFromHash(redis_server_login,
-                                  ServerConfig::get_instance()->GrpcServerName);
+    auto get_distributed_lock = raii->get()->acquire(
+              ServerConfig::get_instance()->GrpcServerName,
+              ServerConfig::get_instance()->GrpcServerName,
+              10, 10, redis::TimeUnit::Milliseconds);
+
+    if (!get_distributed_lock.has_value()) {
+              spdlog::error("[{}] Acquire Distributed-Lock In Shutdown Phase Failed!",
+                        ServerConfig::get_instance()->GrpcServerName);
+              return;
+    }
+
+    if (!raii->get()->delValueFromHash(redis_server_login,
+              ServerConfig::get_instance()->GrpcServerName)) {
+
+              spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache During Shutdown Phase! Error Occured!",
+                        ServerConfig::get_instance()->GrpcServerName);
+    }
+
+    //release lock
+    raii->get()->release(
+              ServerConfig::get_instance()->GrpcServerName,
+              ServerConfig::get_instance()->GrpcServerName);
+
+    spdlog::info("[{}] Now Current Server Init During Shutdown Phase Successful",
+              ServerConfig::get_instance()->GrpcServerName);
 
     /*
      * Chatting Server Shutdown

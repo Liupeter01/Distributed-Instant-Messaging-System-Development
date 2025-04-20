@@ -3,6 +3,8 @@
 #include <stdint.h>
 
 enum class ServiceType : uint8_t {
+          SERVICE_PULSE,
+
   SERVICE_VERIFICATION,  // get verification code
   SERVICE_REGISTERATION, // user registeration
   SERVICE_CHECKEEXISTS,  // check account existance

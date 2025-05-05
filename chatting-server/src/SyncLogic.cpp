@@ -243,8 +243,8 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
           kick_session) {
         auto &old_session = *kick_session;
         old_session->sendOfflineMessage();
-        old_session->terminateAndRemoveFromServer(
-            uuid, old_session->get_session_id());
+        UserManager::get_instance()->moveUserToTerminationZone(old_session->get_user_uuid());
+        UserManager::get_instance()->removeUsrSession(old_session->get_user_uuid(), old_session->get_session_id());
       }
     }
     /*This user  Already Logined On Other Server*/
@@ -561,7 +561,8 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   }
 
   session->sendOfflineMessage();
-  session->terminateAndRemoveFromServer(uuid, session->get_session_id());
+  UserManager::get_instance()->moveUserToTerminationZone(uuid);
+  UserManager::get_instance()->removeUsrSession(uuid, session->get_session_id());
 
   spdlog::info("[{}] UUID {} Was Removed From Redis Cache And Kick Out Of "
                "Server Successfully",

@@ -10,6 +10,7 @@
 #include <server/Session.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
+#include <server/UserManager.hpp>
 
 /*store the current session id that this user belongs to*/
 std::string Session::session_prefix = "session_";
@@ -63,7 +64,7 @@ void Session::closeSession() {
 }
 
 void Session::terminateAndRemoveFromServer(const std::string &user_uuid) {
-  s_gate->terminateConnection(user_uuid);
+  UserManager::get_instance()->removeUsrSession(user_uuid);
 }
 
 void Session::terminateAndRemoveFromServer(
@@ -75,7 +76,7 @@ void Session::removeRedisCache(const std::string &uuid,
                                const std::string &session_id) {
   /*we need to add distributed-lock here to remove session-id and user id*/
   RedisRAII raii;
-  if (auto opt = raii->get()->acquire(uuid, uuid, 10, 10,
+  if (auto opt = raii->get()->acquire(uuid, 10, 10,
                                       redis::TimeUnit::Milliseconds);
       opt) {
 
@@ -89,7 +90,10 @@ void Session::removeRedisCache(const std::string &uuid,
       auto &r_user_id = *redis_user_id;
       auto &r_session_id = *redis_session_id;
 
-      /*If THERE IS NO other server already modify this value*/
+      /*
+      * If THERE IS NO other server already modify this value
+      * THIS USER might already logined on other server, then skip this process
+      */
       if (r_session_id == session_id) {
         // Remove the pair relation of server_[uuid]<->[WHICH SERVER]
         raii->get()->delPair(server_prefix + uuid);
@@ -99,8 +103,25 @@ void Session::removeRedisCache(const std::string &uuid,
       }
     }
 
-    raii->get()->release(uuid, uuid);
+    raii->get()->release(uuid, opt.value());
   }
+}
+
+/*  
+* IT SHOULD NOT BE DEPLOYED IN TRAVERSAL SCENAIRO
+* UserManager::get_instance()->removeUsrSession(session->get_user_uuid())
+*/
+void Session::purgeRemoveConnection(std::shared_ptr<Session> session){
+
+          // remove redis cache, including uuid and session id, Integrated with
+          // distributed lock
+          removeRedisCache(session->get_user_uuid(), session->get_session_id());
+
+          /*this is the real socket.close method, because the client teminate the
+           * connection*/
+          UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
+
+          decrementConnection();
 }
 
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
@@ -130,17 +151,25 @@ void Session::sendMessage(ServiceType srv_type, const std::string &message) {
   }
 }
 
+bool Session::isSessionTimeout(const std::time_t& now) const{
+          return std::difftime(now, m_last_heartbeat) > static_cast<double>(ServerConfig::get_instance()->heart_beat_timeout);
+}
+
+void Session::updateLastHeartBeat(){
+          m_last_heartbeat = std::time(nullptr);
+}
+
 void Session::handle_write(std::shared_ptr<Session> session,
                            boost::system::error_code ec) {
   try {
     /*error occured*/
     if (ec) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn("[{}] Client Session {} UUID {} Exit Anomaly! "
                    "Error message {}",
                    ServerConfig::get_instance()->GrpcServerName,
                    session->s_session_id, session->s_uuid, ec.message());
+
+      purgeRemoveConnection(session);
 
       return;
     }
@@ -173,16 +202,7 @@ void Session::handle_header(std::shared_ptr<Session> session,
                    ServerConfig::get_instance()->GrpcServerName,
                    session->s_session_id, session->s_uuid, ec.message());
 
-      // remove redis cache, including uuid and session id, Integrated with
-      // distributed lock
-      removeRedisCache(session->get_user_uuid(), session->get_session_id());
-
-      /*this is the real socket.close method, because the client teminate the
-       * connection*/
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
-      decrementConnection();
-
+      purgeRemoveConnection(session);
       return;
     }
 
@@ -191,14 +211,13 @@ void Session::handle_header(std::shared_ptr<Session> session,
 
     /*current, we didn't get the full size of the header*/
     if (m_recv_buffer->check_header_remaining()) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn(
           "[{}] Client Session {} UUID {} Header Error! Exit Due To Transfer "
           "Issue, Only {} Bytes Received!",
           ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
           session->s_uuid, bytes_transferred);
 
+      purgeRemoveConnection(session);
       return;
     }
 
@@ -208,52 +227,53 @@ void Session::handle_header(std::shared_ptr<Session> session,
      */
     std::optional<uint16_t> id = m_recv_buffer->get_id();
     if (!id.has_value()) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn("[{}] Client Session {} UUID {} Header Error! Invalid ID!",
                    ServerConfig::get_instance()->GrpcServerName,
                    session->s_session_id, session->s_uuid);
 
+      purgeRemoveConnection(session);
       return;
     }
 
     uint16_t msg_id = id.value();
     if (msg_id >= static_cast<uint16_t>(ServiceType::SERVICE_UNKNOWN)) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn(
           "[{}] Client Session {} UUID {} Header Error! Exit Due To Invalid "
           "Service ID {}",
           ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
           session->s_uuid, msg_id);
 
+      purgeRemoveConnection(session);
       return;
     }
 
     std::optional<uint16_t> length = m_recv_buffer->get_length();
     if (!length.has_value()) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn(
           "[{}] Client Session {} UUID {} Header Error! Invalid Length! ",
           ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
           session->s_uuid);
 
+      purgeRemoveConnection(session);
       return;
     }
 
     uint16_t msg_length = length.value();
 
     if (msg_length > MAX_LENGTH) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
       spdlog::warn(
           "[{}] Client Session {} UUID {} Header Error! Due To Invalid Data "
           "Length, {} Bytes Received!",
           ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
           session->s_uuid, msg_length);
 
+      purgeRemoveConnection(session);
       return;
+    }
+
+    /*this session has already logined on this server*/
+    if (check_and_kick_existing_session(session)) {
+              return;
     }
 
     /*for the safty, we have to reset the MsgNode first to prevent memory leak*/
@@ -262,6 +282,10 @@ void Session::handle_header(std::shared_ptr<Session> session,
         boost::asio::buffer(m_recv_buffer->get_body_base(), msg_length),
         std::bind(&Session::handle_msgbody, this, session,
                   std::placeholders::_1, std::placeholders::_2));
+
+    /*update heart beat*/
+    updateLastHeartBeat();
+
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
   }
@@ -279,16 +303,7 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
           ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
           session->s_uuid, ec.message());
 
-      // remove redis cache, including uuid and session id
-      // Integrated with distributed lock
-      removeRedisCache(session->get_user_uuid(), session->get_session_id());
-
-      /*this is the real socket.close method, because the client teminate the
-       * connection*/
-      terminateAndRemoveFromServer(session->get_user_uuid());
-
-      decrementConnection();
-
+      purgeRemoveConnection(session);
       return;
     }
 
@@ -297,14 +312,22 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
 
     /*data is not fully received*/
     if (m_recv_buffer->check_body_remaining()) {
-      terminateAndRemoveFromServer(session->get_user_uuid());
       spdlog::warn("[{}] Client Session {} UUID {} Exit Anomaly! Body Not "
                    "Fully Recevied!",
                    ServerConfig::get_instance()->GrpcServerName,
                    session->s_session_id, session->s_uuid);
 
+      purgeRemoveConnection(session);
       return;
     }
+
+    /*this session has already logined on this server*/
+    if (check_and_kick_existing_session(session)) {
+              return;
+    }
+
+    /*update heart beat*/
+    updateLastHeartBeat();
 
     /*release owner ship of the data, you must release in another unique_ptr*/
     RecvPtr recv(m_recv_buffer.release());
@@ -330,6 +353,18 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
   }
 }
 
+bool Session::check_and_kick_existing_session(std::shared_ptr<Session> session) {
+          auto existing = UserManager::get_instance()->getSession(session->s_uuid);
+          if (existing.has_value()) {
+                    spdlog::warn("[{}] Client Session {} UUID {} Has Already Logined On This Server!",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              session->s_session_id, session->s_uuid);
+                    session->closeSession();
+                    return true;
+          }
+          return false;
+}
+
 const std::string &Session::get_user_uuid() const { return s_uuid; }
 
 const std::string &Session::get_session_id() const { return s_session_id; }
@@ -343,15 +378,18 @@ void Session::sendOfflineMessage() {
   sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
               boost::json::serialize(logout));
 
-  s_gate->moveUserToTerminationZone(get_user_uuid());
+  /*Now we have to remove this, because it might causing other issue
+   * it has to be deployed seperatly, and ALSO IT SHOULD NOT BE DEPLOYED 
+   *  IN TRAVERSAL SCENAIRO
+  * UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());  
+  */
 }
 
 void Session::decrementConnection() {
   RedisRAII raii;
 
   auto get_distributed_lock =
-      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName,
-                           ServerConfig::get_instance()->GrpcServerName, 10, 10,
+      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName, 10, 10,
                            redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
@@ -388,7 +426,7 @@ void Session::decrementConnection() {
 
   // release lock
   raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-                       ServerConfig::get_instance()->GrpcServerName);
+            get_distributed_lock.value());
 
   /*store this user belonged server into redis*/
   spdlog::info("[{}] Now {} Client Has Connected To Current Server",

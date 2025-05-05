@@ -73,7 +73,6 @@ grpc::details::GrpcDataLayer::chattingInstanceLoadBalancer() {
   //Acquire Lock
   auto get_distributed_lock = raii->get()->acquire(
             min_server->first,
-            min_server->first,
             10, 10, redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
@@ -86,7 +85,7 @@ grpc::details::GrpcDataLayer::chattingInstanceLoadBalancer() {
       raii->get()->getValueFromHash(redis_server_login, min_server->first);
 
   //Release Lock
-  raii->get()->release(min_server->first, min_server->first);
+  raii->get()->release(min_server->first, get_distributed_lock.value());
 
   /*
    * if redis doesn't have this key&field in DB, then set the max value
@@ -107,7 +106,6 @@ grpc::details::GrpcDataLayer::chattingInstanceLoadBalancer() {
             //Acquire Lock
             auto get_distributed_lock = raii->get()->acquire(
                       server->first,
-                      server->first,
                       10, 10, redis::TimeUnit::Milliseconds);
 
             if (!get_distributed_lock.has_value()) {
@@ -119,7 +117,7 @@ grpc::details::GrpcDataLayer::chattingInstanceLoadBalancer() {
           raii->get()->getValueFromHash(redis_server_login, server->first);
 
       //Release Lock
-      raii->get()->release(server->first, server->first);
+      raii->get()->release(server->first, get_distributed_lock.value());
 
       /*
        * if redis doesn't have this key&field in DB, then set the max

@@ -7,6 +7,9 @@
 #include <optional>
 #include <string>
 #include <type_traits>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 namespace tools {
 template <typename _Ty> class ResourcesWrapper {
@@ -59,6 +62,11 @@ std::optional<_Ty> string_to_value(std::string_view value) {
   if (res.ec == std::errc() && res.ptr == value.data() + value.size())
     return _temp_res;
   return std::nullopt;
+}
+
+static std::string userTokenGenerator() {
+          boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
+          return boost::uuids::to_string(uuid_gen);
 }
 
 } // namespace tools

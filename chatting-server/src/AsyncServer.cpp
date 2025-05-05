@@ -46,8 +46,8 @@ void AsyncServer::handleAccept(std::shared_ptr<Session> session,
   this->startAccept();
 }
 
-void AsyncServer::moveUserToTerminationZone(const std::string& user_uuid) {
-          UserManager::get_instance()->moveUserToTerminationZone(user_uuid);
+void AsyncServer::moveUserToTerminationZone(const std::string &user_uuid) {
+  UserManager::get_instance()->moveUserToTerminationZone(user_uuid);
 }
 
 void AsyncServer::terminateConnection(const std::string &user_uuid) {
@@ -56,7 +56,8 @@ void AsyncServer::terminateConnection(const std::string &user_uuid) {
   UserManager::get_instance()->removeUsrSession(user_uuid);
 }
 
-void AsyncServer::terminateConnection(const std::string& user_uuid, const std::string& expected_session_id) {
-          /*remove the bind of uuid and session inside UserManager*/
-          UserManager::get_instance()->removeUsrSession(user_uuid, expected_session_id);
+void AsyncServer::terminateConnection(const std::string &user_uuid,
+                                      const std::string &expected_session_id) {
+  /*remove the bind of uuid and session inside UserManager*/
+  UserManager::get_instance()->removeUsrSession(user_uuid, expected_session_id);
 }

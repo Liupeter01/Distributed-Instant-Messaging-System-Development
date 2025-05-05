@@ -22,13 +22,14 @@ class UserManager : public Singleton<UserManager> {
 public:
   ~UserManager();
   std::optional<std::shared_ptr<Session>> getSession(const std::string &uuid);
-  bool  removeUsrSession(const std::string &uuid);
-  bool  removeUsrSession(const std::string& uuid, const std::string& session_id);
-  void createUserSession(const std::string& uuid,
-            std::shared_ptr<Session> session);
+  bool removeUsrSession(const std::string &uuid);
+  bool removeUsrSession(const std::string &uuid, const std::string &session_id);
+  void createUserSession(const std::string &uuid,
+                         std::shared_ptr<Session> session);
 
-  /*we do not need to teminate the user at once, we just put them to another structure*/
-  bool  moveUserToTerminationZone(const std::string& uuid);
+  /*we do not need to teminate the user at once, we just put them to another
+   * structure*/
+  bool moveUserToTerminationZone(const std::string &uuid);
 
 protected:
   void teminate();

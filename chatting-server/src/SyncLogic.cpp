@@ -137,19 +137,21 @@ void SyncLogic::shutdown() {
 void SyncLogic::incrementConnection() {
   RedisRAII raii;
 
-  auto get_distributed_lock = raii->get()->acquire(
-            ServerConfig::get_instance()->GrpcServerName,
-            ServerConfig::get_instance()->GrpcServerName,
-            10, 10, redis::TimeUnit::Milliseconds);
+  auto get_distributed_lock =
+      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName,
+                           ServerConfig::get_instance()->GrpcServerName, 10, 10,
+                           redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
-            spdlog::error("[{}] Acquire Distributed-Lock In IncrementConnection Failed!",
-                      ServerConfig::get_instance()->GrpcServerName);
-            return;
+    spdlog::error(
+        "[{}] Acquire Distributed-Lock In IncrementConnection Failed!",
+        ServerConfig::get_instance()->GrpcServerName);
+    return;
   }
 
-  spdlog::info("[{}] Acquire Distributed-Lock In  IncrementConnection Successful!",
-            ServerConfig::get_instance()->GrpcServerName);
+  spdlog::info(
+      "[{}] Acquire Distributed-Lock In  IncrementConnection Successful!",
+      ServerConfig::get_instance()->GrpcServerName);
 
   /*try to acquire value from redis*/
   std::optional<std::string> counter = raii->get()->getValueFromHash(
@@ -164,123 +166,134 @@ void SyncLogic::incrementConnection() {
 
   /*incerment and set value to hash by using HSET*/
   if (!raii->get()->setValue2Hash(redis_server_login,
-            ServerConfig::get_instance()->GrpcServerName,
-            std::to_string(++new_number))) {
-  
-            spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
-                      ServerConfig::get_instance()->GrpcServerName);
+                                  ServerConfig::get_instance()->GrpcServerName,
+                                  std::to_string(++new_number))) {
+
+    spdlog::error(
+        "[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
+        ServerConfig::get_instance()->GrpcServerName);
   }
 
-  //release lock
-  raii->get()->release(
-            ServerConfig::get_instance()->GrpcServerName,
-            ServerConfig::get_instance()->GrpcServerName);
+  // release lock
+  raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
+                       ServerConfig::get_instance()->GrpcServerName);
 
   /*store this user belonged server into redis*/
   spdlog::info("[{}] Now {} Client Has Connected To Current Server",
-            ServerConfig::get_instance()->GrpcServerName, new_number);
+               ServerConfig::get_instance()->GrpcServerName, new_number);
 }
 
 /*
-* check user status current online status, with distributed lock support
-* is this user current on any other server?
-*/
-std::optional<std::string> 
-SyncLogic::checkCurrentUser(RedisRAII& raii, const std::string& uuid) {
+ * check user status current online status, with distributed lock support
+ * is this user current on any other server?
+ */
+std::optional<std::string>
+SyncLogic::checkCurrentUser(RedisRAII &raii, const std::string &uuid) {
   return raii->get()->checkValue(server_prefix + uuid);
 }
 
-bool SyncLogic::labelCurrentUser(RedisRAII& raii, const std::string &uuid) {
+bool SyncLogic::labelCurrentUser(RedisRAII &raii, const std::string &uuid) {
 
-          const auto key = server_prefix + uuid;
+  const auto key = server_prefix + uuid;
 
   return raii->get()->delPair(key) &&
-            raii->get()->setValue(key,
-                      ServerConfig::get_instance()->GrpcServerName);
+         raii->get()->setValue(key,
+                               ServerConfig::get_instance()->GrpcServerName);
 }
 
 /*store this user belonged session id into redis*/
-bool  SyncLogic::labelUserSessionID([[maybe_unused]] RedisRAII& raii, 
-                                                            const std::string& uuid, 
-                                                            const std::string&session_id){
+bool SyncLogic::labelUserSessionID([[maybe_unused]] RedisRAII &raii,
+                                   const std::string &uuid,
+                                   const std::string &session_id) {
 
-          const auto key = session_prefix + uuid;
+  const auto key = session_prefix + uuid;
 
-          return raii->get()->delPair(key) &&
-                    raii->get()->setValue(key, session_id);
+  return raii->get()->delPair(key) && raii->get()->setValue(key, session_id);
 }
 
-void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII& raii, 
-                                                            const std::string& uuid, 
-                                                             std::shared_ptr<Session> session) {
-       
-          auto uuid_int = std::stoi(uuid);
-          auto& new_session = session;
-          auto& new_session_id = session->get_session_id();
+void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
+                                 const std::string &uuid,
+                                 std::shared_ptr<Session> session) {
 
-          /*Distributed-Lock on lock:[uuid], waiting time = 10ms, EX = 10ms*/
-          auto get_distributed_lock = raii->get()->acquire(uuid, uuid, 10, 10, redis::TimeUnit::Milliseconds);
+  auto uuid_int = std::stoi(uuid);
+  auto &new_session = session;
+  auto &new_session_id = session->get_session_id();
 
-          if (!get_distributed_lock.has_value()) {
-                    spdlog::error("[{}] UUID = {} Distributed-Lock Acquire Failed!",
-                              ServerConfig::get_instance()->GrpcServerName, uuid);
-                    return;
-          }
+  /*Distributed-Lock on lock:[uuid], waiting time = 10ms, EX = 10ms*/
+  auto get_distributed_lock =
+      raii->get()->acquire(uuid, uuid, 10, 10, redis::TimeUnit::Milliseconds);
 
-          spdlog::info("[{}] UUID = {} Acquire Distributed-Lock Successful!", 
-                    ServerConfig::get_instance()->GrpcServerName, uuid);
+  if (!get_distributed_lock.has_value()) {
+    spdlog::error("[{}] UUID = {} Distributed-Lock Acquire Failed!",
+                  ServerConfig::get_instance()->GrpcServerName, uuid);
+    return;
+  }
 
-          /* check user current online status, with distributed lock support */
-          if (auto status = checkCurrentUser(raii, uuid)) {
-                    const auto& current = *status;
+  spdlog::info("[{}] UUID = {} Acquire Distributed-Lock Successful!",
+               ServerConfig::get_instance()->GrpcServerName, uuid);
 
-                    /*this user existing on current server*/
-                    if (current == ServerConfig::get_instance()->GrpcServerName) {
-                              /*Get Existing old session object and send offline message then delete it from server*/
-                              if (auto kick_session = UserManager::get_instance()->getSession(uuid); kick_session) {
-                                        auto& old_session = *kick_session;
-                                        old_session->sendOfflineMessage();
-                                        old_session->terminateAndRemoveFromServer(uuid, old_session->get_session_id());
-                              }
-                    }
-                    /*This user  Already Logined On Other Server*/
-                    else {
-                              spdlog::info("[{}] UUID = {} Has Already Logined On Other [{}] GRPC Server, Executing Distributed Kick Method!",
-                                        current, uuid, current);
+  /* check user current online status, with distributed lock support */
+  if (auto status = checkCurrentUser(raii, uuid)) {
+    const auto &current = *status;
 
-                              message::TerminationRequest req;
-                              req.set_kick_uuid(uuid_int);
-                              auto response = gRPCDistributedChattingService::get_instance()->forceTerminateLoginedUser(current, req);
-                           
-                              if (response.error() != static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)
-                                        || response.kick_uuid() != uuid_int) {
+    /*this user existing on current server*/
+    if (current == ServerConfig::get_instance()->GrpcServerName) {
+      /*Get Existing old session object and send offline message then delete it
+       * from server*/
+      if (auto kick_session = UserManager::get_instance()->getSession(uuid);
+          kick_session) {
+        auto &old_session = *kick_session;
+        old_session->sendOfflineMessage();
+        old_session->terminateAndRemoveFromServer(
+            uuid, old_session->get_session_id());
+      }
+    }
+    /*This user  Already Logined On Other Server*/
+    else {
+      spdlog::info("[{}] UUID = {} Has Already Logined On Other [{}] GRPC "
+                   "Server, Executing Distributed Kick Method!",
+                   current, uuid, current);
 
-                                        spdlog::warn("[{}] Trying to Executing Distributed Kick Method On Other [{}] GRPC Server Failed",
-                                                  ServerConfig::get_instance()->GrpcServerName, current);
+      message::TerminationRequest req;
+      req.set_kick_uuid(uuid_int);
+      auto response = gRPCDistributedChattingService::get_instance()
+                          ->forceTerminateLoginedUser(current, req);
 
-                                        generateErrorMessage("Internel Server Error",
-                                                  ServiceType::SERVICE_LOGINRESPONSE,
-                                                  ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+      if (response.error() !=
+              static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS) ||
+          response.kick_uuid() != uuid_int) {
 
-                                        //release lock
-                                        raii->get()->release(uuid, uuid);
-                                        return;
-                              }
-                    }
-          }
+        spdlog::warn("[{}] Trying to Executing Distributed Kick Method On "
+                     "Other [{}] GRPC Server Failed",
+                     ServerConfig::get_instance()->GrpcServerName, current);
 
-          /* store this user belonged server & session idinto redis */
-          if (!labelCurrentUser(raii, uuid) || !labelUserSessionID(raii, uuid, new_session_id)) {
-                    spdlog::error("[{}] UUID={} & Session ID={} Can Not Be Written To Redis Cache! Error Occured!",
-                              ServerConfig::get_instance()->GrpcServerName, uuid, new_session_id);
-          }
+        generateErrorMessage("Internel Server Error",
+                             ServiceType::SERVICE_LOGINRESPONSE,
+                             ServiceStatus::LOGIN_UNSUCCESSFUL, session);
 
-          /*store this user belonged server into redis*/
-          spdlog::info("[{}] UUID={}& Session ID={} Has Written To Redis Cache",
-                    ServerConfig::get_instance()->GrpcServerName, uuid, new_session_id);
+        // release lock
+        raii->get()->release(uuid, uuid);
+        return;
+      }
+    }
+  }
 
-          //release lock
-          raii->get()->release(uuid, uuid);
+  /* store this user belonged server & session idinto redis */
+  if (!labelCurrentUser(raii, uuid) ||
+      !labelUserSessionID(raii, uuid, new_session_id)) {
+    spdlog::error("[{}] UUID={} & Session ID={} Can Not Be Written To Redis "
+                  "Cache! Error Occured!",
+                  ServerConfig::get_instance()->GrpcServerName, uuid,
+                  new_session_id);
+  }
+
+  /*store this user belonged server into redis*/
+  spdlog::info("[{}] UUID={}& Session ID={} Has Written To Redis Cache",
+               ServerConfig::get_instance()->GrpcServerName, uuid,
+               new_session_id);
+
+  // release lock
+  raii->get()->release(uuid, uuid);
 }
 
 /*parse Json*/
@@ -358,7 +371,7 @@ void SyncLogic::execute(pair &&node) {
 void SyncLogic::handlingLogin(ServiceType srv_type,
                               std::shared_ptr<Session> session, NodePtr recv) {
 
-          RedisRAII raii;
+  RedisRAII raii;
 
   boost::json::object src_obj;
   boost::json::object redis_root;
@@ -503,7 +516,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
 void SyncLogic::handlingLogout(ServiceType srv_type,
                                std::shared_ptr<Session> session, NodePtr recv) {
 
-          RedisRAII raii;
+  RedisRAII raii;
 
   boost::json::object src_obj;
   boost::json::object result_root; /*send processing result back to src user*/
@@ -551,8 +564,9 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   session->sendOfflineMessage();
   session->terminateAndRemoveFromServer(uuid, session->get_session_id());
 
-  spdlog::info("[{}] UUID {} Was Removed From Redis Cache And Kick Out Of Server Successfully",
-            ServerConfig::get_instance()->GrpcServerName, uuid);
+  spdlog::info("[{}] UUID {} Was Removed From Redis Cache And Kick Out Of "
+               "Server Successfully",
+               ServerConfig::get_instance()->GrpcServerName, uuid);
 }
 
 void SyncLogic::handlingUserSearch(ServiceType srv_type,

@@ -14,22 +14,22 @@ grpc::GrpcDistributedChattingImpl::GrpcDistributedChattingImpl() {}
 grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
 
 // if another user has already logined on other server, then force it to quit!
-::grpc::Status
-grpc::GrpcDistributedChattingImpl::ForceTerminateLoginedUser(::grpc::ServerContext* context,
-          const ::message::TerminationRequest* request,
-          ::message::TerminationResponse* response) {
+::grpc::Status grpc::GrpcDistributedChattingImpl::ForceTerminateLoginedUser(
+    ::grpc::ServerContext *context,
+    const ::message::TerminationRequest *request,
+    ::message::TerminationResponse *response) {
 
-          auto uuid_str = std::to_string(request->kick_uuid());
-          response->set_kick_uuid(request->kick_uuid());
-          response->set_error(static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS));
+  auto uuid_str = std::to_string(request->kick_uuid());
+  response->set_kick_uuid(request->kick_uuid());
+  response->set_error(static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS));
 
-          if (auto opt = UserManager::get_instance()->getSession(uuid_str); opt) {
-                    auto& session = *opt;
-                    session->sendOfflineMessage();
-                    session->terminateAndRemoveFromServer(uuid_str, session->get_session_id());
-          }
+  if (auto opt = UserManager::get_instance()->getSession(uuid_str); opt) {
+    auto &session = *opt;
+    session->sendOfflineMessage();
+    session->terminateAndRemoveFromServer(uuid_str, session->get_session_id());
+  }
 
-          return grpc::Status::OK;
+  return grpc::Status::OK;
 }
 
 // A send friend request message to another user B

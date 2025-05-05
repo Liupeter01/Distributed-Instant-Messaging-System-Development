@@ -46,45 +46,44 @@ public:
   void commit(pair recv_node);
 
 protected:
-          /*parse Json*/
-          bool parseJson(std::shared_ptr<Session> session, NodePtr& recv,
-                    boost::json::object& src_obj);
+  /*parse Json*/
+  bool parseJson(std::shared_ptr<Session> session, NodePtr &recv,
+                 boost::json::object &src_obj);
 
-          static void generateErrorMessage(const std::string& log, ServiceType type,
-                    ServiceStatus status, SessionPtr conn);
+  static void generateErrorMessage(const std::string &log, ServiceType type,
+                                   ServiceStatus status, SessionPtr conn);
 
-          /*
-           * get user's basic info(name, age, sex, ...) from redis
-           * 1. we are going to search for info inside redis first, if nothing found,
-           * then goto 2
-           * 2. searching for user info inside mysql
-           */
-          static std::optional<std::unique_ptr<UserNameCard>>
-                    getUserBasicInfo(const std::string& key);
+  /*
+   * get user's basic info(name, age, sex, ...) from redis
+   * 1. we are going to search for info inside redis first, if nothing found,
+   * then goto 2
+   * 2. searching for user info inside mysql
+   */
+  static std::optional<std::unique_ptr<UserNameCard>>
+  getUserBasicInfo(const std::string &key);
 
-          /*
- * get friend request list from the database
- * @param: startpos: get friend request from the index[startpos]
- * @param: interval: how many requests are going to acquire [startpos,
- * startpos + interval)
- */
-          std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
-                    getFriendRequestInfo(const std::string& dst_uuid,
-                              const std::size_t start_pos = 0,
-                              const std::size_t interval = 10);
+  /*
+   * get friend request list from the database
+   * @param: startpos: get friend request from the index[startpos]
+   * @param: interval: how many requests are going to acquire [startpos,
+   * startpos + interval)
+   */
+  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
+  getFriendRequestInfo(const std::string &dst_uuid,
+                       const std::size_t start_pos = 0,
+                       const std::size_t interval = 10);
 
-          /*
-           * acquire Friend List
-           * get existing authenticated bid-directional friend from database
-           * @param: startpos: get friend from the index[startpos]
-           * @param: interval: how many friends re going to acquire [startpos, startpos
-           * + interval)
-           */
-          std::optional<std::vector<std::unique_ptr<UserNameCard>>>
-                    getAuthFriendsInfo(const std::string& dst_uuid,
-                              const std::size_t start_pos = 0,
-                              const std::size_t interval = 10);
-
+  /*
+   * acquire Friend List
+   * get existing authenticated bid-directional friend from database
+   * @param: startpos: get friend from the index[startpos]
+   * @param: interval: how many friends re going to acquire [startpos, startpos
+   * + interval)
+   */
+  std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+  getAuthFriendsInfo(const std::string &dst_uuid,
+                     const std::size_t start_pos = 0,
+                     const std::size_t interval = 10);
 
 private:
   SyncLogic();
@@ -99,19 +98,20 @@ private:
   void incrementConnection();
 
   static std::optional<std::string>
-  checkCurrentUser([[maybe_unused]] RedisRAII& raii, const std::string& uuid);
+  checkCurrentUser([[maybe_unused]] RedisRAII &raii, const std::string &uuid);
 
   /*store this user belonged server into redis*/
-  static bool labelCurrentUser([[maybe_unused]] RedisRAII& raii, const std::string& uuid);
+  static bool labelCurrentUser([[maybe_unused]] RedisRAII &raii,
+                               const std::string &uuid);
 
   /*store this user belonged session id into redis*/
-  static bool labelUserSessionID([[maybe_unused]] RedisRAII& raii,
-                                                    const std::string& uuid, 
-                                                    const std::string& session_id);
+  static bool labelUserSessionID([[maybe_unused]] RedisRAII &raii,
+                                 const std::string &uuid,
+                                 const std::string &session_id);
 
-  static void updateRedisCache([[maybe_unused]] RedisRAII& raii, 
-                                                    const std::string& uuid, 
-                                                    std::shared_ptr<Session> session);
+  static void updateRedisCache([[maybe_unused]] RedisRAII &raii,
+                               const std::string &uuid,
+                               std::shared_ptr<Session> session);
 
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,

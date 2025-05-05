@@ -16,7 +16,7 @@ public:
 public:
   void startAccept();
 
-private:
+protected:
   // waiting to be closed
   void moveUserToTerminationZone(const std::string &user_uuid);
   void terminateConnection(const std::string &user_uuid);
@@ -26,11 +26,18 @@ private:
                     boost::system::error_code ec);
 
 private:
+  void registerTimerCallback();
+  void heartBeatEvent(const boost::system::error_code& ec);
+
+private:
   /*boost io_context*/
   boost::asio::io_context &m_ioc;
 
   /*create a server acceptor to accept connection*/
   boost::asio::ip::tcp::acceptor m_acceptor;
+
+  /*timer & clock*/
+  boost::asio::steady_timer m_timer;
 };
 
 #endif

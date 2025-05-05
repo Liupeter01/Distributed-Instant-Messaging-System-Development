@@ -49,18 +49,17 @@ public:
                                               const std::string &field);
 
   std::optional<std::string> acquire(const std::string &lockName,
-                                     const std::string &uuid,
                                      const std::size_t waitTime,
                                      const std::size_t EXPX,
                                      TimeUnit unit = TimeUnit::Seconds);
 
-  bool release(const std::string &lockName, const std::string &uuid);
+  bool release(const std::string &lockName, const std::string &identifer);
 
 private:
-  bool acquireLock(const std::string &lockName, const std::string &uuid,
+  bool acquireLock(const std::string &lockName, const std::string & identifer,
                    const std::size_t EXPX, TimeUnit unit);
 
-  bool releaseLock(const std::string &lockName, const std::string &uuid);
+  bool releaseLock(const std::string &lockName, const std::string & identifer);
 
   std::optional<tools::RedisContextWrapper> operator->();
 

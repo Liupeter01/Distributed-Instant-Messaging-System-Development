@@ -239,12 +239,14 @@ redis::RedisContext::getValueFromHash(const std::string &key,
 }
 
 std::optional<std::string> redis::RedisContext::acquire(
-    const std::string &lockName, const std::string &uuid,
+    const std::string &lockName, 
     const std::size_t waitTime, const std::size_t EXPX, TimeUnit unit) {
 
-  if (lockName.empty() || uuid.empty()) {
+  if (lockName.empty()) {
     return std::nullopt;
   }
+
+  auto identifer = tools::userTokenGenerator();
 
   // Add additional lock name format
   std::string full_lock_name = std::string(lock) + lockName;
@@ -262,8 +264,8 @@ std::optional<std::string> redis::RedisContext::acquire(
   }
 
   while (std::chrono::high_resolution_clock::now() < endTime) {
-    if (acquireLock(full_lock_name, uuid, EXPX, unit)) {
-      return full_lock_name;
+    if (acquireLock(full_lock_name, identifer, EXPX, unit)) {
+      return identifer;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
@@ -272,10 +274,10 @@ std::optional<std::string> redis::RedisContext::acquire(
 }
 
 bool redis::RedisContext::acquireLock(const std::string &lockName,
-                                      const std::string &uuid,
+                                      const std::string & identifer,
                                       const std::size_t EXPX, TimeUnit unit) {
 
-  if (lockName.empty() || uuid.empty()) {
+  if (lockName.empty() || identifer.empty()) {
     return false;
   }
 
@@ -293,30 +295,30 @@ bool redis::RedisContext::acquireLock(const std::string &lockName,
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
 
   auto status = m_replyDelegate->redisCommand(
-      *this, inputSchema, lockName.c_str(), uuid.c_str(), EXPX);
+      *this, inputSchema, lockName.c_str(), identifer.c_str(), EXPX);
 
   if (status) {
     spdlog::info("Execute command [ SET key = {0}, value = {1}, timeout = {2}] "
                  "successfully!",
-                 lockName.c_str(), uuid.c_str(), EXPX);
+                 lockName.c_str(), identifer.c_str(), EXPX);
     return true;
   }
   return false;
 }
 
 bool redis::RedisContext::release(const std::string &lockName,
-                                  const std::string &uuid) {
-  if (lockName.empty() || uuid.empty()) {
+                                  const std::string & identifer) {
+  if (lockName.empty() || identifer.empty()) {
     return false;
   }
 
   // Add additional lock name format
   std::string full_lock_name = std::string(lock) + lockName;
-  return releaseLock(full_lock_name, uuid);
+  return releaseLock(full_lock_name, identifer);
 }
 
 bool redis::RedisContext::releaseLock(const std::string &lockName,
-                                      const std::string &uuid) {
+                                      const std::string & identifer) {
 
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
 
@@ -326,11 +328,11 @@ bool redis::RedisContext::releaseLock(const std::string &lockName,
   // param 3: value
   auto status = m_replyDelegate->redisCommand(*this, "EVAL %s 1 %s %s",
                                               release_lock_lua_script,
-                                              lockName.c_str(), uuid.c_str());
+                                              lockName.c_str(), identifer.c_str());
 
   if (status) {
     spdlog::info("Execute Lua Script [ EVAL {0} 1 {1} {2}] successfully!",
-                 release_lock_lua_script, lockName.c_str(), uuid.c_str());
+                 release_lock_lua_script, lockName.c_str(), identifer.c_str());
     return true;
   }
   return false;

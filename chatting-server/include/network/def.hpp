@@ -3,8 +3,6 @@
 #include <stdint.h>
 
 enum class ServiceType : uint8_t {
-  SERVICE_PULSE,
-
   SERVICE_VERIFICATION,  // get verification code
   SERVICE_REGISTERATION, // user registeration
   SERVICE_CHECKEEXISTS,  // check account existance
@@ -70,6 +68,9 @@ enum class ServiceType : uint8_t {
   /*User send file upload request*/
   SERVICE_FILEUPLOADREQUEST,
   SERVICE_FILEUPLOADRESPONSE,
+
+  SERVICE_HEARTBEAT_REQUEST,
+  SERVICE_HEARTBEAT_RESPONSE,
 
   SERVICE_UNKNOWN // unkown service
 };

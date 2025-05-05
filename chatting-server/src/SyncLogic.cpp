@@ -106,6 +106,11 @@ void SyncLogic::registerCallbacks() {
       ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
       std::bind(&SyncLogic::handlingVideoChatMsg, this, std::placeholders::_1,
                 std::placeholders::_2, std::placeholders::_3)));
+
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+            ServiceType::SERVICE_HEARTBEAT_REQUEST,
+            std::bind(&SyncLogic::handlingHeartBeat, this, std::placeholders::_1,
+                      std::placeholders::_2, std::placeholders::_3)));
 }
 
 void SyncLogic::commit(pair recv_node) {
@@ -1184,6 +1189,24 @@ void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
   boost::json::object result_root; /*send processing result back to dst user*/
 
   parseJson(session, recv, src_root);
+}
+
+void SyncLogic::handlingHeartBeat(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv) {
+          boost::json::object src_root;    /*store json from client*/
+          boost::json::object result_root; /*send processing result back to dst user*/
+
+          parseJson(session, recv, src_root);
+
+          std::string uuid = boost::json::value_to<std::string>(src_root["uuid"]);
+
+          result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+
+          /*send it back*/
+          session->sendMessage(ServiceType::SERVICE_HEARTBEAT_RESPONSE,
+                    boost::json::serialize(result_root));
+
 }
 
 /*get user's basic info(name, age, sex, ...) from redis*/

@@ -138,8 +138,7 @@ void SyncLogic::incrementConnection() {
   RedisRAII raii;
 
   auto get_distributed_lock =
-      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName,
-                           ServerConfig::get_instance()->GrpcServerName, 10, 10,
+      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName, 10, 10,
                            redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
@@ -176,7 +175,7 @@ void SyncLogic::incrementConnection() {
 
   // release lock
   raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-                       ServerConfig::get_instance()->GrpcServerName);
+            get_distributed_lock.value());
 
   /*store this user belonged server into redis*/
   spdlog::info("[{}] Now {} Client Has Connected To Current Server",
@@ -221,7 +220,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
 
   /*Distributed-Lock on lock:[uuid], waiting time = 10ms, EX = 10ms*/
   auto get_distributed_lock =
-      raii->get()->acquire(uuid, uuid, 10, 10, redis::TimeUnit::Milliseconds);
+      raii->get()->acquire(uuid, 10, 10, redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
     spdlog::error("[{}] UUID = {} Distributed-Lock Acquire Failed!",
@@ -272,7 +271,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
 
         // release lock
-        raii->get()->release(uuid, uuid);
+        raii->get()->release(uuid, get_distributed_lock.value());
         return;
       }
     }
@@ -293,7 +292,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
                new_session_id);
 
   // release lock
-  raii->get()->release(uuid, uuid);
+  raii->get()->release(uuid, get_distributed_lock.value());
 }
 
 /*parse Json*/

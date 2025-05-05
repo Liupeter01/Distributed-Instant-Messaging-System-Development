@@ -551,6 +551,20 @@ void TCPNetworkConnection::registerCallback() {
                                  text_sender, text_receiver, text_msg));
         }
       }));
+
+  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
+      ServiceType::SERVICE_HEARTBEAT_RESPONSE, [this](QJsonObject &&json) {
+          /*error occured!*/
+          if (!json.contains("error")) {
+              qDebug() << "Json Parse Error!";
+              return;
+          }
+          if (json["error"].toInt() !=
+              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+              qDebug() << "HeartBeat Return value Error!";
+              return;
+          }
+      }));
 }
 
 void TCPNetworkConnection::slot_connect2_chatting_server() {

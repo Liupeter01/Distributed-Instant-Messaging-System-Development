@@ -56,6 +56,10 @@ void AsyncServer::registerTimerCallback(){
 }
 
 void AsyncServer::heartBeatEvent(const boost::system::error_code &ec){
+
+          spdlog::info("[{}] Executing HeartBeat Purge Program, Kill Zombie Connections!",
+                    ServerConfig::get_instance()->GrpcServerName);
+
           std::time_t now = std::time(nullptr);
 
           /*only record "dead" session's uuid, and we deal with them later*/

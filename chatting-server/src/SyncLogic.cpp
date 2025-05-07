@@ -196,6 +196,18 @@ SyncLogic::checkCurrentUser(RedisRAII &raii, const std::string &uuid) {
   return raii->get()->checkValue(server_prefix + uuid);
 }
 
+bool SyncLogic::check_and_kick_existing_session(std::shared_ptr<Session> session) {
+          auto existing = UserManager::get_instance()->getSession(session->s_uuid);
+          if (existing.has_value()) {
+                    spdlog::warn("[{}] Client Session {} UUID {} Has Already Logined On This Server!",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              session->s_session_id, session->s_uuid);
+                    session->closeSession();
+                    return true;
+          }
+          return false;
+}
+
 bool SyncLogic::labelCurrentUser(RedisRAII &raii, const std::string &uuid) {
 
   const auto key = server_prefix + uuid;
@@ -391,6 +403,11 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
                          ServiceType::SERVICE_LOGINRESPONSE,
                          ServiceStatus::LOGIN_UNSUCCESSFUL, session);
     return;
+  }
+
+  /*this session has already logined on this server*/
+  if (check_and_kick_existing_session(session)) {
+            return;
   }
 
   std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);

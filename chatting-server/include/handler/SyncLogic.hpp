@@ -113,6 +113,8 @@ private:
                                const std::string &uuid,
                                std::shared_ptr<Session> session);
 
+  static bool check_and_kick_existing_session(std::shared_ptr<Session> session);
+
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,
                      NodePtr recv);

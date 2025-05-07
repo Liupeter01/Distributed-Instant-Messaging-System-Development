@@ -271,10 +271,8 @@ void Session::handle_header(std::shared_ptr<Session> session,
       return;
     }
 
-    /*this session has already logined on this server*/
-    if (check_and_kick_existing_session(session)) {
-              return;
-    }
+    /*update heart beat*/
+    updateLastHeartBeat();
 
     /*for the safty, we have to reset the MsgNode first to prevent memory leak*/
     boost::asio::async_read(
@@ -282,9 +280,6 @@ void Session::handle_header(std::shared_ptr<Session> session,
         boost::asio::buffer(m_recv_buffer->get_body_base(), msg_length),
         std::bind(&Session::handle_msgbody, this, session,
                   std::placeholders::_1, std::placeholders::_2));
-
-    /*update heart beat*/
-    updateLastHeartBeat();
 
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
@@ -321,11 +316,6 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
       return;
     }
 
-    /*this session has already logined on this server*/
-    if (check_and_kick_existing_session(session)) {
-              return;
-    }
-
     /*update heart beat*/
     updateLastHeartBeat();
 
@@ -351,18 +341,6 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
   } catch (const std::exception &e) {
     spdlog::error("{}", e.what());
   }
-}
-
-bool Session::check_and_kick_existing_session(std::shared_ptr<Session> session) {
-          auto existing = UserManager::get_instance()->getSession(session->s_uuid);
-          if (existing.has_value()) {
-                    spdlog::warn("[{}] Client Session {} UUID {} Has Already Logined On This Server!",
-                              ServerConfig::get_instance()->GrpcServerName,
-                              session->s_session_id, session->s_uuid);
-                    session->closeSession();
-                    return true;
-          }
-          return false;
 }
 
 const std::string &Session::get_user_uuid() const { return s_uuid; }
@@ -414,14 +392,17 @@ void Session::decrementConnection() {
     new_number = tools::string_to_value<std::size_t>(counter.value()).value();
   }
 
-  /*decerment and set value to hash by using HSET*/
-  if (!raii->get()->setValue2Hash(redis_server_login,
-                                  ServerConfig::get_instance()->GrpcServerName,
-                                  std::to_string(--new_number))) {
+  //new_number != 0
+  if (new_number > 0) {
+            /*decerment and set value to hash by using HSET*/
+            if (!raii->get()->setValue2Hash(redis_server_login,
+                      ServerConfig::get_instance()->GrpcServerName,
+                      std::to_string(--new_number))) {
 
-    spdlog::error(
-        "[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
-        ServerConfig::get_instance()->GrpcServerName);
+                      spdlog::error(
+                                "[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
+                                ServerConfig::get_instance()->GrpcServerName);
+            }
   }
 
   // release lock

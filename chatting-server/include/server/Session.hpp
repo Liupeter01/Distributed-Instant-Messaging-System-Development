@@ -58,8 +58,6 @@ protected:
                       boost::system::error_code ec,
                       std::size_t bytes_transferred);
 
-  bool check_and_kick_existing_session(std::shared_ptr<Session> session);
-
 private:
   /*
    *  sub user connection counter for current server

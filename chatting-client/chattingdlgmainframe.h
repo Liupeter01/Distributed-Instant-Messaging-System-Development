@@ -9,6 +9,7 @@
 #include <QVector>
 #include <atomic>
 #include <memory>
+#include <QTimer>
 #include <unordered_map>
 
 class SideBarWidget;
@@ -170,6 +171,9 @@ private slots:
                          std::optional<std::shared_ptr<ChattingTextMsg>> msg);
 
 private:
+  /*send heart beat package*/
+  QTimer *m_timer;
+
   Ui::ChattingDlgMainFrame *ui;
 
   /*define how many chat recoreds are going to show up on chat record list*/

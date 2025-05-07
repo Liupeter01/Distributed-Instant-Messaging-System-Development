@@ -24,7 +24,7 @@ std::size_t ChattingDlgMainFrame::CHATRECORED_PER_PAGE = 9;
 
 ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
     : m_send_status(false) /*wait for data status is false*/
-      ,
+    , m_timer(new QTimer(this)),
       QDialog(parent), ui(new Ui::ChattingDlgMainFrame), m_curQLabel(nullptr),
       m_curr_chat_record_loaded(0),
       m_dlgMode(
@@ -89,6 +89,9 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
 }
 
 ChattingDlgMainFrame::~ChattingDlgMainFrame() {
+    //every 10s
+//m_timer->start(10000);
+
   delete m_searchAction;
   delete m_cancelAction;
   delete ui;
@@ -217,6 +220,26 @@ void ChattingDlgMainFrame::registerSignal() {
    */
   connect(ui->chattingpage, &ChattingStackPage::signal_sync_chat_msg_on_local,
           this, &ChattingDlgMainFrame::slot_sync_chat_msg_on_local);
+
+  /*setup timer for sending heartbeat package*/
+  connect(m_timer, &QTimer::timeout, this, [this](){
+        QJsonObject obj;
+        obj["uuid"] =
+        UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
+
+        QJsonDocument doc(obj);
+        auto json = doc.toJson(QJsonDocument::Compact);
+
+        auto buffer = std::make_shared<SendNodeType>(
+            static_cast<uint16_t>(ServiceType::SERVICE_HEARTBEAT_REQUEST),
+            json, ByteOrderConverterReverse{});
+
+        /*after connection to server, send TCP request*/
+        emit TCPNetworkConnection::get_instance()->signal_send_message(buffer);
+  });
+
+  //every 10s
+  m_timer->start(10000);
 }
 
 void ChattingDlgMainFrame::registerNetworkEvent()

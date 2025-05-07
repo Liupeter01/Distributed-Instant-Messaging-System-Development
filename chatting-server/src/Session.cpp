@@ -8,9 +8,9 @@
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/Session.hpp>
+#include <server/UserManager.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
-#include <server/UserManager.hpp>
 
 /*store the current session id that this user belongs to*/
 std::string Session::session_prefix = "session_";
@@ -76,8 +76,8 @@ void Session::removeRedisCache(const std::string &uuid,
                                const std::string &session_id) {
   /*we need to add distributed-lock here to remove session-id and user id*/
   RedisRAII raii;
-  if (auto opt = raii->get()->acquire(uuid, 10, 10,
-                                      redis::TimeUnit::Milliseconds);
+  if (auto opt =
+          raii->get()->acquire(uuid, 10, 10, redis::TimeUnit::Milliseconds);
       opt) {
 
     // Get user id which Current UUID Belongs to
@@ -91,9 +91,9 @@ void Session::removeRedisCache(const std::string &uuid,
       auto &r_session_id = *redis_session_id;
 
       /*
-      * If THERE IS NO other server already modify this value
-      * THIS USER might already logined on other server, then skip this process
-      */
+       * If THERE IS NO other server already modify this value
+       * THIS USER might already logined on other server, then skip this process
+       */
       if (r_session_id == session_id) {
         // Remove the pair relation of server_[uuid]<->[WHICH SERVER]
         raii->get()->delPair(server_prefix + uuid);
@@ -107,21 +107,21 @@ void Session::removeRedisCache(const std::string &uuid,
   }
 }
 
-/*  
-* IT SHOULD NOT BE DEPLOYED IN TRAVERSAL SCENAIRO
-* UserManager::get_instance()->removeUsrSession(session->get_user_uuid())
-*/
-void Session::purgeRemoveConnection(std::shared_ptr<Session> session){
+/*
+ * IT SHOULD NOT BE DEPLOYED IN TRAVERSAL SCENAIRO
+ * UserManager::get_instance()->removeUsrSession(session->get_user_uuid())
+ */
+void Session::purgeRemoveConnection(std::shared_ptr<Session> session) {
 
-          // remove redis cache, including uuid and session id, Integrated with
-          // distributed lock
-          removeRedisCache(session->get_user_uuid(), session->get_session_id());
+  // remove redis cache, including uuid and session id, Integrated with
+  // distributed lock
+  removeRedisCache(session->get_user_uuid(), session->get_session_id());
 
-          /*this is the real socket.close method, because the client teminate the
-           * connection*/
-          UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
+  /*this is the real socket.close method, because the client teminate the
+   * connection*/
+  UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
 
-          decrementConnection();
+  decrementConnection();
 }
 
 void Session::sendMessage(ServiceType srv_type, const std::string &message) {
@@ -151,13 +151,12 @@ void Session::sendMessage(ServiceType srv_type, const std::string &message) {
   }
 }
 
-bool Session::isSessionTimeout(const std::time_t& now) const{
-          return std::difftime(now, m_last_heartbeat) > static_cast<double>(ServerConfig::get_instance()->heart_beat_timeout);
+bool Session::isSessionTimeout(const std::time_t &now) const {
+  return std::difftime(now, m_last_heartbeat) >
+         static_cast<double>(ServerConfig::get_instance()->heart_beat_timeout);
 }
 
-void Session::updateLastHeartBeat(){
-          m_last_heartbeat = std::time(nullptr);
-}
+void Session::updateLastHeartBeat() { m_last_heartbeat = std::time(nullptr); }
 
 void Session::handle_write(std::shared_ptr<Session> session,
                            boost::system::error_code ec) {
@@ -357,10 +356,10 @@ void Session::sendOfflineMessage() {
               boost::json::serialize(logout));
 
   /*Now we have to remove this, because it might causing other issue
-   * it has to be deployed seperatly, and ALSO IT SHOULD NOT BE DEPLOYED 
+   * it has to be deployed seperatly, and ALSO IT SHOULD NOT BE DEPLOYED
    *  IN TRAVERSAL SCENAIRO
-  * UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());  
-  */
+   * UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());
+   */
 }
 
 void Session::decrementConnection() {
@@ -392,22 +391,22 @@ void Session::decrementConnection() {
     new_number = tools::string_to_value<std::size_t>(counter.value()).value();
   }
 
-  //new_number != 0
+  // new_number != 0
   if (new_number > 0) {
-            /*decerment and set value to hash by using HSET*/
-            if (!raii->get()->setValue2Hash(redis_server_login,
-                      ServerConfig::get_instance()->GrpcServerName,
-                      std::to_string(--new_number))) {
+    /*decerment and set value to hash by using HSET*/
+    if (!raii->get()->setValue2Hash(
+            redis_server_login, ServerConfig::get_instance()->GrpcServerName,
+            std::to_string(--new_number))) {
 
-                      spdlog::error(
-                                "[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
-                                ServerConfig::get_instance()->GrpcServerName);
-            }
+      spdlog::error("[{}] Client Number Can Not Be Written To Redis Cache! "
+                    "Error Occured!",
+                    ServerConfig::get_instance()->GrpcServerName);
+    }
   }
 
   // release lock
   raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-            get_distributed_lock.value());
+                       get_distributed_lock.value());
 
   /*store this user belonged server into redis*/
   spdlog::info("[{}] Now {} Client Has Connected To Current Server",

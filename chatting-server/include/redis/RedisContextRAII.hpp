@@ -56,10 +56,10 @@ public:
   bool release(const std::string &lockName, const std::string &identifer);
 
 private:
-  bool acquireLock(const std::string &lockName, const std::string & identifer,
+  bool acquireLock(const std::string &lockName, const std::string &identifer,
                    const std::size_t EXPX, TimeUnit unit);
 
-  bool releaseLock(const std::string &lockName, const std::string & identifer);
+  bool releaseLock(const std::string &lockName, const std::string &identifer);
 
   std::optional<tools::RedisContextWrapper> operator->();
 

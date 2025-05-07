@@ -138,7 +138,7 @@ int main() {
 
     // release lock
     raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-              get_distributed_lock.value());
+                         get_distributed_lock.value());
 
     /*create chatting server*/
     std::shared_ptr<AsyncServer> async = std::make_shared<AsyncServer>(
@@ -182,7 +182,7 @@ int main() {
 
     // release lock
     raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-              get_distributed_lock.value());
+                         get_distributed_lock.value());
 
     /*
      * Chatting Server Shutdown

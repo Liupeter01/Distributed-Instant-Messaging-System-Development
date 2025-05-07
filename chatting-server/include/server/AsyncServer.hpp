@@ -27,7 +27,7 @@ protected:
 
 private:
   void registerTimerCallback();
-  void heartBeatEvent(const boost::system::error_code& ec);
+  void heartBeatEvent(const boost::system::error_code &ec);
 
 private:
   /*boost io_context*/

@@ -6,10 +6,10 @@
 #include <QDialog>
 #include <QIcon>
 #include <QLabel>
+#include <QTimer>
 #include <QVector>
 #include <atomic>
 #include <memory>
-#include <QTimer>
 #include <unordered_map>
 
 class SideBarWidget;
@@ -36,8 +36,8 @@ public:
   virtual ~ChattingDlgMainFrame();
 
 signals:
-    void switchToLogin();
-    void signal_teminate_chatting_server(const QString&,const QString&);
+  void switchToLogin();
+  void signal_teminate_chatting_server(const QString &, const QString &);
 
 protected:
   /*chat list test*/

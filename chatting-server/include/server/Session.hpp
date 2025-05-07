@@ -40,7 +40,7 @@ public:
   void sendOfflineMessage();
   void setUUID(const std::string &uuid) { s_uuid = uuid; }
   void sendMessage(ServiceType srv_type, const std::string &message);
-  [[nodiscard]] bool isSessionTimeout(const  std::time_t& now) const;
+  [[nodiscard]] bool isSessionTimeout(const std::time_t &now) const;
   void updateLastHeartBeat();
   const std::string &get_user_uuid() const;
   const std::string &get_session_id() const;
@@ -97,10 +97,10 @@ private:
   boost::asio::ip::tcp::socket s_socket;
 
   /*
-  * the last time that this session recv data from client
-  * we can not consider about boost::asio::steady_timer, because it's unsafe
-  */
-  std::atomic<std::time_t> m_last_heartbeat;   
+   * the last time that this session recv data from client
+   * we can not consider about boost::asio::steady_timer, because it's unsafe
+   */
+  std::atomic<std::time_t> m_last_heartbeat;
 
   /*pointing to the server it belongs to*/
   AsyncServer *s_gate;

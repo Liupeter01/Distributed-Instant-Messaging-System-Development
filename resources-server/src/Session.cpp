@@ -42,13 +42,14 @@ void Session::startSession() {
 void Session::setUUID(const std::string &uuid) { s_uuid = uuid; }
 
 void Session::closeSession() {
-if (s_closed) return;
-s_closed = true;
-if (s_socket.is_open()) {
-          boost::system::error_code ec;
-          s_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-          s_socket.close(ec);
-}
+  if (s_closed)
+    return;
+  s_closed = true;
+  if (s_socket.is_open()) {
+    boost::system::error_code ec;
+    s_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    s_socket.close(ec);
+  }
 }
 
 void Session::terminateAndRemoveFromServer(const std::string &user_uuid) {

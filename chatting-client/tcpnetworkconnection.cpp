@@ -55,8 +55,8 @@ void TCPNetworkConnection::registerNetworkEvent() {
           LogicMethod::get_instance().get(),
           &LogicMethod::signal_resources_logic_handler);
 
-  connect(this, &TCPNetworkConnection::signal_logout_status,
-          this, &TCPNetworkConnection::terminate_chatting_server);
+  connect(this, &TCPNetworkConnection::signal_logout_status, this,
+          &TCPNetworkConnection::terminate_chatting_server);
 }
 
 void TCPNetworkConnection::registerSocketSignal() {
@@ -332,26 +332,25 @@ void TCPNetworkConnection::registerCallback() {
         }
       }));
 
-    m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
-        ServiceType::SERVICE_LOGOUTRESPONSE, [this](QJsonObject &&json) {
-            /*error occured!*/
-            if (!json.contains("error")) {
-                qDebug() << "Json Parse Error!";
-                emit signal_logout_status(true);
-                return;
-            }
-            if (json["error"].toInt() !=
-                static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-                qDebug() << "Login Server Error!";
-                emit signal_logout_status(true);
-                return;
-            }
+  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
+      ServiceType::SERVICE_LOGOUTRESPONSE, [this](QJsonObject &&json) {
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          emit signal_logout_status(true);
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Login Server Error!";
+          emit signal_logout_status(true);
+          return;
+        }
 
-            /*if resources dialog still open, then shut it down*/
+        /*if resources dialog still open, then shut it down*/
 
-            /*if chattingdlgmainframe still open. shut it down*/
-
-        }));
+        /*if chattingdlgmainframe still open. shut it down*/
+      }));
 
   /*Client search username and server return result back*/
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
@@ -554,16 +553,16 @@ void TCPNetworkConnection::registerCallback() {
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
       ServiceType::SERVICE_HEARTBEAT_RESPONSE, [this](QJsonObject &&json) {
-          /*error occured!*/
-          if (!json.contains("error")) {
-              qDebug() << "Json Parse Error!";
-              return;
-          }
-          if (json["error"].toInt() !=
-              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-              qDebug() << "HeartBeat Return value Error!";
-              return;
-          }
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "HeartBeat Return value Error!";
+          return;
+        }
       }));
 }
 
@@ -595,41 +594,40 @@ void TCPNetworkConnection::slot_connect2_resources_server() {
       ResourceStorageManager::get_instance()->get_port().toUShort());
 }
 
-void TCPNetworkConnection::slot_terminate_chatting_server(const QString &uuid,
-                                                          const QString& token) {
-    qDebug() << "Terminate From Chatting Server\n";
+void TCPNetworkConnection::slot_terminate_chatting_server(
+    const QString &uuid, const QString &token) {
+  qDebug() << "Terminate From Chatting Server\n";
 
-    QJsonObject json_obj;
-    json_obj["uuid"] = uuid;
-    json_obj["token"] = token;
+  QJsonObject json_obj;
+  json_obj["uuid"] = uuid;
+  json_obj["token"] = token;
 
-    QJsonDocument json_doc(json_obj);
+  QJsonDocument json_doc(json_obj);
 
-    /*it should be store as a temporary object, because send_buffer will modify
-     * it!*/
-    auto json_data = json_doc.toJson(QJsonDocument::Compact);
+  /*it should be store as a temporary object, because send_buffer will modify
+   * it!*/
+  auto json_data = json_doc.toJson(QJsonDocument::Compact);
 
-    SendNodeType send_buffer(
-        static_cast<uint16_t>(ServiceType::SERVICE_LOGOUTSERVER), json_data,
-        ByteOrderConverterReverse{});
+  SendNodeType send_buffer(
+      static_cast<uint16_t>(ServiceType::SERVICE_LOGOUTSERVER), json_data,
+      ByteOrderConverterReverse{});
 
-    /*after connection to server, send TCP request*/
-    TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+  /*after connection to server, send TCP request*/
+  TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
 }
 
 void TCPNetworkConnection::slot_terminate_resources_server() {
   qDebug() << "Terminate From Resources Server\n";
 
-    if(m_resources_server_socket.isOpen()){
-        m_resources_server_socket.close();
-    }
+  if (m_resources_server_socket.isOpen()) {
+    m_resources_server_socket.close();
+  }
 }
 
-void TCPNetworkConnection::terminate_chatting_server()
-{
-    if (m_chatting_server_socket.isOpen()) {
-        m_chatting_server_socket.close();
-    }
+void TCPNetworkConnection::terminate_chatting_server() {
+  if (m_chatting_server_socket.isOpen()) {
+    m_chatting_server_socket.close();
+  }
 }
 
 void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,

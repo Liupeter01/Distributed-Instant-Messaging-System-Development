@@ -238,9 +238,10 @@ redis::RedisContext::getValueFromHash(const std::string &key,
   return m_replyDelegate->getMessage();
 }
 
-std::optional<std::string> redis::RedisContext::acquire(
-    const std::string &lockName, 
-    const std::size_t waitTime, const std::size_t EXPX, TimeUnit unit) {
+std::optional<std::string>
+redis::RedisContext::acquire(const std::string &lockName,
+                             const std::size_t waitTime, const std::size_t EXPX,
+                             TimeUnit unit) {
 
   if (lockName.empty()) {
     return std::nullopt;
@@ -274,7 +275,7 @@ std::optional<std::string> redis::RedisContext::acquire(
 }
 
 bool redis::RedisContext::acquireLock(const std::string &lockName,
-                                      const std::string & identifer,
+                                      const std::string &identifer,
                                       const std::size_t EXPX, TimeUnit unit) {
 
   if (lockName.empty() || identifer.empty()) {
@@ -307,7 +308,7 @@ bool redis::RedisContext::acquireLock(const std::string &lockName,
 }
 
 bool redis::RedisContext::release(const std::string &lockName,
-                                  const std::string & identifer) {
+                                  const std::string &identifer) {
   if (lockName.empty() || identifer.empty()) {
     return false;
   }
@@ -318,7 +319,7 @@ bool redis::RedisContext::release(const std::string &lockName,
 }
 
 bool redis::RedisContext::releaseLock(const std::string &lockName,
-                                      const std::string & identifer) {
+                                      const std::string &identifer) {
 
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
 
@@ -326,9 +327,9 @@ bool redis::RedisContext::releaseLock(const std::string &lockName,
   // param 1: lua script itself
   // param 2: key
   // param 3: value
-  auto status = m_replyDelegate->redisCommand(*this, "EVAL %s 1 %s %s",
-                                              release_lock_lua_script,
-                                              lockName.c_str(), identifer.c_str());
+  auto status = m_replyDelegate->redisCommand(
+      *this, "EVAL %s 1 %s %s", release_lock_lua_script, lockName.c_str(),
+      identifer.c_str());
 
   if (status) {
     spdlog::info("Execute Lua Script [ EVAL {0} 1 {1} {2}] successfully!",

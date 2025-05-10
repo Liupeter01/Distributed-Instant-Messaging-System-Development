@@ -15,6 +15,8 @@ public:
 
 public:
   void startAccept();
+  void startTimer();
+  void stopTimer();
 
 protected:
   // waiting to be closed
@@ -26,7 +28,6 @@ protected:
                     boost::system::error_code ec);
 
 private:
-  void registerTimerCallback();
   void heartBeatEvent(const boost::system::error_code &ec);
 
 private:

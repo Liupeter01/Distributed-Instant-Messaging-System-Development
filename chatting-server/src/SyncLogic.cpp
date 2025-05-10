@@ -204,7 +204,14 @@ bool SyncLogic::check_and_kick_existing_session(
         "[{}] Client Session {} UUID {} Has Already Logined On This Server!",
         ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
         session->s_uuid);
-    session->closeSession();
+
+    session->sendOfflineMessage();
+    session->removeRedisCache(session->get_user_uuid(),
+              session->get_session_id());
+
+    UserManager::get_instance()->moveUserToTerminationZone(session->get_user_uuid());
+    UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
+    //session->closeSession();
     return true;
   }
   return false;

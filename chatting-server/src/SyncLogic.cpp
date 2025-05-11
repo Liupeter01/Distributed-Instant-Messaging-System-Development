@@ -134,66 +134,22 @@ void SyncLogic::shutdown() {
 }
 
 /*
- * add user connection counter for current server
- * 1. HGET not exist: Current Chatting server didn't setting up connection
- * counter
- * 2. HGET exist: Increment by 1
- */
-void SyncLogic::incrementConnection() {
-  RedisRAII raii;
-
-  auto get_distributed_lock =
-      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName, 10, 10,
-                           redis::TimeUnit::Milliseconds);
-
-  if (!get_distributed_lock.has_value()) {
-    spdlog::error(
-        "[{}] Acquire Distributed-Lock In IncrementConnection Failed!",
-        ServerConfig::get_instance()->GrpcServerName);
-    return;
-  }
-
-  spdlog::info(
-      "[{}] Acquire Distributed-Lock In  IncrementConnection Successful!",
-      ServerConfig::get_instance()->GrpcServerName);
-
-  /*try to acquire value from redis*/
-  std::optional<std::string> counter = raii->get()->getValueFromHash(
-      redis_server_login, ServerConfig::get_instance()->GrpcServerName);
-
-  std::size_t new_number(0);
-
-  /* redis has this value then read it from redis*/
-  if (counter.has_value()) {
-    new_number = tools::string_to_value<std::size_t>(counter.value()).value();
-  }
-
-  /*incerment and set value to hash by using HSET*/
-  if (!raii->get()->setValue2Hash(redis_server_login,
-                                  ServerConfig::get_instance()->GrpcServerName,
-                                  std::to_string(++new_number))) {
-
-    spdlog::error(
-        "[{}] Client Number Can Not Be Written To Redis Cache! Error Occured!",
-        ServerConfig::get_instance()->GrpcServerName);
-  }
-
-  // release lock
-  raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-                       get_distributed_lock.value());
-
-  /*store this user belonged server into redis*/
-  spdlog::info("[{}] Now {} Client Has Connected To Current Server",
-               ServerConfig::get_instance()->GrpcServerName, new_number);
-}
-
-/*
  * check user status current online status, with distributed lock support
  * is this user current on any other server?
  */
 std::optional<std::string>
 SyncLogic::checkCurrentUser(RedisRAII &raii, const std::string &uuid) {
   return raii->get()->checkValue(server_prefix + uuid);
+}
+
+void SyncLogic::kick_session(std::shared_ptr<Session> session)
+{
+          session->sendOfflineMessage();
+          session->removeRedisCache(session->get_user_uuid(),
+                    session->get_session_id());
+
+          UserManager::get_instance()->moveUserToTerminationZone(session->get_user_uuid());
+          UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
 }
 
 bool SyncLogic::check_and_kick_existing_session(
@@ -205,13 +161,11 @@ bool SyncLogic::check_and_kick_existing_session(
         ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
         session->s_uuid);
 
-    session->sendOfflineMessage();
-    session->removeRedisCache(session->get_user_uuid(),
-              session->get_session_id());
+    /*kick session
+    * session->closeSession(); is not enough!
+    */
 
-    UserManager::get_instance()->moveUserToTerminationZone(session->get_user_uuid());
-    UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
-    //session->closeSession();
+    kick_session(session);
     return true;
   }
   return false;
@@ -475,6 +429,8 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     generateErrorMessage("No User Account Found",
                          ServiceType::SERVICE_LOGINRESPONSE,
                          ServiceStatus::LOGIN_INFO_ERROR, session);
+
+    kick_session(session);
     return;
   }
 
@@ -535,14 +491,6 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
   /*send it back*/
   session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
                        boost::json::serialize(redis_root));
-
-  /*
-   * add user connection counter for current server
-   * 1. HGET not exist: Current Chatting server didn't setting up connection
-   * counter
-   * 2. HGET exist: Increment by 1
-   */
-  incrementConnection();
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,

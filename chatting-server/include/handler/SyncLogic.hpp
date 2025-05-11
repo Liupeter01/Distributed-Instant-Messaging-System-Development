@@ -147,8 +147,8 @@ private:
   void handlingVideoChatMsg(ServiceType srv_type,
                             std::shared_ptr<Session> session, NodePtr recv);
 
-  void handlingHeartBeat(ServiceType srv_type,
-            std::shared_ptr<Session> session, NodePtr recv);
+  void handlingHeartBeat(ServiceType srv_type, std::shared_ptr<Session> session,
+                         NodePtr recv);
 
 public:
   /*redis*/

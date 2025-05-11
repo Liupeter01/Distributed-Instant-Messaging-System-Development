@@ -146,7 +146,7 @@ int main() {
         ServerConfig::get_instance()->ChattingServerPort);
 
     async->startAccept();
-    async->startTimer();      //start zombie kill timer
+    async->startTimer(); // start zombie kill timer
 
     /**/
     ioc.run();
@@ -156,8 +156,8 @@ int main() {
       grpc_server_thread.join();
     }
 
-    async->stopTimer();       //terminate timer!
-    
+    async->stopTimer(); // terminate timer!
+
     /*
      * Chatting server shutdown
      * Delete current chatting server connection counter by using HDEL

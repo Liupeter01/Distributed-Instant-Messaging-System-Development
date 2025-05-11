@@ -242,7 +242,6 @@ void ChattingDlgMainFrame::registerSignal() {
           &TCPNetworkConnection::signal_logout_status, this,
           &ChattingDlgMainFrame::slot_logout_status);
 
-
   // every 10s
   m_timer->start(10000);
 }
@@ -991,10 +990,7 @@ ChattingDlgMainFrame::findChattingHistoryWidget(const QString &friend_uuid) {
   }
 }
 
-void ChattingDlgMainFrame::slot_logout_status(bool status)
-{
-    m_timer->stop();
-}
+void ChattingDlgMainFrame::slot_logout_status(bool status) { m_timer->stop(); }
 
 void ChattingDlgMainFrame::slot_waiting_for_data(bool status) {
   waitForDataFromRemote(status);

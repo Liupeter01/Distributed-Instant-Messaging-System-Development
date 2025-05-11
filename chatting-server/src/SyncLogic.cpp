@@ -142,14 +142,14 @@ SyncLogic::checkCurrentUser(RedisRAII &raii, const std::string &uuid) {
   return raii->get()->checkValue(server_prefix + uuid);
 }
 
-void SyncLogic::kick_session(std::shared_ptr<Session> session)
-{
-          session->sendOfflineMessage();
-          session->removeRedisCache(session->get_user_uuid(),
-                    session->get_session_id());
+void SyncLogic::kick_session(std::shared_ptr<Session> session) {
+  session->sendOfflineMessage();
+  session->removeRedisCache(session->get_user_uuid(),
+                            session->get_session_id());
 
-          UserManager::get_instance()->moveUserToTerminationZone(session->get_user_uuid());
-          UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
+  UserManager::get_instance()->moveUserToTerminationZone(
+      session->get_user_uuid());
+  UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
 }
 
 bool SyncLogic::check_and_kick_existing_session(
@@ -162,8 +162,8 @@ bool SyncLogic::check_and_kick_existing_session(
         session->s_uuid);
 
     /*kick session
-    * session->closeSession(); is not enough!
-    */
+     * session->closeSession(); is not enough!
+     */
 
     kick_session(session);
     return true;

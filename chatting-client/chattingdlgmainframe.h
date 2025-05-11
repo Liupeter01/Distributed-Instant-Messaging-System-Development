@@ -104,7 +104,7 @@ private slots:
   /*logout from server*/
   void slot_logout_status(bool status);
 
-    /*
+  /*
    * waiting for data from remote server
    * status = true: activate
    * status = false: deactivate

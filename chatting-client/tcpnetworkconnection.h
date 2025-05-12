@@ -72,7 +72,8 @@ private slots:
   void slot_connect2_chatting_server();
   void slot_connect2_resources_server();
 
-  void slot_terminate_chatting_server(const QString &uuid, const QString& token);
+  void slot_terminate_chatting_server(const QString &uuid,
+                                      const QString &token);
   void slot_terminate_resources_server();
   void terminate_chatting_server();
 
@@ -91,7 +92,8 @@ signals:
   void signal_terminate_resources_server();
 
   /*send logout network message only!*/
-  void signal_teminate_chatting_server(const QString &uuid, const QString& token);
+  void signal_teminate_chatting_server(const QString &uuid,
+                                       const QString &token);
 
   /*forward resources server's message to a standlone logic thread*/
   void signal_resources_logic_handler(const uint16_t id, const QJsonObject obj);

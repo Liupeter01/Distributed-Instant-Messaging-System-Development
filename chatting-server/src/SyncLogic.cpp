@@ -106,6 +106,11 @@ void SyncLogic::registerCallbacks() {
       ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
       std::bind(&SyncLogic::handlingVideoChatMsg, this, std::placeholders::_1,
                 std::placeholders::_2, std::placeholders::_3)));
+
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_HEARTBEAT_REQUEST,
+      std::bind(&SyncLogic::handlingHeartBeat, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 }
 
 void SyncLogic::commit(pair recv_node) {
@@ -138,8 +143,7 @@ void SyncLogic::incrementConnection() {
   RedisRAII raii;
 
   auto get_distributed_lock =
-      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName,
-                           ServerConfig::get_instance()->GrpcServerName, 10, 10,
+      raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName, 10, 10,
                            redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
@@ -176,7 +180,7 @@ void SyncLogic::incrementConnection() {
 
   // release lock
   raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-                       ServerConfig::get_instance()->GrpcServerName);
+                       get_distributed_lock.value());
 
   /*store this user belonged server into redis*/
   spdlog::info("[{}] Now {} Client Has Connected To Current Server",
@@ -190,6 +194,35 @@ void SyncLogic::incrementConnection() {
 std::optional<std::string>
 SyncLogic::checkCurrentUser(RedisRAII &raii, const std::string &uuid) {
   return raii->get()->checkValue(server_prefix + uuid);
+}
+
+void SyncLogic::kick_session(std::shared_ptr<Session> session) {
+  session->sendOfflineMessage();
+  session->removeRedisCache(session->get_user_uuid(),
+                            session->get_session_id());
+
+  UserManager::get_instance()->moveUserToTerminationZone(
+      session->get_user_uuid());
+  UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
+}
+
+bool SyncLogic::check_and_kick_existing_session(
+    std::shared_ptr<Session> session) {
+  auto existing = UserManager::get_instance()->getSession(session->s_uuid);
+  if (existing.has_value()) {
+    spdlog::warn(
+        "[{}] Client Session {} UUID {} Has Already Logined On This Server!",
+        ServerConfig::get_instance()->GrpcServerName, session->s_session_id,
+        session->s_uuid);
+
+    /*kick session
+     * session->closeSession(); is not enough!
+     */
+
+    kick_session(session);
+    return true;
+  }
+  return false;
 }
 
 bool SyncLogic::labelCurrentUser(RedisRAII &raii, const std::string &uuid) {
@@ -221,7 +254,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
 
   /*Distributed-Lock on lock:[uuid], waiting time = 10ms, EX = 10ms*/
   auto get_distributed_lock =
-      raii->get()->acquire(uuid, uuid, 10, 10, redis::TimeUnit::Milliseconds);
+      raii->get()->acquire(uuid, 10, 10, redis::TimeUnit::Milliseconds);
 
   if (!get_distributed_lock.has_value()) {
     spdlog::error("[{}] UUID = {} Distributed-Lock Acquire Failed!",
@@ -244,8 +277,10 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
           kick_session) {
         auto &old_session = *kick_session;
         old_session->sendOfflineMessage();
-        old_session->terminateAndRemoveFromServer(
-            uuid, old_session->get_session_id());
+        UserManager::get_instance()->moveUserToTerminationZone(
+            old_session->get_user_uuid());
+        UserManager::get_instance()->removeUsrSession(
+            old_session->get_user_uuid(), old_session->get_session_id());
       }
     }
     /*This user  Already Logined On Other Server*/
@@ -272,7 +307,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
 
         // release lock
-        raii->get()->release(uuid, uuid);
+        raii->get()->release(uuid, get_distributed_lock.value());
         return;
       }
     }
@@ -293,7 +328,7 @@ void SyncLogic::updateRedisCache([[maybe_unused]] RedisRAII &raii,
                new_session_id);
 
   // release lock
-  raii->get()->release(uuid, uuid);
+  raii->get()->release(uuid, get_distributed_lock.value());
 }
 
 /*parse Json*/
@@ -389,6 +424,11 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     return;
   }
 
+  /*this session has already logined on this server*/
+  if (check_and_kick_existing_session(session)) {
+    return;
+  }
+
   std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
   std::string token = boost::json::value_to<std::string>(src_obj["token"]);
 
@@ -443,6 +483,8 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
     generateErrorMessage("No User Account Found",
                          ServiceType::SERVICE_LOGINRESPONSE,
                          ServiceStatus::LOGIN_INFO_ERROR, session);
+
+    kick_session(session);
     return;
   }
 
@@ -562,7 +604,9 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
   }
 
   session->sendOfflineMessage();
-  session->terminateAndRemoveFromServer(uuid, session->get_session_id());
+  UserManager::get_instance()->moveUserToTerminationZone(uuid);
+  UserManager::get_instance()->removeUsrSession(uuid,
+                                                session->get_session_id());
 
   spdlog::info("[{}] UUID {} Was Removed From Redis Cache And Kick Out Of "
                "Server Successfully",
@@ -1184,6 +1228,23 @@ void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
   boost::json::object result_root; /*send processing result back to dst user*/
 
   parseJson(session, recv, src_root);
+}
+
+void SyncLogic::handlingHeartBeat(ServiceType srv_type,
+                                  std::shared_ptr<Session> session,
+                                  NodePtr recv) {
+  boost::json::object src_root;    /*store json from client*/
+  boost::json::object result_root; /*send processing result back to dst user*/
+
+  parseJson(session, recv, src_root);
+
+  std::string uuid = boost::json::value_to<std::string>(src_root["uuid"]);
+
+  result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+
+  /*send it back*/
+  session->sendMessage(ServiceType::SERVICE_HEARTBEAT_RESPONSE,
+                       boost::json::serialize(result_root));
 }
 
 /*get user's basic info(name, age, sex, ...) from redis*/

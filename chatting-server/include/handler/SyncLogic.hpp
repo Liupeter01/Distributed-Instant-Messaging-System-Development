@@ -113,6 +113,9 @@ private:
                                const std::string &uuid,
                                std::shared_ptr<Session> session);
 
+  void kick_session(std::shared_ptr<Session> session);
+  bool check_and_kick_existing_session(std::shared_ptr<Session> session);
+
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,
                      NodePtr recv);
@@ -143,6 +146,9 @@ private:
   /*Handling the user send chatting video msg to others*/
   void handlingVideoChatMsg(ServiceType srv_type,
                             std::shared_ptr<Session> session, NodePtr recv);
+
+  void handlingHeartBeat(ServiceType srv_type, std::shared_ptr<Session> session,
+                         NodePtr recv);
 
 public:
   /*redis*/

@@ -5,11 +5,11 @@
 #include <memory>
 #include <network/def.hpp>
 #include <optional>
+#include <redis/RedisManager.hpp>
+#include <service/ConnectionPool.hpp>
 #include <singleton/singleton.hpp>
 #include <spdlog/spdlog.h>
 #include <tbb/concurrent_hash_map.h>
-#include <redis/RedisManager.hpp>
-#include <service/ConnectionPool.hpp>
 #include <type_traits>
 
 namespace grpc {
@@ -57,7 +57,8 @@ class GrpcDataLayer : public Singleton<GrpcDataLayer> {
   GrpcDataLayer() = default;
 
 public:
-          using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>;
+  using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,
+                                               redis::RedisContext>;
   using InstancesMappingType = tbb::concurrent_hash_map<
       /*server name*/ std::string,
       /*server info*/ std::unique_ptr<grpc::details::ServerInstanceConf>>;

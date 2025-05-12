@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "tcpnetworkconnection.h"
-#include <useraccountmanager.hpp>
 #include <QMessageBox>
+#include <useraccountmanager.hpp>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_login(nullptr),
@@ -12,23 +12,20 @@ MainWindow::MainWindow(QWidget *parent)
 {
   ui->setupUi(this);
 
-    registerSignal();
-    registerNetworkSignal();
+  registerSignal();
+  registerNetworkSignal();
 
   switchingToLoginDialog();
 }
 
 MainWindow::~MainWindow() { delete ui; }
 
-void MainWindow::registerSignal()
-{
-}
+void MainWindow::registerSignal() {}
 
-void MainWindow::registerNetworkSignal()
-{
-    connect(TCPNetworkConnection::get_instance().get(),
-            &TCPNetworkConnection::signal_logout_status,
-            this, &MainWindow::slot_connection_status);
+void MainWindow::registerNetworkSignal() {
+  connect(TCPNetworkConnection::get_instance().get(),
+          &TCPNetworkConnection::signal_logout_status, this,
+          &MainWindow::slot_connection_status);
 }
 
 void MainWindow::displayDefaultWindow(QWidget *window) {
@@ -98,13 +95,13 @@ void MainWindow::swithcingToChattingInf() {
   displayDefaultWindow(m_chattingMainFrame);
 }
 
-void MainWindow::slot_connection_status(bool status)
-{
-    //when status = false, then chatting connection terminate!
-    if(status){
-        UserAccountManager::get_instance()->clear();
-        QMessageBox::information(this, "Offline Alert",
-                                 "Same account logged in from a different location, this session has been logged out.");
-        switchingToLoginDialog();
-    }
+void MainWindow::slot_connection_status(bool status) {
+  // when status = false, then chatting connection terminate!
+  if (status) {
+    UserAccountManager::get_instance()->clear();
+    QMessageBox::information(this, "Offline Alert",
+                             "Same account logged in from a different "
+                             "location, this session has been logged out.");
+    switchingToLoginDialog();
+  }
 }

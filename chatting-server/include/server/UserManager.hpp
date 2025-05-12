@@ -9,8 +9,11 @@
 #include <string>
 #include <tbb/concurrent_hash_map.h>
 
+class AsyncServer;
+
 class UserManager : public Singleton<UserManager> {
   friend class Singleton<UserManager>;
+  friend class AsyncServer;
   UserManager();
 
   using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,

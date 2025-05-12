@@ -112,8 +112,7 @@ int main() {
     connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
         raii;
     auto get_distributed_lock =
-        raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName,
-                             ServerConfig::get_instance()->GrpcServerName, 10,
+        raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName, 10,
                              10, redis::TimeUnit::Milliseconds);
 
     if (!get_distributed_lock.has_value()) {
@@ -139,7 +138,7 @@ int main() {
 
     // release lock
     raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-                         ServerConfig::get_instance()->GrpcServerName);
+                         get_distributed_lock.value());
 
     /*create chatting server*/
     std::shared_ptr<AsyncServer> async = std::make_shared<AsyncServer>(
@@ -147,6 +146,8 @@ int main() {
         ServerConfig::get_instance()->ChattingServerPort);
 
     async->startAccept();
+    async->startTimer(); // start zombie kill timer
+
     /**/
     ioc.run();
 
@@ -155,13 +156,14 @@ int main() {
       grpc_server_thread.join();
     }
 
+    async->stopTimer(); // terminate timer!
+
     /*
      * Chatting server shutdown
      * Delete current chatting server connection counter by using HDEL
      */
     get_distributed_lock =
-        raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName,
-                             ServerConfig::get_instance()->GrpcServerName, 10,
+        raii->get()->acquire(ServerConfig::get_instance()->GrpcServerName, 10,
                              10, redis::TimeUnit::Milliseconds);
 
     if (!get_distributed_lock.has_value()) {
@@ -184,7 +186,7 @@ int main() {
 
     // release lock
     raii->get()->release(ServerConfig::get_instance()->GrpcServerName,
-                         ServerConfig::get_instance()->GrpcServerName);
+                         get_distributed_lock.value());
 
     /*
      * Chatting Server Shutdown

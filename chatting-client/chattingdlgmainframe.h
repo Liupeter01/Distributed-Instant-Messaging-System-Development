@@ -6,6 +6,7 @@
 #include <QDialog>
 #include <QIcon>
 #include <QLabel>
+#include <QTimer>
 #include <QVector>
 #include <atomic>
 #include <memory>
@@ -35,8 +36,8 @@ public:
   virtual ~ChattingDlgMainFrame();
 
 signals:
-    void switchToLogin();
-    void signal_teminate_chatting_server(const QString&,const QString&);
+  void switchToLogin();
+  void signal_teminate_chatting_server(const QString &, const QString &);
 
 protected:
   /*chat list test*/
@@ -100,6 +101,9 @@ protected:
   findChattingHistoryWidget(const QString &friend_uuid);
 
 private slots:
+  /*logout from server*/
+  void slot_logout_status(bool status);
+
   /*
    * waiting for data from remote server
    * status = true: activate
@@ -170,6 +174,9 @@ private slots:
                          std::optional<std::shared_ptr<ChattingTextMsg>> msg);
 
 private:
+  /*send heart beat package*/
+  QTimer *m_timer;
+
   Ui::ChattingDlgMainFrame *ui;
 
   /*define how many chat recoreds are going to show up on chat record list*/

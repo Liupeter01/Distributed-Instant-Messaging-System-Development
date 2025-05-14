@@ -19,13 +19,16 @@ public:
 
     ~ImageCropperDialog();
 
+public:
+    void setCropperLabelSize(const QSize size);
+    const QSize getQLabelSize() const;
+    void setOriginalPixmap(const QPixmap& image);
+
 private slots:
     void on_ok_clicked();
     void on_cancel_clicked();
 
 protected:
-    const QSize getQLabelSize() const;
-
 private:
     /*windows size setting*/
     std::size_t m_width;

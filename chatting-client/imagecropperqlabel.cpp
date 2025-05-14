@@ -25,8 +25,7 @@ void ImageCropperQLabel::setCropperSize(const std::size_t _width, const std::siz
     setCropperSize(QSize(_width, _height));
 }
 
-void ImageCropperQLabel::setCropperShape(const CroppingShape shape)
-{
+void ImageCropperQLabel::setCropperShape(const CroppingShape shape){
     m_shape = shape;
 }
 

@@ -8,6 +8,7 @@
 #include <QSize>
 #include <QRect>
 #include <optional>
+#include <QPen>
 
 enum class CroppingShape{
     UNDEFINED,
@@ -42,6 +43,8 @@ public:
 public:
     void setCropperSize(const QSize &size);
     void setCropperSize(const std::size_t _width, const std::size_t _height);
+    void setCropperShape(const CroppingShape shape);
+
     void setOriginalPixmap(const QPixmap& image);
 
     std::optional<QPixmap> getCropppedImage();
@@ -66,6 +69,8 @@ private:
     void moveSelectionFrame(const CroppingPosition& pos, int x_offset, int y_offset);
 
 private:
+    QPen m_borderPen;
+
     bool isPositionUpdated = true; //did the mouse just move to other locations?
     bool isLbuttonPressed = false;
     QPoint m_pressedPos;        //the last pressed pos in mousepressevent

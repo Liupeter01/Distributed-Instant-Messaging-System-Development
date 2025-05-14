@@ -5,18 +5,29 @@
 
 ImageCropperQLabel::ImageCropperQLabel(QWidget *parent)
     : m_size(QSize{}){
+
     this->setMouseTracking(true);
     this->setAlignment(Qt::AlignCenter);
+
+    m_borderPen.setWidth(1);
+    m_borderPen.setColor(Qt::white);
+    m_borderPen.setDashPattern(QVector<qreal>() << 3 << 3 << 3 << 3);
 }
 
 ImageCropperQLabel::~ImageCropperQLabel(){}
 
 void ImageCropperQLabel::setCropperSize(const QSize &size){
     m_size = size;
+    this->setFixedSize(m_size);
 }
 
 void ImageCropperQLabel::setCropperSize(const std::size_t _width, const std::size_t _height){
     setCropperSize(QSize(_width, _height));
+}
+
+void ImageCropperQLabel::setCropperShape(const CroppingShape shape)
+{
+    m_shape = shape;
 }
 
 void ImageCropperQLabel::setOriginalPixmap(const QPixmap &image)
@@ -85,8 +96,8 @@ std::optional<QPixmap>ImageCropperQLabel::getCropppedImage(){
     return getCropppedImage(m_shape);
 }
 
-void ImageCropperQLabel::updateCursor(const CroppingPosition &pos)
-{
+void ImageCropperQLabel::updateCursor(const CroppingPosition &pos){
+
     switch(pos){
         case CroppingPosition::OUTSIDE_RECT:
             setCursor(Qt::ArrowCursor);
@@ -146,25 +157,29 @@ void ImageCropperQLabel::paintEvent(QPaintEvent *e){
     QLabel::paintEvent(e);
 
     switch(m_shape){
-    case CroppingShape::UNDEFINED:
-        break;
-    case CroppingShape::FIXED_RECT:
-        drawRectOpacity();
-        break;
-    case CroppingShape::FIXED_ELLIPSE:
-        drawEllipseOpacity();
-        break;
-    case CroppingShape::SQUARE:
-    case CroppingShape::RECT:
-        drawRectOpacity();
-        drawSelectionFrame();
-        break;
-    case CroppingShape::CIRCLE:
-    case CroppingShape::ELLIPSE:
-        drawEllipseOpacity();
-        drawSelectionFrame();
-        break;
+        case CroppingShape::UNDEFINED:
+            break;
+        case CroppingShape::FIXED_RECT:
+            drawRectOpacity();
+            break;
+        case CroppingShape::FIXED_ELLIPSE:
+            drawEllipseOpacity();
+            break;
+        case CroppingShape::SQUARE:
+        case CroppingShape::RECT:
+            drawRectOpacity();
+            drawSelectionFrame();
+            break;
+        case CroppingShape::CIRCLE:
+        case CroppingShape::ELLIPSE:
+            drawEllipseOpacity();
+            drawSelectionFrame();
+            break;
     }
+
+    QPainter painter(this);
+    painter.setPen(m_borderPen);
+    painter.drawRect(m_croppedRect);
 }
 
 void ImageCropperQLabel::mousePressEvent(QMouseEvent *ev){
@@ -175,12 +190,8 @@ void ImageCropperQLabel::mousePressEvent(QMouseEvent *ev){
 void ImageCropperQLabel::mouseMoveEvent(QMouseEvent *ev){
     m_currMovedPos = ev->pos();
 
-    CroppingPosition status;
-
-    if(isPositionUpdated){
-        status = getPositionInCropperRect(m_currMovedPos);
-        updateCursor(status);
-    }
+    CroppingPosition status = getPositionInCropperRect(m_currMovedPos);
+    updateCursor(status);
 
     //no button pressed event
     //out of image rect boundary, no need to process!
@@ -190,7 +201,7 @@ void ImageCropperQLabel::mouseMoveEvent(QMouseEvent *ev){
     }
 
     //update moved status!
-    isPositionUpdated = false;
+    //isPositionUpdated = false;
 
     int x_offset = m_currMovedPos.x() - m_pressedPos.x();
     int y_offset = m_currMovedPos.y() - m_pressedPos.y();
@@ -286,7 +297,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
 
     else if(pos == CroppingPosition::RIGHT_BUTTOM){
         auto dx = m_currMovedPos.x() - m_croppedRect.left();
-        auto dy = m_currMovedPos.y() - m_croppedRect.right();
+        auto dy = m_currMovedPos.y() - m_croppedRect.top();
         setCursor(Qt::SizeFDiagCursor);
 
         //there is not much changes in visual perspective, so return
@@ -295,9 +306,10 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
         }
 
         switch(m_shape){
+            case CroppingShape::RECT:
             case CroppingShape::ELLIPSE:
                 if(dx >= m_cropperMinimumWidth){
-                    m_croppedRect.setLeft(m_currMovedPos.x());
+                    m_croppedRect.setRight(m_currMovedPos.x());
                 }
                 if(dy >= m_cropperMinimumHeight){
                     m_croppedRect.setBottom(m_currMovedPos.y());
@@ -314,7 +326,8 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                     m_croppedRect.setRight(dy + m_croppedRect.left());
                 }
                 break;
-            default:break;
+            default:
+                break;
         }
     }
     else if(pos == CroppingPosition::LEFT_BUTTOM){
@@ -328,6 +341,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
         }
 
         switch(m_shape){
+            case CroppingShape::RECT:
             case CroppingShape::ELLIPSE:
                 if(dx >= m_cropperMinimumWidth){
                     m_croppedRect.setLeft(m_currMovedPos.x());
@@ -338,16 +352,87 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                 break;
             case CroppingShape::SQUARE:
             case CroppingShape::CIRCLE:
-                if(dx < dy && dy + m_croppedRect.left() <= m_imageRect.right()){
-                    m_croppedRect.setTop(m_currMovedPos.y());
-                    m_croppedRect.setRight(m_croppedRect.left() + dy);
-                }
-                else if(dx >= dy && dx + m_croppedRect.top() <= m_imageRect.bottom()){
+                if(dx > dy && dx + m_croppedRect.top() <= m_imageRect.bottom()){
                     m_croppedRect.setBottom(m_croppedRect.top() + dx);
-                    m_croppedRect.setRight(m_currMovedPos.x());
+                    m_croppedRect.setLeft(m_currMovedPos.x());
+                }
+                else if(dx <= dy && m_croppedRect.right() - dy >= m_imageRect.left()){
+                    m_croppedRect.setBottom(m_currMovedPos.y());
+                    m_croppedRect.setLeft(m_croppedRect.right() - dy);
                 }
                 break;
-            default:break;
+            default:
+                break;
+        }
+    }
+    else if(pos == CroppingPosition::LEFT_TOP){
+        auto dx = m_croppedRect.right() - m_currMovedPos.x();
+        auto dy = m_croppedRect.bottom() - m_currMovedPos.y();
+        setCursor(Qt::SizeFDiagCursor);
+
+        //there is not much changes in visual perspective, so return
+        if(dx < m_cropperMinimumWidth && dy < m_cropperMinimumHeight){
+            return;
+        }
+
+        switch(m_shape){
+            case CroppingShape::RECT:
+            case CroppingShape::ELLIPSE:
+                if(dx >= m_cropperMinimumWidth){
+                    m_croppedRect.setLeft(m_currMovedPos.x());
+                }
+                if(dy >= m_cropperMinimumHeight){
+                    m_croppedRect.setTop(m_currMovedPos.y());
+                }
+                break;
+            case CroppingShape::SQUARE:
+            case CroppingShape::CIRCLE:
+                if(dx > dy && m_croppedRect.bottom() - dx<= m_imageRect.top()){
+                    m_croppedRect.setTop(m_croppedRect.bottom() - dx);
+                    m_croppedRect.setLeft(m_currMovedPos.x());
+                }
+                else if(dx <= dy && m_croppedRect.right() - dy >= m_imageRect.left()){
+                    m_croppedRect.setTop(m_currMovedPos.y());
+                    m_croppedRect.setLeft(m_croppedRect.right() - dy);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    else if(pos == CroppingPosition::RIGHT_TOP){
+        auto dx = m_currMovedPos.x() - m_croppedRect.right();
+        auto dy = m_croppedRect.bottom() - m_currMovedPos.y();
+        setCursor(Qt::SizeBDiagCursor);
+
+        //there is not much changes in visual perspective, so return
+        if(dx < m_cropperMinimumWidth && dy < m_cropperMinimumHeight){
+            return;
+        }
+
+        switch(m_shape){
+        case CroppingShape::RECT:
+        case CroppingShape::ELLIPSE:
+            if(dx >= m_cropperMinimumWidth){
+                m_croppedRect.setRight(m_currMovedPos.x());
+            }
+            if(dy >= m_cropperMinimumHeight){
+                m_croppedRect.setTop(m_currMovedPos.y());
+            }
+            break;
+        case CroppingShape::SQUARE:
+        case CroppingShape::CIRCLE:
+            if(dx < dy && dy + m_croppedRect.left() <= m_imageRect.right()){
+                m_croppedRect.setRight(dy + m_croppedRect.left());
+                m_croppedRect.setTop(m_currMovedPos.y());
+            }
+            else if(dx >= dy && m_croppedRect.bottom() - dx >= m_imageRect.top()){
+                m_croppedRect.setBottom(m_currMovedPos.x());
+                m_croppedRect.setLeft(m_croppedRect.bottom() - dx);
+            }
+            break;
+        default:
+            break;
         }
     }
     else if(pos == CroppingPosition::INSIDE_RECT){

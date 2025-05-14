@@ -72,6 +72,7 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
   Tools::loadImgResources({"chat_icon_normal.png", "chat_icon_hover.png",
                            "chat_icon_clicked.png", "contact_list_normal.png",
                            "contact_list_hover.png", "contact_list_clicked.png",
+                           "settings_normal.png", "settings_hover.png", "settings_clicked.png"
                            "logout.png"},
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);
@@ -79,19 +80,19 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
   /*set chatting page as default*/
   Tools::setQLableImage(ui->my_chat, "chat_icon_normal.png");
   Tools::setQLableImage(ui->my_contact, "contact_list_normal.png");
-  Tools::setQLableImage(ui->logout, "logout.png");
+  Tools::setQLableImage(ui->my_settings, "settings_normal.png");
 
+  Tools::setQLableImage(ui->logout, "logout.png");
   emit ui->my_chat->clicked();
 
   /*add label to global control*/
   addLabel(ui->my_chat);
   addLabel(ui->my_contact);
+  addLabel(ui->my_settings);
 }
 
 ChattingDlgMainFrame::~ChattingDlgMainFrame() {
-  // every 10s
-  // m_timer->start(10000);
-
+    //YOU MUST NOT DEPLOT m_timer cancel here!!!!
   delete m_searchAction;
   delete m_cancelAction;
   delete ui;
@@ -118,9 +119,10 @@ void ChattingDlgMainFrame::registerSignal() {
           &ChattingDlgMainFrame::updateSearchUserButton);
   connect(ui->search_user_button, &ButtonDisplaySwitching::update_display, this,
           &ChattingDlgMainFrame::updateSearchUserButton);
+
   connect(ui->my_chat, &SideBarWidget::clicked, this, [this]() {
     /*update UI display*/
-    this->updateMyChat();
+   updateMyChat();
 
     /*when chat button was clicked, then display chat list*/
     this->slot_display_chat_list();
@@ -130,21 +132,32 @@ void ChattingDlgMainFrame::registerSignal() {
           &ChattingDlgMainFrame::updateMyChat);
 
   connect(ui->my_contact, &SideBarWidget::clicked, this, [this]() {
-    /*update UI display*/
-    this->updateMyContact();
+
+      updateMyContact();
 
     /*when contact button was clicked, then display contact list*/
     this->slot_display_contact_list();
   });
+
+  connect(ui->my_contact, &SideBarWidget::update_display, this,
+          &ChattingDlgMainFrame::updateMyContact);
+
+  connect(ui->my_settings, &SideBarWidget::clicked, this, [this]() {
+
+      updateMySettings();
+
+      /*when contact button was clicked, then display setting*/
+      this->slot_display_setting();
+  });
+
+  connect(ui->my_settings, &SideBarWidget::update_display, this,
+          &ChattingDlgMainFrame::updateMySettings);
 
   connect(ui->logout, &OnceClickableQLabel::clicked, this, [this]() {
     emit signal_teminate_chatting_server(
         UserAccountManager::get_instance()->get_uuid(),
         UserAccountManager::get_instance()->get_token());
   });
-
-  connect(ui->my_contact, &SideBarWidget::update_display, this,
-          &ChattingDlgMainFrame::updateMyContact);
 
   connect(ui->contact_list, &ChattingContactList::signal_switch_addnewuser,
           this, &ChattingDlgMainFrame::switchNewUserPage);
@@ -332,7 +345,7 @@ void ChattingDlgMainFrame::switchRelevantListWidget() {
     ui->contact_list->hide();
     ui->search_list->hide();
     break;
-  case ChattingDlgMode::chattingDlgContactMode:
+  case ChattingDlgMode::ChattingDlgContactMode:
     ui->chat_list->hide();
     ui->contact_list->show();
     ui->search_list->hide();
@@ -342,53 +355,62 @@ void ChattingDlgMainFrame::switchRelevantListWidget() {
     ui->contact_list->hide();
     ui->search_list->show();
     break;
+  case ChattingDlgMode::ChattingDlgSettingMode:
+      ui->contact_list->show();
+      ui->chat_list->hide();
+      ui->search_list->hide();
+    break;
+
   default:
     break;
   }
 }
 
 void ChattingDlgMainFrame::updateMyChat() {
-  auto state = ui->my_chat->getState();
-  if (state.visiable == LabelState::VisiableStatus::ENABLED) {
-
-    resetAllLabels(ui->my_chat);
-
-    setCursor(Qt::PointingHandCursor);
-    Tools::setQLableImage(ui->my_chat, "chat_icon_clicked.png");
-  } else {
-    Tools::setQLableImage(ui->my_chat,
-                          state.hover == LabelState::HoverStatus::DISABLED
-                              ? "chat_icon_normal.png"
-                              : "chat_icon_hover.png");
-
-    if (state.hover == LabelState::HoverStatus::ENABLED) {
-      setCursor(Qt::PointingHandCursor);
-    } else {
-      unsetCursor();
-    }
-  }
+    updateSideBarWidget(ui->my_chat,
+                        "chat_icon_normal.png",
+                        "chat_icon_hover.png",
+                        "chat_icon_clicked.png");
 }
 
 void ChattingDlgMainFrame::updateMyContact() {
-  auto state = ui->my_contact->getState();
-  if (state.visiable == LabelState::VisiableStatus::ENABLED) {
+    updateSideBarWidget(ui->my_contact,
+                        "contact_list_normal.png",
+                        "contact_list_hover.png",
+                        "contact_list_clicked.png");
+}
 
-    resetAllLabels(ui->my_contact);
+void ChattingDlgMainFrame::updateMySettings(){
+    updateSideBarWidget(ui->my_settings,
+                        "settings_normal.png",
+                        "settings_hover.png",
+                        "settings_clicked.png");
+}
 
-    setCursor(Qt::PointingHandCursor);
-    Tools::setQLableImage(ui->my_contact, "contact_list_clicked.png");
-  } else {
-    Tools::setQLableImage(ui->my_contact,
-                          state.hover == LabelState::HoverStatus::DISABLED
-                              ? "contact_list_normal.png"
-                              : "contact_list_hover.png");
+void ChattingDlgMainFrame::updateSideBarWidget(SideBarWidget *widget,
+                                               const QString &normal_pic_path,
+                                               const QString &hover_pic_path,
+                                               const QString &clicked_pic_path)
+{
+    auto state = widget->getState();
+    if (state.visiable == LabelState::VisiableStatus::ENABLED) {
 
-    if (state.hover == LabelState::HoverStatus::ENABLED) {
-      setCursor(Qt::PointingHandCursor);
+        resetAllLabels(widget);
+
+        setCursor(Qt::PointingHandCursor);
+        Tools::setQLableImage(widget, clicked_pic_path);
     } else {
-      unsetCursor();
+        Tools::setQLableImage(widget,
+                              state.hover == LabelState::HoverStatus::DISABLED
+                                  ? normal_pic_path
+                                  : hover_pic_path);
+
+        if (state.hover == LabelState::HoverStatus::ENABLED) {
+            setCursor(Qt::PointingHandCursor);
+        } else {
+            unsetCursor();
+        }
     }
-  }
 }
 
 void ChattingDlgMainFrame::addLabel(SideBarWidget *widget) {
@@ -463,10 +485,23 @@ void ChattingDlgMainFrame::slot_display_contact_list() {
   qDebug() << "Contact Button Clicked!";
 
   /*switch status*/
-  m_dlgMode = ChattingDlgMode::chattingDlgContactMode;
+  m_dlgMode = ChattingDlgMode::ChattingDlgContactMode;
 
   /*after switch status, then switch window*/
   switchRelevantListWidget();
+}
+
+void ChattingDlgMainFrame::slot_display_setting(){
+  qDebug() << "User Setting Button Clicked!";
+
+    /*switch status*/
+  m_dlgMode = ChattingDlgMode::ChattingDlgSettingMode;
+
+  /*after switch status, then switch window*/
+  switchRelevantListWidget();
+  
+    /*switch to user setting page*/
+  swithUserSettingPage();
 }
 
 /*
@@ -923,6 +958,11 @@ void ChattingDlgMainFrame::switchNewUserPage() {
  */
 void ChattingDlgMainFrame::switchUserProfilePage() {
   ui->stackedWidget->setCurrentWidget(ui->userprofilepage);
+}
+
+void ChattingDlgMainFrame::swithUserSettingPage()
+{
+    ui->stackedWidget->setCurrentWidget(ui->settingpage);
 }
 
 /*wait for remote server data*/

@@ -5,6 +5,7 @@
 #include <QDebug>
 #include "usersettingstackpage.h"
 #include "ui_usersettingstackpage.h"
+#include <imagecropperdialog.h>
 
 UserSettingStackPage::UserSettingStackPage(QWidget *parent)
     : QWidget(parent)
@@ -33,6 +34,11 @@ void UserSettingStackPage::on_upload_avator_clicked(){
         return;
     }
 
+    ImageCropperDialog* dialog = new ImageCropperDialog(600, 400, this);
+    dialog->setCropperLabelSize(dialog->getQLabelSize());
+    dialog->setOriginalPixmap(image);
+    dialog->show();
+
     //scale the pixmap to suit new_avator(QLabel) size!
     image = image.scaled(ui->new_avator->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     if(image.isNull()){
@@ -43,6 +49,5 @@ void UserSettingStackPage::on_upload_avator_clicked(){
 
     ui->new_avator->setPixmap(image);           //display this image on qlabel
     ui->new_avator->setScaledContents(true);    //scale automatically!
-
 }
 

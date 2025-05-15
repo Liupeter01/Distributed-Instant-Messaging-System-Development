@@ -1,27 +1,29 @@
-#ifndef IMAGECROPPERDIALOG_H
-#define IMAGECROPPERDIALOG_H
+#ifndef IMAGECROPPERDIALOGIMPL_H
+#define IMAGECROPPERDIALOGIMPL_H
 
 #include <QDialog>
+#include <QPixmap>
 #include <imagecropperqlabel.h>
 
 namespace Ui {
-class ImageCropperDialog;
+class ImageCropperDialogImpl;
 }
 
-class ImageCropperDialog : public QDialog
+class ImageCropperDialogImpl : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ImageCropperDialog(const std::size_t _width,
+    explicit ImageCropperDialogImpl(const std::size_t _width,
                                 const std::size_t _height,
+                                const QPixmap& original_image,
+                                QPixmap &output_image,
+                                const CroppingShape& shape = CroppingShape::CIRCLE,
                                 QWidget *parent = nullptr);
 
-    ~ImageCropperDialog();
+    virtual ~ImageCropperDialogImpl();
 
 public:
-    void setCropperLabelSize(const QSize size);
-    const QSize getQLabelSize() const;
     void setOriginalPixmap(const QPixmap& image);
 
 private slots:
@@ -33,7 +35,10 @@ private:
     /*windows size setting*/
     std::size_t m_width;
     std::size_t m_height;
-    Ui::ImageCropperDialog *ui;
+    Ui::ImageCropperDialogImpl *ui;
+
+    QPixmap m_originalPixmap;
+    QPixmap& m_outputPixmap;
 };
 
-#endif // IMAGECROPPERDIALOG_H
+#endif // IMAGECROPPERDIALOGIMPL_H

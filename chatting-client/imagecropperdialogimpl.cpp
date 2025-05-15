@@ -1,47 +1,48 @@
-#include "imagecropperdialog.h"
-#include "ui_imagecropperdialog.h"
+#include "imagecropperdialogimpl.h"
+#include "ui_imagecropperdialogimpl.h"
 
-ImageCropperDialog::ImageCropperDialog(const std::size_t _width, const std::size_t _height, QWidget *parent)
+ImageCropperDialogImpl::ImageCropperDialogImpl(const std::size_t _width,
+                                       const std::size_t _height,
+                                       const QPixmap& original_image,
+                                       QPixmap &output_image,
+                                       const CroppingShape &shape,
+                                       QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::ImageCropperDialog)
+    , ui(new Ui::ImageCropperDialogImpl)
     , m_width(_width)
     , m_height(_height)
+    , m_outputPixmap(output_image)
 {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowTitle("Image Cropper");
     this->setModal(true);
     this->setMouseTracking(true);
-
     this->setMinimumSize(m_width, m_height);
 
-    ui->imageLabel->setCropperShape(CroppingShape::CIRCLE);
+    ui->imageLabel->setCropper(CroppingShape::CIRCLE, QSize(m_width, m_height));
+    setOriginalPixmap(original_image);
+
+    //in order to ganratee the safty, we should assign input image to output
+    output_image = original_image;
 }
 
-ImageCropperDialog::~ImageCropperDialog(){
+ImageCropperDialogImpl::~ImageCropperDialogImpl(){
     delete ui;
 }
 
-void ImageCropperDialog::setCropperLabelSize(const QSize size){
-    ui->imageLabel->setCropperSize(size);
+void ImageCropperDialogImpl::on_ok_clicked(){
+    auto image = ui->imageLabel->getCropppedImage();
+    if(image.has_value()){
+        m_outputPixmap = image.value();
+    }
+    this->close();
 }
 
-void ImageCropperDialog::on_ok_clicked(){
-    //auto image = ui->imageLabel->getCropppedImage();
-    //image.value();
+void ImageCropperDialogImpl::on_cancel_clicked(){
+    ui->imageLabel->resetCropper();
 }
 
-void ImageCropperDialog::on_cancel_clicked(){
-
-}
-
-const QSize ImageCropperDialog::getQLabelSize() const
-{
-    const auto box_size = ui->choose_box->size();
-    return QSize(m_width - box_size.width(), m_height- box_size.height());
-}
-
-void ImageCropperDialog::setOriginalPixmap(const QPixmap &image)
-{
+void ImageCropperDialogImpl::setOriginalPixmap(const QPixmap &image){
     ui->imageLabel->setOriginalPixmap(image);
 }

@@ -29,6 +29,13 @@ void ImageCropperQLabel::setCropperShape(const CroppingShape shape){
     m_shape = shape;
 }
 
+void ImageCropperQLabel::setCropper(const CroppingShape shape, const QSize &size)
+{
+    setCropperShape(shape);
+    setCropperSize(size);
+    m_originalCroppedRect.setSize(size);
+}
+
 void ImageCropperQLabel::setOriginalPixmap(const QPixmap &image)
 {
     if(image.isNull()){
@@ -43,49 +50,49 @@ void ImageCropperQLabel::setOriginalPixmap(const QPixmap &image)
 
     //calculating the aspect ratio to determine how to scale or position the image
     auto label_width = this->m_size.width();
-    auto label_height = this->m_size.height();
+    auto label_height =this->m_size.height();
     auto image_width = m_originalImage.width();
     auto image_height = m_originalImage.height();
 
     auto label_ratio = label_height / static_cast<float>(label_width);
 
-    QSize final_size{};
-    QRect final_rect;
+    int calibratedHeight{}, calibratedWidth{};
 
-    if(static_cast<int>(label_ratio * image_width) < image_height){
+    if(label_ratio * image_width < image_height){
         //it seems height is limiting dimension
-        float manifyRateOnHeight = label_height / static_cast<float>(image_height);
-        m_ratio = manifyRateOnHeight;
-        int calibratedHeight = label_height;
-        int calibratedWidth = static_cast<int>(manifyRateOnHeight * image_width);
-        final_size = QSize(calibratedWidth, calibratedHeight);
+        m_ratio = label_height / static_cast<float>(image_height);
+        calibratedHeight = label_height;
+        calibratedWidth = static_cast<int>(m_ratio * image_width);
         m_imageRect.setRect(
-            static_cast<int>( label_width * 0.5f - image_width * 0.5f),  /*we need to find it's central point on width!*/
+            static_cast<int>( label_width * 0.5f - calibratedWidth * 0.5f),  /*we need to find it's central point on width!*/
             0,
             calibratedWidth,
             calibratedHeight);
     }
     else{
         //it seems width is limiting dimension
-        float manifyRateOnWidth = label_width / static_cast<float>(image_width);
-        m_ratio =manifyRateOnWidth;
-        int calibratedHeight = static_cast<int>(manifyRateOnWidth * image_height);
-        int calibratedWidth = label_width;
-        final_size = QSize(calibratedWidth, calibratedHeight);
+        m_ratio = label_width / static_cast<float>(image_width);
+        calibratedHeight = static_cast<int>(m_ratio * image_height);
+        calibratedWidth = label_width;
         m_imageRect.setRect(
             0,
-             static_cast<int>( label_height * 0.5f - image_height * 0.5f), /*we need to find it's central point on height!*/
+             static_cast<int>( label_height * 0.5f -  calibratedHeight * 0.5f), /*we need to find it's central point on height!*/
             calibratedWidth,
             calibratedHeight);
     }
 
-    m_calibratedImage = m_originalImage.scaled(final_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    m_calibratedImage = m_originalImage.scaled(calibratedWidth, calibratedHeight,
+                                               Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
     if( m_calibratedImage.isNull()){
         qDebug() << "scale original image to the new one error!";
         return;
     }
 
     this->setPixmap( m_calibratedImage);
+
+    //m_croppedRect.setWidth(static_cast<int>(m_originalCroppedRect.width() * m_ratio));
+    //m_croppedRect.setHeight(static_cast<int>(m_originalCroppedRect.height() * m_ratio));
 
     //calculate new m_croppedRect according to m_shape
     resetCropper();
@@ -116,9 +123,17 @@ void ImageCropperQLabel::updateCursor(const CroppingPosition &pos){
         case CroppingPosition::RIGHT_TOP:
             setCursor(Qt::SizeBDiagCursor);
             break;
+
         case CroppingPosition::RIGHT_BUTTOM:
         case CroppingPosition::LEFT_TOP:
             setCursor(Qt::SizeFDiagCursor);
+            break;
+
+        case CroppingPosition::INSIDE_RECT:
+            setCursor(Qt::SizeAllCursor);
+            break;
+
+        default:
             break;
     }
 }
@@ -314,6 +329,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                     m_croppedRect.setBottom(m_currMovedPos.y());
                 }
                 break;
+
             case CroppingShape::SQUARE:
             case CroppingShape::CIRCLE:
                 if(dx > dy && dx + m_croppedRect.top() <= m_imageRect.bottom()){
@@ -325,6 +341,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                     m_croppedRect.setRight(dy + m_croppedRect.left());
                 }
                 break;
+
             default:
                 break;
         }
@@ -349,6 +366,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                     m_croppedRect.setBottom(m_currMovedPos.y());
                 }
                 break;
+
             case CroppingShape::SQUARE:
             case CroppingShape::CIRCLE:
                 if(dx > dy && dx + m_croppedRect.top() <= m_imageRect.bottom()){
@@ -360,6 +378,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                     m_croppedRect.setLeft(m_croppedRect.right() - dy);
                 }
                 break;
+
             default:
                 break;
         }
@@ -419,6 +438,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                 m_croppedRect.setTop(m_currMovedPos.y());
             }
             break;
+
         case CroppingShape::SQUARE:
         case CroppingShape::CIRCLE:
             if(dx < dy && dy + m_croppedRect.left() <= m_imageRect.right()){
@@ -429,6 +449,7 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
                 m_croppedRect.setBottom(m_currMovedPos.x());
                 m_croppedRect.setLeft(m_croppedRect.bottom() - dx);
             }
+
             break;
         default:
             break;
@@ -457,26 +478,28 @@ void ImageCropperQLabel::moveSelectionFrame(const CroppingPosition &pos,
             }
         }
 
-        m_croppedRect.moveTo(m_croppedRect.left() + x_offset, m_croppedRect.top() + y_offset);
+        m_croppedRect.moveTo(
+            m_croppedRect.left() + x_offset,
+            m_croppedRect.top() + y_offset
+        );
     }
 }
 
 void ImageCropperQLabel::drawRectOpacity(){
 
-    QPainterPath image, cropped, background;
+    QPainterPath image, cropped;
     image.addRect(m_imageRect);
     cropped.addRect(m_croppedRect);
 
     //exclude the other area except cropped area!
     //so, background is going to be darked!!
     // background = image - cropped
-    background = image.subtracted(cropped);
-    drawOpacity(background);
+    drawOpacity(image.subtracted(cropped));
 }
 
 void ImageCropperQLabel::drawEllipseOpacity(){
 
-    QPainterPath image, cropped, background;
+    QPainterPath image, cropped;
     image.addRect(m_imageRect);
 
     //if cropped' width = height, then its gonna to be a sphere!
@@ -485,11 +508,11 @@ void ImageCropperQLabel::drawEllipseOpacity(){
     //exclude the other area except cropped area!
     //so, background is going to be darked!!
     // background = image - cropped
-    background = image.subtracted(cropped);
-    drawOpacity(background);
+    drawOpacity(image.subtracted(cropped));
 }
 
 void ImageCropperQLabel::resetCropper(){
+
     switch(m_shape){
         case CroppingShape::UNDEFINED: break;
         case CroppingShape::FIXED_RECT:
@@ -502,8 +525,8 @@ void ImageCropperQLabel::resetCropper(){
             auto width = m_calibratedImage.width();
             auto height = m_calibratedImage.height();
 
-            auto label_width = this->m_size.width();
-            auto label_height = this->m_size.height();
+            auto label_width = this->width();
+            auto label_height = this->height();
 
             //find the smallest among width and height
             std::size_t length = static_cast<std::size_t>(0.75f * (width > height ? height : width));
@@ -513,7 +536,6 @@ void ImageCropperQLabel::resetCropper(){
                 length,
                 length
             );
-
             break;
     }
 }

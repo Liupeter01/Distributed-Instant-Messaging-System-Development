@@ -10,6 +10,8 @@
 #include <optional>
 #include <QPen>
 
+class ImageCropperDialogImpl;
+
 enum class CroppingShape{
     UNDEFINED,
     FIXED_RECT,
@@ -36,6 +38,7 @@ enum class CroppingPosition{
 class ImageCropperQLabel : public QLabel
 {
     Q_OBJECT
+    friend class ImageCropperDialogImpl;
 public:
     ImageCropperQLabel(QWidget* parent = nullptr);
     virtual ~ImageCropperQLabel();
@@ -44,6 +47,7 @@ public:
     void setCropperSize(const QSize &size);
     void setCropperSize(const std::size_t _width, const std::size_t _height);
     void setCropperShape(const CroppingShape shape);
+    void setCropper(const CroppingShape shape, const QSize &size);
 
     void setOriginalPixmap(const QPixmap& image);
 
@@ -87,6 +91,7 @@ private:
     float m_ratio;
     QSize m_size;               //qlabel size
     QRect m_imageRect;
+    QRect m_originalCroppedRect;
     QRect m_croppedRect;
     QPixmap m_originalImage;    //user pass the parameter
     QPixmap m_calibratedImage;  //after we cropped the original one

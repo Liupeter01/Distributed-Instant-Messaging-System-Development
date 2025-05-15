@@ -55,10 +55,10 @@ private:
   void registerSearchEditSignal();
   void updateSearchUserButton();
 
-  void updateSideBarWidget(SideBarWidget*widget,
-                           const QString& normal_pic_path,
-                           const QString& hover_pic_path,
-                           const QString& clicked_pic_path);
+  void updateSideBarWidget(SideBarWidget *widget,
+                           const QString &normal_pic_path,
+                           const QString &hover_pic_path,
+                           const QString &clicked_pic_path);
 
 protected:
   /*windows switcher(accroding to m_dlgMode)*/
@@ -223,8 +223,8 @@ private:
   enum class ChattingDlgMode {
     ChattingDlgChattingMode,  // show multiple user chatting dialog
     ChattingDlgSearchingMode, // allow user to search
-    ChattingDlgContactMode,    // show contacts
-    ChattingDlgSettingMode      //User Setting
+    ChattingDlgContactMode,   // show contacts
+    ChattingDlgSettingMode    // User Setting
   } m_dlgMode;
 };
 

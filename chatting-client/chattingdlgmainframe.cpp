@@ -72,7 +72,8 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
   Tools::loadImgResources({"chat_icon_normal.png", "chat_icon_hover.png",
                            "chat_icon_clicked.png", "contact_list_normal.png",
                            "contact_list_hover.png", "contact_list_clicked.png",
-                           "settings_normal.png", "settings_hover.png", "settings_clicked.png"
+                           "settings_normal.png", "settings_hover.png",
+                           "settings_clicked.png"
                            "logout.png"},
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);
@@ -92,7 +93,7 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
 }
 
 ChattingDlgMainFrame::~ChattingDlgMainFrame() {
-    //YOU MUST NOT DEPLOT m_timer cancel here!!!!
+  // YOU MUST NOT DEPLOT m_timer cancel here!!!!
   delete m_searchAction;
   delete m_cancelAction;
   delete ui;
@@ -122,7 +123,7 @@ void ChattingDlgMainFrame::registerSignal() {
 
   connect(ui->my_chat, &SideBarWidget::clicked, this, [this]() {
     /*update UI display*/
-   updateMyChat();
+    updateMyChat();
 
     /*when chat button was clicked, then display chat list*/
     this->slot_display_chat_list();
@@ -132,8 +133,7 @@ void ChattingDlgMainFrame::registerSignal() {
           &ChattingDlgMainFrame::updateMyChat);
 
   connect(ui->my_contact, &SideBarWidget::clicked, this, [this]() {
-
-      updateMyContact();
+    updateMyContact();
 
     /*when contact button was clicked, then display contact list*/
     this->slot_display_contact_list();
@@ -143,11 +143,10 @@ void ChattingDlgMainFrame::registerSignal() {
           &ChattingDlgMainFrame::updateMyContact);
 
   connect(ui->my_settings, &SideBarWidget::clicked, this, [this]() {
+    updateMySettings();
 
-      updateMySettings();
-
-      /*when contact button was clicked, then display setting*/
-      this->slot_display_setting();
+    /*when contact button was clicked, then display setting*/
+    this->slot_display_setting();
   });
 
   connect(ui->my_settings, &SideBarWidget::update_display, this,
@@ -356,9 +355,9 @@ void ChattingDlgMainFrame::switchRelevantListWidget() {
     ui->search_list->show();
     break;
   case ChattingDlgMode::ChattingDlgSettingMode:
-      ui->contact_list->show();
-      ui->chat_list->hide();
-      ui->search_list->hide();
+    ui->contact_list->show();
+    ui->chat_list->hide();
+    ui->search_list->hide();
     break;
 
   default:
@@ -367,50 +366,42 @@ void ChattingDlgMainFrame::switchRelevantListWidget() {
 }
 
 void ChattingDlgMainFrame::updateMyChat() {
-    updateSideBarWidget(ui->my_chat,
-                        "chat_icon_normal.png",
-                        "chat_icon_hover.png",
-                        "chat_icon_clicked.png");
+  updateSideBarWidget(ui->my_chat, "chat_icon_normal.png",
+                      "chat_icon_hover.png", "chat_icon_clicked.png");
 }
 
 void ChattingDlgMainFrame::updateMyContact() {
-    updateSideBarWidget(ui->my_contact,
-                        "contact_list_normal.png",
-                        "contact_list_hover.png",
-                        "contact_list_clicked.png");
+  updateSideBarWidget(ui->my_contact, "contact_list_normal.png",
+                      "contact_list_hover.png", "contact_list_clicked.png");
 }
 
-void ChattingDlgMainFrame::updateMySettings(){
-    updateSideBarWidget(ui->my_settings,
-                        "settings_normal.png",
-                        "settings_hover.png",
-                        "settings_clicked.png");
+void ChattingDlgMainFrame::updateMySettings() {
+  updateSideBarWidget(ui->my_settings, "settings_normal.png",
+                      "settings_hover.png", "settings_clicked.png");
 }
 
-void ChattingDlgMainFrame::updateSideBarWidget(SideBarWidget *widget,
-                                               const QString &normal_pic_path,
-                                               const QString &hover_pic_path,
-                                               const QString &clicked_pic_path)
-{
-    auto state = widget->getState();
-    if (state.visiable == LabelState::VisiableStatus::ENABLED) {
+void ChattingDlgMainFrame::updateSideBarWidget(
+    SideBarWidget *widget, const QString &normal_pic_path,
+    const QString &hover_pic_path, const QString &clicked_pic_path) {
+  auto state = widget->getState();
+  if (state.visiable == LabelState::VisiableStatus::ENABLED) {
 
-        resetAllLabels(widget);
+    resetAllLabels(widget);
 
-        setCursor(Qt::PointingHandCursor);
-        Tools::setQLableImage(widget, clicked_pic_path);
+    setCursor(Qt::PointingHandCursor);
+    Tools::setQLableImage(widget, clicked_pic_path);
+  } else {
+    Tools::setQLableImage(widget,
+                          state.hover == LabelState::HoverStatus::DISABLED
+                              ? normal_pic_path
+                              : hover_pic_path);
+
+    if (state.hover == LabelState::HoverStatus::ENABLED) {
+      setCursor(Qt::PointingHandCursor);
     } else {
-        Tools::setQLableImage(widget,
-                              state.hover == LabelState::HoverStatus::DISABLED
-                                  ? normal_pic_path
-                                  : hover_pic_path);
-
-        if (state.hover == LabelState::HoverStatus::ENABLED) {
-            setCursor(Qt::PointingHandCursor);
-        } else {
-            unsetCursor();
-        }
+      unsetCursor();
     }
+  }
 }
 
 void ChattingDlgMainFrame::addLabel(SideBarWidget *widget) {
@@ -491,16 +482,16 @@ void ChattingDlgMainFrame::slot_display_contact_list() {
   switchRelevantListWidget();
 }
 
-void ChattingDlgMainFrame::slot_display_setting(){
+void ChattingDlgMainFrame::slot_display_setting() {
   qDebug() << "User Setting Button Clicked!";
 
-    /*switch status*/
+  /*switch status*/
   m_dlgMode = ChattingDlgMode::ChattingDlgSettingMode;
 
   /*after switch status, then switch window*/
   switchRelevantListWidget();
-  
-    /*switch to user setting page*/
+
+  /*switch to user setting page*/
   swithUserSettingPage();
 }
 
@@ -960,9 +951,8 @@ void ChattingDlgMainFrame::switchUserProfilePage() {
   ui->stackedWidget->setCurrentWidget(ui->userprofilepage);
 }
 
-void ChattingDlgMainFrame::swithUserSettingPage()
-{
-    ui->stackedWidget->setCurrentWidget(ui->settingpage);
+void ChattingDlgMainFrame::swithUserSettingPage() {
+  ui->stackedWidget->setCurrentWidget(ui->settingpage);
 }
 
 /*wait for remote server data*/

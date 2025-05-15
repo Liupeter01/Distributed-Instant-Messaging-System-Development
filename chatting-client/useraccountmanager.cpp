@@ -4,9 +4,7 @@
 
 UserAccountManager::UserAccountManager() : m_info() {}
 
-UserAccountManager::~UserAccountManager() {
-    clear();
-}
+UserAccountManager::~UserAccountManager() { clear(); }
 
 void UserAccountManager::appendFriendRequestList(const QJsonArray &array) {
   for (const QJsonValue &obj : array) {
@@ -186,9 +184,9 @@ void UserAccountManager::setUserInfo(std::shared_ptr<UserNameCard> info) {
   m_userInfo = info;
 }
 void UserAccountManager::clear() {
-    m_info.clear();
-    m_userInfo.reset();
-    m_friend_request_list.clear();
-    m_auth_friend_list.clear();
-    m_user_chatting_histroy.clear();
+  m_info.clear();
+  m_userInfo.reset();
+  m_friend_request_list.clear();
+  m_auth_friend_list.clear();
+  m_user_chatting_histroy.clear();
 }

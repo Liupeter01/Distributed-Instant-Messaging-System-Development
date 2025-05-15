@@ -1,7 +1,6 @@
 #include <QString>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QPixmap>
 #include <QDebug>
 #include "usersettingstackpage.h"
 #include "ui_usersettingstackpage.h"
@@ -14,40 +13,35 @@ UserSettingStackPage::UserSettingStackPage(QWidget *parent)
     ui->setupUi(this);
 }
 
-UserSettingStackPage::~UserSettingStackPage()
+UserSettingStackPage::~UserSettingStackPage(){ delete ui; }
+
+void UserSettingStackPage::on_submit_clicked()
 {
-    delete ui;
+
 }
 
-void UserSettingStackPage::on_upload_avator_clicked(){
+void UserSettingStackPage::on_select_avator_clicked()
+{
     QString filepath = QFileDialog::getOpenFileName(this,
-                                 tr("Choose Your Avator"), QString{},
-                                 tr("Image Format(*.png *.jpg *.jpeg *.bmp *.webp)"));
+                                                    tr("Choose Your Avator"), QString{},
+                                                    tr("Image Format(*.png *.jpg *.jpeg *.bmp *.webp)"));
 
     if(filepath.isEmpty()){
         QMessageBox::critical(this, tr("Error!"), tr("No Image Selected!"), QMessageBox::Ok);
         return;
     }
-    QPixmap image(filepath);
-    if(image.isNull()){
-        QMessageBox::critical(this, tr("Error!"), tr("Load Image Error!"), QMessageBox::Ok);
-        return;
-    }
 
-    ImageCropperDialog* dialog = new ImageCropperDialog(600, 400, this);
-    dialog->setCropperLabelSize(dialog->getQLabelSize());
-    dialog->setOriginalPixmap(image);
-    dialog->show();
-
-    //scale the pixmap to suit new_avator(QLabel) size!
-    image = image.scaled(ui->new_avator->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    auto image = ImageCropperDialog::getCroppedImage(filepath, 600, 400, CroppingShape::CIRCLE);
     if(image.isNull()){
-        qDebug() << "image scaled error!\n";
+        qDebug() << "image cropped error!\n";
         QMessageBox::critical(this, tr("Error!"), tr("Image Processing Error!"), QMessageBox::Ok);
         return;
     }
 
-    ui->new_avator->setPixmap(image);           //display this image on qlabel
+    //scale the pixmap to suit new_avator(QLabel) size!
+    m_avator = image.scaled(ui->new_avator->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    ui->new_avator->setPixmap(m_avator);           //display this image on qlabel
     ui->new_avator->setScaledContents(true);    //scale automatically!
 }
 

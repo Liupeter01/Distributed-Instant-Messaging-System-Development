@@ -96,7 +96,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="upload_avator">
+          <widget class="QPushButton" name="select_avator">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -110,7 +110,7 @@
             </size>
            </property>
            <property name="text">
-            <string>upload</string>
+            <string>select_avator</string>
            </property>
           </widget>
          </item>

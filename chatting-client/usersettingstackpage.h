@@ -2,6 +2,7 @@
 #define USERSETTINGSTACKPAGE_H
 
 #include <QWidget>
+#include <QPixmap>
 
 namespace Ui {
 class UserSettingStackPage;
@@ -16,10 +17,12 @@ public:
     ~UserSettingStackPage();
 
 private slots:
-    void on_upload_avator_clicked();
+    void on_submit_clicked();
+    void on_select_avator_clicked();
 
 private:
     Ui::UserSettingStackPage *ui;
+    QPixmap m_avator;
 };
 
 #endif // USERSETTINGSTACKPAGE_H

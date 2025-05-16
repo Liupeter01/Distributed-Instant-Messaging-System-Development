@@ -46,7 +46,7 @@ endif()
 
 project(
   ChattingServer
-  VERSION 2.2.1
+  VERSION 2.3.7
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
@@ -58,7 +58,7 @@ add_executable(ChattingServer ${source_file} ${header_file}
 target_include_directories(ChattingServer PUBLIC include)
 
 target_link_libraries(ChattingServer PUBLIC boost_chatting grpc++ inicpp spdlog
-                                            hiredis)
+                                            hiredis tbb)
 
 target_compile_definitions(
   ChattingServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

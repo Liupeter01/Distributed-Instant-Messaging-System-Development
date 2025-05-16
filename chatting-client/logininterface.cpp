@@ -74,9 +74,9 @@ void LoginInterface::registerNetworkEvent() {
           &HttpNetworkConnection::signal_login_finished, this,
           &LoginInterface::slot_login_finished);
 
-  connect(this, &LoginInterface::signal_establish_long_connnection,
+  connect(this, &LoginInterface::signal_connect2_chatting_server,
           TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_establish_long_connnection);
+          &TCPNetworkConnection::signal_connect2_chatting_server);
 
   /*connect connection signal <--> slot */
   connect(TCPNetworkConnection::get_instance().get(),
@@ -106,7 +106,7 @@ void LoginInterface::regisrerCallBackFunctions() {
         UserAccountManager::get_instance()->set_port(json["port"].toString());
         UserAccountManager::get_instance()->set_token(json["token"].toString());
 
-        emit signal_establish_long_connnection();
+        emit signal_connect2_chatting_server();
       }));
 }
 
@@ -223,9 +223,9 @@ void LoginInterface::slot_connection_status(bool status) {
      * it!*/
     auto json_data = json_doc.toJson(QJsonDocument::Compact);
 
-    SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+    SendNodeType send_buffer(
         static_cast<uint16_t>(ServiceType::SERVICE_LOGINSERVER), json_data,
-        [](auto x) { return qToBigEndian(x); });
+        ByteOrderConverterReverse{});
 
     /*after connection to server, send TCP request*/
     TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));

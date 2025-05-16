@@ -4,6 +4,8 @@
 #include "httpnetworkconnection.h"
 #include "tcpnetworkconnection.h"
 #include "tools.h"
+#include <ByteOrderConverter.hpp>
+#include <MsgNode.hpp>
 #include <QDialog>
 #include <functional>
 #include <map>
@@ -20,6 +22,7 @@ class LoginInterface : public QDialog {
   Q_OBJECT
 
   using CallBackFunc = std::function<void(QJsonObject &&json)>;
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
   explicit LoginInterface(QWidget *parent = nullptr);
@@ -48,7 +51,7 @@ signals:
   void switchReset();
 
   /*try to connect to chatting server*/
-  void signal_establish_long_connnection();
+  void signal_connect2_chatting_server();
 
 private slots:
   void on_login_button_clicked();

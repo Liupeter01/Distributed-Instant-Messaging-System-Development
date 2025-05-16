@@ -2,14 +2,22 @@
 #ifndef _SYNCLOGIC_HPP_
 #define _SYNCLOGIC_HPP_
 #include <atomic>
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+#include <buffer/ByteOrderConverter.hpp>
+#include <buffer/MsgNode.hpp>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <network/def.hpp>
 #include <optional>
 #include <queue>
+#include <redis/RedisManager.hpp>
 #include <server/Session.hpp>
+#include <service/ConnectionPool.hpp>
 #include <singleton/singleton.hpp>
+#include <sql/MySQLConnectionPool.hpp>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -21,13 +29,15 @@ struct UserFriendRequest;
 class SyncLogic : public Singleton<SyncLogic> {
   friend class Singleton<SyncLogic>;
 
-public:
-  using Convertor = std::function<unsigned short(unsigned short)>;
-  using SessionPtr = std::shared_ptr<Session>;
-  using NodePtr = std::unique_ptr<RecvNode<std::string, Convertor>>;
-  using pair = std::pair<SessionPtr, NodePtr>;
+  using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,
+                                               redis::RedisContext>;
+  using MySQLRAII = connection::ConnectionRAII<mysql::MySQLConnectionPool,
+                                               mysql::MySQLConnection>;
 
-private:
+public:
+  using SessionPtr = std::shared_ptr<Session>;
+  using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
+  using pair = std::pair<SessionPtr, NodePtr>;
   using CallbackFunc =
       std::function<void(ServiceType, std::shared_ptr<Session>, NodePtr)>;
 
@@ -35,7 +45,11 @@ public:
   ~SyncLogic();
   void commit(pair recv_node);
 
-public:
+protected:
+  /*parse Json*/
+  bool parseJson(std::shared_ptr<Session> session, NodePtr &recv,
+                 boost::json::object &src_obj);
+
   static void generateErrorMessage(const std::string &log, ServiceType type,
                                    ServiceStatus status, SessionPtr conn);
 
@@ -48,6 +62,29 @@ public:
   static std::optional<std::unique_ptr<UserNameCard>>
   getUserBasicInfo(const std::string &key);
 
+  /*
+   * get friend request list from the database
+   * @param: startpos: get friend request from the index[startpos]
+   * @param: interval: how many requests are going to acquire [startpos,
+   * startpos + interval)
+   */
+  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
+  getFriendRequestInfo(const std::string &dst_uuid,
+                       const std::size_t start_pos = 0,
+                       const std::size_t interval = 10);
+
+  /*
+   * acquire Friend List
+   * get existing authenticated bid-directional friend from database
+   * @param: startpos: get friend from the index[startpos]
+   * @param: interval: how many friends re going to acquire [startpos, startpos
+   * + interval)
+   */
+  std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+  getAuthFriendsInfo(const std::string &dst_uuid,
+                     const std::size_t start_pos = 0,
+                     const std::size_t interval = 10);
+
 private:
   SyncLogic();
 
@@ -59,13 +96,25 @@ private:
 
   /*client enter current server*/
   void incrementConnection();
-  void decrementConnection();
+
+  static std::optional<std::string>
+  checkCurrentUser([[maybe_unused]] RedisRAII &raii, const std::string &uuid);
 
   /*store this user belonged server into redis*/
-  bool tagCurrentUser(const std::string &uuid);
+  static bool labelCurrentUser([[maybe_unused]] RedisRAII &raii,
+                               const std::string &uuid);
 
-  /*delete user belonged server in redis*/
-  bool untagCurrentUser(const std::string &uuid);
+  /*store this user belonged session id into redis*/
+  static bool labelUserSessionID([[maybe_unused]] RedisRAII &raii,
+                                 const std::string &uuid,
+                                 const std::string &session_id);
+
+  static void updateRedisCache([[maybe_unused]] RedisRAII &raii,
+                               const std::string &uuid,
+                               std::shared_ptr<Session> session);
+
+  void kick_session(std::shared_ptr<Session> session);
+  bool check_and_kick_existing_session(std::shared_ptr<Session> session);
 
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,
@@ -98,28 +147,8 @@ private:
   void handlingVideoChatMsg(ServiceType srv_type,
                             std::shared_ptr<Session> session, NodePtr recv);
 
-  /*
-   * get friend request list from the database
-   * @param: startpos: get friend request from the index[startpos]
-   * @param: interval: how many requests are going to acquire [startpos,
-   * startpos + interval)
-   */
-  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
-  getFriendRequestInfo(const std::string &dst_uuid,
-                       const std::size_t start_pos = 0,
-                       const std::size_t interval = 10);
-
-  /*
-   * acquire Friend List
-   * get existing authenticated bid-directional friend from database
-   * @param: startpos: get friend from the index[startpos]
-   * @param: interval: how many friends re going to acquire [startpos, startpos
-   * + interval)
-   */
-  std::optional<std::vector<std::unique_ptr<UserNameCard>>>
-  getAuthFriendsInfo(const std::string &dst_uuid,
-                     const std::size_t start_pos = 0,
-                     const std::size_t interval = 10);
+  void handlingHeartBeat(ServiceType srv_type, std::shared_ptr<Session> session,
+                         NodePtr recv);
 
 public:
   /*redis*/
@@ -130,6 +159,9 @@ public:
 
   /*store the server name that this user belongs to*/
   static std::string server_prefix;
+
+  /*store the current session id that this user belongs to*/
+  static std::string session_prefix;
 
 private:
   std::atomic<bool> m_stop;

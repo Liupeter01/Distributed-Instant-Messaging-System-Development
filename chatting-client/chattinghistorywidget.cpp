@@ -13,22 +13,23 @@ ChattingHistoryWidget::~ChattingHistoryWidget() { delete ui; }
 
 void ChattingHistoryWidget::setUserInfo(
     std::shared_ptr<FriendChattingHistory> info) {
-    /*store the friendchattinghistory obj*/
+  /*store the friendchattinghistory obj*/
   m_userinfo = info;
 
-    updateLastMsg();
+  updateLastMsg();
 }
 
-void ChattingHistoryWidget::updateLastMsg(){
-     setLastMessage<ChattingTextMsg>();
+void ChattingHistoryWidget::updateLastMsg() {
+  setLastMessage<ChattingTextMsg>();
 }
 
 void ChattingHistoryWidget::setItemDisplay() {
   QSize size = ui->user_avator->size();
-  //auto image =
-  //    Tools::loadImages(m_userinfo->m_avatorPath, size.width(), size.height())
-  //        .value();
-  //ui->user_avator->setPixmap(QPixmap::fromImage(image));
+  // auto image =
+  //     Tools::loadImages(m_userinfo->m_avatorPath, size.width(),
+  //     size.height())
+  //         .value();
+  // ui->user_avator->setPixmap(QPixmap::fromImage(image));
   ui->user_name->setText(m_userinfo->m_nickname);
 }
 

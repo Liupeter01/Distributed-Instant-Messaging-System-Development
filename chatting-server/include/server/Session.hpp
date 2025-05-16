@@ -2,12 +2,17 @@
 #ifndef _SESSION_HPP_
 #define _SESSION_HPP_
 #include <boost/asio.hpp>
-#include <functional>
+#include <buffer/ByteOrderConverter.hpp>
+#include <buffer/MsgNode.hpp>
 #include <memory>
-#include <mutex>
 #include <network/def.hpp>
-#include <queue>
-#include <server/MsgNode.hpp>
+#include <redis/RedisManager.hpp>
+#include <service/ConnectionPool.hpp>
+#include <tbb/concurrent_queue.h>
+
+namespace grpc {
+class GrpcDistributedChattingImpl;
+}
 
 class AsyncServer;
 class SyncLogic;
@@ -15,12 +20,15 @@ class SyncLogic;
 class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
+  friend class grpc::GrpcDistributedChattingImpl;
 
-  using Convertor = std::function<unsigned short(unsigned short)>;
-  using Recv = RecvNode<std::string, Convertor>;
-  using Send = SendNode<std::string, Convertor>;
+  using Recv = RecvNode<std::string, ByteOrderConverter>;
+  using Send = SendNode<std::string, ByteOrderConverterReverse>;
   using RecvPtr = std::unique_ptr<Recv>;
   using SendPtr = std::unique_ptr<Send>;
+
+  using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,
+                                               redis::RedisContext>;
 
 public:
   Session(boost::asio::io_context &_ioc, AsyncServer *my_gate);
@@ -29,10 +37,15 @@ public:
 public:
   void startSession();
   void closeSession();
-  void setUUID(const std::string &uuid);
+  void sendOfflineMessage();
+  void setUUID(const std::string &uuid) { s_uuid = uuid; }
   void sendMessage(ServiceType srv_type, const std::string &message);
+  [[nodiscard]] bool isSessionTimeout(const std::time_t &now) const;
+  void updateLastHeartBeat();
+  const std::string &get_user_uuid() const;
+  const std::string &get_session_id() const;
 
-private:
+protected:
   /*handling sending event*/
   void handle_write(std::shared_ptr<Session> session,
                     boost::system::error_code ec);
@@ -46,6 +59,32 @@ private:
                       std::size_t bytes_transferred);
 
 private:
+  /*
+   *  sub user connection counter for current server
+   * 1. HGET not exist: Current Chatting server didn't setting up connection
+   * counter
+   * 2. HGET exist: Decrement by 1
+   */
+  void decrementConnection();
+
+  void terminateAndRemoveFromServer(const std::string &user_uuid);
+  void terminateAndRemoveFromServer(const std::string &user_uuid,
+                                    const std::string &expected_session_id);
+  static void removeRedisCache(const std::string &uuid,
+                               const std::string &session_id);
+
+  void purgeRemoveConnection(std::shared_ptr<Session> session);
+
+private:
+  /*redis*/
+  static std::string redis_server_login;
+
+  /*store the server name that this user belongs to*/
+  static std::string server_prefix;
+
+  /*store the current session id that this user belongs to*/
+  static std::string session_prefix;
+
   bool s_closed = false;
 
   /*store unique user id(uuid)*/
@@ -57,6 +96,12 @@ private:
   /*user's socket*/
   boost::asio::ip::tcp::socket s_socket;
 
+  /*
+   * the last time that this session recv data from client
+   * we can not consider about boost::asio::steady_timer, because it's unsafe
+   */
+  std::atomic<std::time_t> m_last_heartbeat;
+
   /*pointing to the server it belongs to*/
   AsyncServer *s_gate;
 
@@ -65,14 +110,13 @@ private:
   RecvPtr m_recv_buffer;
 
   /*sending queue*/
-  std::mutex m_mtx;
-  std::queue<SendPtr> m_send_queue;
+  std::atomic<bool> m_write_in_progress = false;
+  std::unique_ptr<Send> m_current_write_msg;
+  tbb::concurrent_queue<SendPtr> m_concurrent_sent_queue;
 
   /* the length of the header
    * the max length of receiving buffer
    */
-  static constexpr std::size_t HEADER_LENGTH =
-      sizeof(uint16_t) + sizeof(uint16_t);
   static constexpr std::size_t MAX_LENGTH = 2048;
 };
 

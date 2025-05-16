@@ -1,9 +1,7 @@
 #pragma once
 #ifndef _ASYNCSERVER_HPP_
 #define _ASYNCSERVER_HPP_
-#include <mutex>
 #include <server/Session.hpp>
-#include <unordered_map>
 
 class SyncLogic;
 
@@ -17,27 +15,30 @@ public:
 
 public:
   void startAccept();
+  void startTimer();
+  void stopTimer();
 
-private:
-  void terminateConnection(const std::string &session_id);
+protected:
+  // waiting to be closed
+  void moveUserToTerminationZone(const std::string &user_uuid);
+  void terminateConnection(const std::string &user_uuid);
+  void terminateConnection(const std::string &user_uuid,
+                           const std::string &expected_session_id);
   void handleAccept(std::shared_ptr<Session> session,
                     boost::system::error_code ec);
 
 private:
-  /*create a mutex to protect m_sessions*/
-  std::mutex m_mtx;
+  void heartBeatEvent(const boost::system::error_code &ec);
 
+private:
   /*boost io_context*/
   boost::asio::io_context &m_ioc;
 
   /*create a server acceptor to accept connection*/
   boost::asio::ip::tcp::acceptor m_acceptor;
 
-  /*maintain user's connection*/
-  std::unordered_map<
-      /*unique_string*/ std::string,
-      /*connected session*/ std::shared_ptr<Session>>
-      m_sessions;
+  /*timer & clock*/
+  boost::asio::steady_timer m_timer;
 };
 
 #endif

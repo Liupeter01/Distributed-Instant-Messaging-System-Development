@@ -70,8 +70,8 @@ void ChattingContactItem::setChattingContact(
   m_size = ui->contact_zone->size();
 }
 
-std::shared_ptr<UserNameCard> ChattingContactItem::getChattingContact(){
-    return m_userinfo;
+std::shared_ptr<UserNameCard> ChattingContactItem::getChattingContact() {
+  return m_userinfo;
 }
 
 void ChattingContactItem::setGroupSeperator(const QString &text) {

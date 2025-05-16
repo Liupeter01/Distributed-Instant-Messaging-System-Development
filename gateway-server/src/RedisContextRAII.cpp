@@ -1,3 +1,4 @@
+#include <chrono>
 #include <redis/RedisContextRAII.hpp>
 #include <redis/RedisReplyRAII.hpp>
 #include <spdlog/spdlog.h>
@@ -21,11 +22,15 @@ bool redis::RedisContext::isValid() { return m_valid; }
 
 bool redis::RedisContext::setValue(const std::string &key,
                                    const std::string &value) {
+
+  if (key.empty()) {
+    return false;
+  }
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status = m_replyDelegate->redisCommand(*this, std::string("SET %s %s"),
                                               key.c_str(), value.c_str());
   if (status) {
-    spdlog::info("Excute command [ SET key = {0}, value = {1}] successfully!",
+    spdlog::info("Execute command [ SET key = {0}, value = {1}] successfully!",
                  key.c_str(), value.c_str());
     return true;
   }
@@ -35,13 +40,18 @@ bool redis::RedisContext::setValue(const std::string &key,
 bool redis::RedisContext::setValue2Hash(const std::string &key,
                                         const std::string &field,
                                         const std::string &value) {
+
+  if (key.empty()) {
+    return false;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status =
       m_replyDelegate->redisCommand(*this, std::string("HSET %s %s %s"),
                                     key.c_str(), field.c_str(), value.c_str());
 
   if (status) {
-    spdlog::info("Excute command [ HSET key = {0}, field = {1}, value = {2}] "
+    spdlog::info("Execute command [ HSET key = {0}, field = {1}, value = {2}] "
                  "successfully!",
                  key.c_str(), field.c_str(), value.c_str());
     return true;
@@ -51,12 +61,17 @@ bool redis::RedisContext::setValue2Hash(const std::string &key,
 
 bool redis::RedisContext::delValueFromHash(const std::string &key,
                                            const std::string &field) {
+
+  if (key.empty()) {
+    return false;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status = m_replyDelegate->redisCommand(*this, std::string("HDEL %s %s"),
                                               key.c_str(), field.c_str());
 
   if (status) {
-    spdlog::info("Excute command [ HDEL key = {0}, field = {1}] "
+    spdlog::info("Execute command [ HDEL key = {0}, field = {1}] "
                  "successfully!",
                  key.c_str(), field.c_str());
     return true;
@@ -67,12 +82,17 @@ bool redis::RedisContext::delValueFromHash(const std::string &key,
 
 bool redis::RedisContext::leftPush(const std::string &key,
                                    const std::string &value) {
+
+  if (key.empty()) {
+    return false;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status = m_replyDelegate->redisCommand(*this, std::string("LPUSH %s %s"),
                                               key.c_str(), value.c_str());
   if (status) {
     spdlog::info(
-        "Excute command  [ LPUSH key = {0}, value = {1}]  successfully!",
+        "Execute command  [ LPUSH key = {0}, value = {1}]  successfully!",
         key.c_str(), value.c_str());
     return true;
   }
@@ -81,12 +101,17 @@ bool redis::RedisContext::leftPush(const std::string &key,
 
 bool redis::RedisContext::rightPush(const std::string &key,
                                     const std::string &value) {
+
+  if (key.empty()) {
+    return false;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status = m_replyDelegate->redisCommand(*this, std::string("RPUSH %s %s"),
                                               key.c_str(), value.c_str());
   if (status) {
     spdlog::info(
-        "Excute command  [ RPUSH key = {0}, value = {1}]  successfully!",
+        "Execute command  [ RPUSH key = {0}, value = {1}]  successfully!",
         key.c_str(), value.c_str());
     return true;
   }
@@ -94,22 +119,32 @@ bool redis::RedisContext::rightPush(const std::string &key,
 }
 
 bool redis::RedisContext::delPair(const std::string &key) {
+
+  if (key.empty()) {
+    return false;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status =
       m_replyDelegate->redisCommand(*this, std::string("DEL %s"), key.c_str());
   if (status) {
-    spdlog::info("Excute command [ DEL key = {} ]successfully!", key.c_str());
+    spdlog::info("Execute command [ DEL key = {} ]successfully!", key.c_str());
     return true;
   }
   return false;
 }
 
 bool redis::RedisContext::existKey(const std::string &key) {
+
+  if (key.empty()) {
+    return false;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   auto status = m_replyDelegate->redisCommand(*this, std::string("exists %s"),
                                               key.c_str());
   if (status) {
-    spdlog::info("Excute command [ exists key = {}] successfully!",
+    spdlog::info("Execute command [ exists key = {}] successfully!",
                  key.c_str());
     return true;
   }
@@ -118,6 +153,11 @@ bool redis::RedisContext::existKey(const std::string &key) {
 
 std::optional<std::string>
 redis::RedisContext::checkValue(const std::string &key) {
+
+  if (key.empty()) {
+    return std::nullopt;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   if (!m_replyDelegate->redisCommand(*this, std::string("GET %s"),
                                      key.c_str())) {
@@ -127,12 +167,17 @@ redis::RedisContext::checkValue(const std::string &key) {
       m_replyDelegate->getType().value() != REDIS_REPLY_STRING) {
     return std::nullopt;
   }
-  spdlog::info("Excute command [ GET key = %s ] successfully!", key.c_str());
+  spdlog::info("Execute command [ GET key = %s ] successfully!", key.c_str());
   return m_replyDelegate->getMessage();
 }
 
 std::optional<std::string>
 redis::RedisContext::leftPop(const std::string &key) {
+
+  if (key.empty()) {
+    return std::nullopt;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   if (!m_replyDelegate->redisCommand(*this, std::string("LPOP %s"),
                                      key.c_str())) {
@@ -145,12 +190,17 @@ redis::RedisContext::leftPop(const std::string &key) {
       m_replyDelegate->getType().value() == REDIS_REPLY_NIL) {
     return std::nullopt;
   }
-  spdlog::info("Excute command [ LPOP key = {} ] successfully!", key.c_str());
+  spdlog::info("Execute command [ LPOP key = {} ] successfully!", key.c_str());
   return m_replyDelegate->getMessage();
 }
 
 std::optional<std::string>
 redis::RedisContext::rightPop(const std::string &key) {
+
+  if (key.empty()) {
+    return std::nullopt;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   if (!m_replyDelegate->redisCommand(*this, std::string("RPOP %s"),
                                      key.c_str())) {
@@ -160,13 +210,18 @@ redis::RedisContext::rightPop(const std::string &key) {
       m_replyDelegate->getType().value() == REDIS_REPLY_NIL) {
     return std::nullopt;
   }
-  spdlog::info("Excute command  [ RPOP key = {}] successfully!", key.c_str());
+  spdlog::info("Execute command  [ RPOP key = {}] successfully!", key.c_str());
   return m_replyDelegate->getMessage();
 }
 
 std::optional<std::string>
 redis::RedisContext::getValueFromHash(const std::string &key,
                                       const std::string &field) {
+
+  if (key.empty()) {
+    return std::nullopt;
+  }
+
   std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
   if (!m_replyDelegate->redisCommand(*this, std::string("HGET %s %s"),
                                      key.c_str(), field.c_str())) {
@@ -178,9 +233,110 @@ redis::RedisContext::getValueFromHash(const std::string &key,
     return std::nullopt;
   }
 
-  spdlog::info("Excute command [ HGET key = {0}, field = {1} ] successfully!",
+  spdlog::info("Execute command [ HGET key = {0}, field = {1} ] successfully!",
                key.c_str(), field.c_str());
   return m_replyDelegate->getMessage();
+}
+
+std::optional<std::string>
+redis::RedisContext::acquire(const std::string &lockName,
+                             const std::size_t waitTime, const std::size_t EXPX,
+                             TimeUnit unit) {
+
+  if (lockName.empty()) {
+    return std::nullopt;
+  }
+
+  auto identifer = tools::userTokenGenerator();
+
+  // Add additional lock name format
+  std::string full_lock_name = std::string(lock) + lockName;
+
+  // Calculate Redis Wait Time According to TimeUnit
+  auto startTime = std::chrono::high_resolution_clock::now();
+  auto endTime = std::chrono::high_resolution_clock::now();
+  if (unit == TimeUnit::Seconds) {
+    endTime = startTime + std::chrono::seconds(waitTime);
+  } else if (unit == TimeUnit::Milliseconds) {
+    endTime = startTime + std::chrono::milliseconds(waitTime);
+  } else {
+    spdlog::error("[REDIS]: Time Unit Error!");
+    return std::nullopt;
+  }
+
+  while (std::chrono::high_resolution_clock::now() < endTime) {
+    if (acquireLock(full_lock_name, identifer, EXPX, unit)) {
+      return identifer;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  return std::nullopt;
+}
+
+bool redis::RedisContext::acquireLock(const std::string &lockName,
+                                      const std::string &identifer,
+                                      const std::size_t EXPX, TimeUnit unit) {
+
+  if (lockName.empty() || identifer.empty()) {
+    return false;
+  }
+
+  std::string inputSchema;
+  inputSchema.clear();
+  if (unit == TimeUnit::Seconds) {
+    inputSchema = std::string("SET %s %s NX EX %d");
+  } else if (unit == TimeUnit::Milliseconds) {
+    inputSchema = std::string("SET %s %s NX PX %d");
+  } else {
+    spdlog::error("[REDIS]: Time Unit Error!");
+    return false;
+  }
+
+  std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
+
+  auto status = m_replyDelegate->redisCommand(
+      *this, inputSchema, lockName.c_str(), identifer.c_str(), EXPX);
+
+  if (status) {
+    spdlog::info("Execute command [ SET key = {0}, value = {1}, timeout = {2}] "
+                 "successfully!",
+                 lockName.c_str(), identifer.c_str(), EXPX);
+    return true;
+  }
+  return false;
+}
+
+bool redis::RedisContext::release(const std::string &lockName,
+                                  const std::string &identifer) {
+  if (lockName.empty() || identifer.empty()) {
+    return false;
+  }
+
+  // Add additional lock name format
+  std::string full_lock_name = std::string(lock) + lockName;
+  return releaseLock(full_lock_name, identifer);
+}
+
+bool redis::RedisContext::releaseLock(const std::string &lockName,
+                                      const std::string &identifer) {
+
+  std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
+
+  // Use EVAL to execute lua script
+  // param 1: lua script itself
+  // param 2: key
+  // param 3: value
+  auto status = m_replyDelegate->redisCommand(
+      *this, "EVAL %s 1 %s %s", release_lock_lua_script, lockName.c_str(),
+      identifer.c_str());
+
+  if (status) {
+    spdlog::info("Execute Lua Script [ EVAL {0} 1 {1} {2}] successfully!",
+                 release_lock_lua_script, lockName.c_str(), identifer.c_str());
+    return true;
+  }
+  return false;
 }
 
 bool redis::RedisContext::checkError() {
@@ -205,7 +361,7 @@ bool redis::RedisContext::checkAuth(std::string_view sv) {
   auto status =
       m_replyDelegate->redisCommand(*this, std::string("AUTH %s"), sv.data());
   if (status) {
-    spdlog::info("Excute command  [ AUTH ] successfully!");
+    // spdlog::info("Excute command  [ AUTH ] successfully!");
   }
   return status;
 }

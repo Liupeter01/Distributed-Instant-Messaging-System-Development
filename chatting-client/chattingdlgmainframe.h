@@ -1,9 +1,12 @@
 #ifndef CHATTINGDLGMAINFRAME_H
 #define CHATTINGDLGMAINFRAME_H
 
+#include <ByteOrderConverter.hpp>
+#include <MsgNode.hpp>
 #include <QDialog>
 #include <QIcon>
 #include <QLabel>
+#include <QTimer>
 #include <QVector>
 #include <atomic>
 #include <memory>
@@ -26,9 +29,15 @@ class ChattingDlgMainFrame;
 class ChattingDlgMainFrame : public QDialog {
   Q_OBJECT
 
+  using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
+
 public:
   explicit ChattingDlgMainFrame(QWidget *parent = nullptr);
   virtual ~ChattingDlgMainFrame();
+
+signals:
+  void switchToLogin();
+  void signal_teminate_chatting_server(const QString &, const QString &);
 
 protected:
   /*chat list test*/
@@ -39,6 +48,7 @@ protected:
 
 private:
   void registerSignal();
+  void registerNetworkEvent();
 
   /*register action for search edit ui item*/
   void registerSearchEditAction();
@@ -90,12 +100,9 @@ protected:
   std::optional<QListWidgetItem *>
   findChattingHistoryWidget(const QString &friend_uuid);
 
-signals:
-  void signal_log_out();
-
 private slots:
-  /*when server offline or kick out of the server*/
-  void slot_connection_status(bool status);
+  /*logout from server*/
+  void slot_logout_status(bool status);
 
   /*
    * waiting for data from remote server
@@ -167,6 +174,9 @@ private slots:
                          std::optional<std::shared_ptr<ChattingTextMsg>> msg);
 
 private:
+  /*send heart beat package*/
+  QTimer *m_timer;
+
   Ui::ChattingDlgMainFrame *ui;
 
   /*define how many chat recoreds are going to show up on chat record list*/

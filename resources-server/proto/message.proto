@@ -1,0 +1,31 @@
+syntax = "proto3";
+package message;
+
+service ResourcesRegisterService {
+  // Resource server related
+  rpc RegisterInstance(RegisterRequest) returns (StatusResponse);
+  rpc RegisterGrpc(RegisterRequest) returns (StatusResponse);
+  rpc ShutdownInstance(ShutdownRequest) returns (StatusResponse);
+  rpc ShutdownGrpc(ShutdownRequest) returns (StatusResponse);
+  rpc GetInstancePeers(PeerRequest) returns (PeerResponse);
+  rpc GetGrpcPeers(PeerRequest) returns (PeerResponse);
+}
+
+message ServerInfo {
+  string name = 1;
+  string host = 2;
+  string port = 3;
+}
+
+message RegisterRequest { ServerInfo info = 1; }
+
+message ShutdownRequest { string cur_server = 1; }
+
+message StatusResponse { int32 error = 1; }
+
+message PeerRequest { string cur_server = 1; }
+
+message PeerResponse {
+  int32 error = 1;
+  repeated ServerInfo lists = 2;
+}

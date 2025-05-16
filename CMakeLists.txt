@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(DistributedIMSystem)
 
+option(DIMS_BUILD_TESTING "Enable DistributedIMSystem building tests" ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -71,6 +73,11 @@ FetchContent_MakeAvailable(boost gRPC)
 set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
+if (DIMS_BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
 add_library(boost_common INTERFACE)
 target_link_libraries(boost_common INTERFACE Boost::asio Boost::system
                                              Boost::filesystem Boost::uuid)
@@ -95,6 +102,7 @@ target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql
 add_subdirectory(external/inifile)
 add_subdirectory(external/spdlog)
 add_subdirectory(external/hiredis)
+add_subdirectory(external/oneTBB)
 
 # Add submodules (servers)
 add_subdirectory(gateway-server)

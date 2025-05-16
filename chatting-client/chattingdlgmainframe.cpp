@@ -25,7 +25,8 @@ std::size_t ChattingDlgMainFrame::CHATRECORED_PER_PAGE = 9;
 ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
     : m_send_status(false) /*wait for data status is false*/
       ,
-      QDialog(parent), ui(new Ui::ChattingDlgMainFrame), m_curQLabel(nullptr),
+      m_timer(new QTimer(this)), QDialog(parent),
+      ui(new Ui::ChattingDlgMainFrame), m_curQLabel(nullptr),
       m_curr_chat_record_loaded(0),
       m_dlgMode(
           ChattingDlgMode::ChattingDlgChattingMode) /*chatting mode by default*/
@@ -34,6 +35,8 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
 
   /*register signal for ui display*/
   registerSignal();
+
+  registerNetworkEvent();
 
   /*register Qaction for search edit ui widget*/
   registerSearchEditAction();
@@ -68,14 +71,15 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
   /*load qimage for side bar*/
   Tools::loadImgResources({"chat_icon_normal.png", "chat_icon_hover.png",
                            "chat_icon_clicked.png", "contact_list_normal.png",
-                           "contact_list_hover.png",
-                           "contact_list_clicked.png"},
+                           "contact_list_hover.png", "contact_list_clicked.png",
+                           "logout.png"},
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);
 
   /*set chatting page as default*/
   Tools::setQLableImage(ui->my_chat, "chat_icon_normal.png");
   Tools::setQLableImage(ui->my_contact, "contact_list_normal.png");
+  Tools::setQLableImage(ui->logout, "logout.png");
 
   emit ui->my_chat->clicked();
 
@@ -85,6 +89,9 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
 }
 
 ChattingDlgMainFrame::~ChattingDlgMainFrame() {
+  // every 10s
+  // m_timer->start(10000);
+
   delete m_searchAction;
   delete m_cancelAction;
   delete ui;
@@ -128,6 +135,12 @@ void ChattingDlgMainFrame::registerSignal() {
 
     /*when contact button was clicked, then display contact list*/
     this->slot_display_contact_list();
+  });
+
+  connect(ui->logout, &OnceClickableQLabel::clicked, this, [this]() {
+    emit signal_teminate_chatting_server(
+        UserAccountManager::get_instance()->get_uuid(),
+        UserAccountManager::get_instance()->get_token());
   });
 
   connect(ui->my_contact, &SideBarWidget::update_display, this,
@@ -207,6 +220,36 @@ void ChattingDlgMainFrame::registerSignal() {
    */
   connect(ui->chattingpage, &ChattingStackPage::signal_sync_chat_msg_on_local,
           this, &ChattingDlgMainFrame::slot_sync_chat_msg_on_local);
+
+  /*setup timer for sending heartbeat package*/
+  connect(m_timer, &QTimer::timeout, this, [this]() {
+    QJsonObject obj;
+    obj["uuid"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
+
+    QJsonDocument doc(obj);
+    auto json = doc.toJson(QJsonDocument::Compact);
+
+    auto buffer = std::make_shared<SendNodeType>(
+        static_cast<uint16_t>(ServiceType::SERVICE_HEARTBEAT_REQUEST), json,
+        ByteOrderConverterReverse{});
+
+    /*after connection to server, send TCP request*/
+    emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
+  });
+
+  /*use to terminate timer*/
+  connect(TCPNetworkConnection::get_instance().get(),
+          &TCPNetworkConnection::signal_logout_status, this,
+          &ChattingDlgMainFrame::slot_logout_status);
+
+  // every 10s
+  m_timer->start(10000);
+}
+
+void ChattingDlgMainFrame::registerNetworkEvent() {
+  connect(this, &ChattingDlgMainFrame::signal_teminate_chatting_server,
+          TCPNetworkConnection::get_instance().get(),
+          &TCPNetworkConnection::signal_teminate_chatting_server);
 }
 
 void ChattingDlgMainFrame::registerSearchEditAction() {
@@ -226,8 +269,6 @@ void ChattingDlgMainFrame::registerSearchEditAction() {
 
   /*put it on the back position of line edit*/
   ui->search_user_edit->addAction(m_cancelAction, QLineEdit::TrailingPosition);
-
-  // connect(ui->search_user_edit, )
 }
 
 void ChattingDlgMainFrame::registerSearchEditSignal() {
@@ -466,9 +507,9 @@ void ChattingDlgMainFrame::slot_search_list_item_clicked(
      * it!*/
     auto json_data = doc.toJson(QJsonDocument::Compact);
 
-    SendNode<QByteArray, std::function<uint16_t(uint16_t)>> send_buffer(
+    SendNodeType send_buffer(
         static_cast<uint16_t>(ServiceType::SERVICE_SEARCHUSERNAME), json_data,
-        [](auto x) { return qToBigEndian(x); });
+        ByteOrderConverterReverse{});
 
     /*after connection to server, send TCP request*/
     TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
@@ -486,29 +527,29 @@ void ChattingDlgMainFrame::slot_search_list_item_clicked(
   }
 }
 
-void ChattingDlgMainFrame::slot_chat_list_item_clicked(QListWidgetItem *clicked_item){
-      qDebug() << "chat list item clicked! ";
+void ChattingDlgMainFrame::slot_chat_list_item_clicked(
+    QListWidgetItem *clicked_item) {
+  qDebug() << "chat list item clicked! ";
 
-    /*get clicked customlized widget object*/
-    QWidget *widget = ui->chat_list->itemWidget(clicked_item);
-    if (widget == nullptr) {
-        qDebug() << "invalid click item! ";
-        return;
-    }
-    auto item = reinterpret_cast<ListItemWidgetBase *>(widget);
+  /*get clicked customlized widget object*/
+  QWidget *widget = ui->chat_list->itemWidget(clicked_item);
+  if (widget == nullptr) {
+    qDebug() << "invalid click item! ";
+    return;
+  }
+  auto item = reinterpret_cast<ListItemWidgetBase *>(widget);
 
-    if (item->getItemType() == ListItemType::Default) {
-        qDebug() << "[ListItemType::Default]:list item base class!";
-        return;
-    }
-    else if (item->getItemType() == ListItemType::ChattingHistory) {
-        qDebug() << "[ListItemType::ChattingHistory]:Switching To ChattingDlg Page "
-                    "With Friends Identity!";
+  if (item->getItemType() == ListItemType::Default) {
+    qDebug() << "[ListItemType::Default]:list item base class!";
+    return;
+  } else if (item->getItemType() == ListItemType::ChattingHistory) {
+    qDebug() << "[ListItemType::ChattingHistory]:Switching To ChattingDlg Page "
+                "With Friends Identity!";
 
-        slot_switch_chattingdlg_page(
-            reinterpret_cast<ChattingHistoryWidget *>(widget)
-                ->getChattingContext());
-    }
+    slot_switch_chattingdlg_page(
+        reinterpret_cast<ChattingHistoryWidget *>(widget)
+            ->getChattingContext());
+  }
 }
 
 void ChattingDlgMainFrame::slot_load_more_contact_list() {
@@ -624,7 +665,7 @@ void ChattingDlgMainFrame::slot_sync_chat_msg_on_local(
         return;
       }
 
-       chatItem->updateLastMsg();
+      chatItem->updateLastMsg();
       ui->chattingpage->setChattingDlgHistory(history_op.value());
     }
     return;
@@ -949,11 +990,7 @@ ChattingDlgMainFrame::findChattingHistoryWidget(const QString &friend_uuid) {
   }
 }
 
-void ChattingDlgMainFrame::slot_connection_status(bool status) {
-  if (!status) {
-    emit signal_log_out();
-  }
-}
+void ChattingDlgMainFrame::slot_logout_status(bool status) { m_timer->stop(); }
 
 void ChattingDlgMainFrame::slot_waiting_for_data(bool status) {
   waitForDataFromRemote(status);

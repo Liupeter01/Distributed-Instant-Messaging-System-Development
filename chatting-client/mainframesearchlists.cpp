@@ -2,8 +2,8 @@
 #include "addnewuserwidget.h"
 #include "def.hpp"
 #include "tcpnetworkconnection.h"
-#include <useraccountmanager.hpp>
 #include <QListWidgetItem>
+#include <useraccountmanager.hpp>
 
 MainFrameSearchLists::MainFrameSearchLists(QWidget *parent)
     : MainFrameShowLists(parent) {
@@ -50,21 +50,21 @@ void MainFrameSearchLists::slot_search_username(
     dialog->setDialogInvalid(false);
     dialog->show();
     return;
-  }
-  else {
+  } else {
     auto wrapper = info.value();
 
     /*we should ignore when user search themselves*/
-    if(UserAccountManager::get_instance()->get_uuid() == wrapper->m_uuid){
-        return;
+    if (UserAccountManager::get_instance()->get_uuid() == wrapper->m_uuid) {
+      return;
     }
 
     /* target user's info already exist in the auth friend list
      * we have to transfer the data out of this class
      */
-    if(UserAccountManager::get_instance()->alreadyExistInAuthList(wrapper->m_uuid)){
-        emit signal_switch_user_profile(wrapper);
-        return;
+    if (UserAccountManager::get_instance()->alreadyExistInAuthList(
+            wrapper->m_uuid)) {
+      emit signal_switch_user_profile(wrapper);
+      return;
     }
 
     /*

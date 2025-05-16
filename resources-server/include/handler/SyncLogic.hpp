@@ -2,6 +2,7 @@
 #ifndef _SYNCLOGIC_HPP_
 #define _SYNCLOGIC_HPP_
 #include <atomic>
+#include <buffer/MsgNode.hpp>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -20,7 +21,7 @@ class SyncLogic : public Singleton<SyncLogic> {
 public:
   using Convertor = std::function<unsigned short(unsigned short)>;
   using SessionPtr = std::shared_ptr<Session>;
-  using NodePtr = std::unique_ptr<RecvNode<std::string, Convertor>>;
+  using NodePtr = std::unique_ptr<RecvNode<std::string, ByteOrderConverter>>;
   using pair = std::pair<SessionPtr, NodePtr>;
 
 private:
@@ -44,7 +45,23 @@ private:
   void registerCallbacks();
   void execute(pair &&node);
 
+  /*client enter current server*/
+  void incrementConnection();
+  void decrementConnection();
+
+  /*store this user belonged server into redis*/
+  bool tagCurrentUser(const std::string &uuid);
+
+  /*delete user belonged server in redis*/
+  bool untagCurrentUser(const std::string &uuid);
+
 protected:
+  void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,
+                     NodePtr recv);
+
+  void handlingLogout(ServiceType srv_type, std::shared_ptr<Session> session,
+                      NodePtr recv);
+
   void handlingFileUploading(ServiceType srv_type,
                              std::shared_ptr<Session> session, NodePtr recv);
 

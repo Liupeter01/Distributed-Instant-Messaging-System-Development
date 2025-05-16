@@ -1,8 +1,8 @@
 #pragma once
 #ifndef _GRPCDISTRIBUTEDCHATTINGSERVICE_HPP_
 #define _GRPCDISTRIBUTEDCHATTINGSERVICE_HPP_
-#include <grpc/BalanceServicePool.hpp>
 #include <grpc/DistributedChattingServicePool.hpp>
+#include <grpc/RegisterChattingServicePool.hpp>
 #include <network/def.hpp>
 #include <optional>
 #include <unordered_map>
@@ -14,6 +14,10 @@ class gRPCDistributedChattingService
 
 public:
   virtual ~gRPCDistributedChattingService() = default;
+  message::TerminationResponse
+  forceTerminateLoginedUser(const std::string &server_name,
+                            const message::TerminationRequest &req);
+
   message::FriendResponse sendFriendRequest(const std::string &server_name,
                                             const message::FriendRequest &req);
   message::FriendResponse

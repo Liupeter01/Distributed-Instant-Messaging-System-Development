@@ -34,12 +34,12 @@ Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
 
 Session::~Session() {
   if (!s_closed) {
-            sendOfflineMessage();
-            UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());
-            UserManager::get_instance()->removeUsrSession(get_user_uuid(), get_session_id());
+    sendOfflineMessage();
+    UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());
+    UserManager::get_instance()->removeUsrSession(get_user_uuid(),
+                                                  get_session_id());
     s_closed = true;
   }
-
 }
 
 void Session::startSession() {

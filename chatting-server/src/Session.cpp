@@ -132,18 +132,8 @@ void Session::sendMessage(ServiceType srv_type, const std::string &message, std:
     if (m_write_in_progress.compare_exchange_strong(expected, true)) {
       if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
                
-                auto state = m_state.load();
-                if (state == SessionState::LogoutPending || state == SessionState::Kicked) {
-                          spdlog::info("[{}] Session {} is terminating, skipping async_write.",
-                                    ServerConfig::get_instance()->GrpcServerName, s_session_id);
-
+                if (checkDeferredTermination()) {
                           m_write_in_progress = false;
-
-                          if (m_finalSendCompleteHandler) {
-                                    m_state.store(SessionState::Terminated);
-                                    m_finalSendCompleteHandler();     //execute defer handler
-                                    m_finalSendCompleteHandler = nullptr;
-                          }
                           return;
                 }
 
@@ -189,20 +179,8 @@ void Session::handle_write(std::shared_ptr<Session> session,
     /*till there is no element inside queue*/
     if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
 
-              auto state = m_state.load();
-              if (state == SessionState::LogoutPending || state == SessionState::Kicked) {
-
-                        spdlog::info("[{}] Session {} is terminating, skipping Session::handle_write.",
-                                  ServerConfig::get_instance()->GrpcServerName, s_session_id);
-
+              if (checkDeferredTermination()) {
                         m_write_in_progress = false;
-
-                        if(m_finalSendCompleteHandler) {
-                                  m_state.store(SessionState::Terminated);
-                                  m_finalSendCompleteHandler();     //execute defer handler
-                                  m_finalSendCompleteHandler = nullptr;
-                        }
-
                         return;
               }
 
@@ -373,6 +351,23 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
   } catch (const std::exception &e) {
             spdlog::error("[{}] handle_msgbody {}", ServerConfig::get_instance()->GrpcServerName, e.what());
   }
+}
+
+bool Session::checkDeferredTermination(){
+
+          auto state = m_state.load();
+          if (state == SessionState::LogoutPending || state == SessionState::Kicked) {
+                    spdlog::info("[{}] Session {} is terminating, skipping async_write.",
+                              ServerConfig::get_instance()->GrpcServerName, s_session_id);
+
+                    if (m_finalSendCompleteHandler) {
+                              m_state.store(SessionState::Terminated);
+                              m_finalSendCompleteHandler();     //execute defer handler
+                              m_finalSendCompleteHandler = nullptr;
+                    }
+                    return true;
+          }
+          return false;
 }
 
 const std::string &Session::get_user_uuid() const { return s_uuid; }

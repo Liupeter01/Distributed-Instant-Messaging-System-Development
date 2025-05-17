@@ -60,6 +60,8 @@ protected:
                       boost::system::error_code ec,
                       std::size_t bytes_transferred);
 
+  bool checkDeferredTermination();
+
 private:
   /*
    *  sub user connection counter for current server

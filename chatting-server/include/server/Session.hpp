@@ -39,11 +39,13 @@ public:
   void closeSession();
   void sendOfflineMessage();
   void setUUID(const std::string &uuid) { s_uuid = uuid; }
-  void sendMessage(ServiceType srv_type, const std::string &message);
+  void sendMessage(ServiceType srv_type, const std::string &message, std::shared_ptr<Session> self);
   [[nodiscard]] bool isSessionTimeout(const std::time_t &now) const;
   void updateLastHeartBeat();
   const std::string &get_user_uuid() const;
   const std::string &get_session_id() const;
+
+  void markAsDeferredTerminated(std::function<void()> &&callable);
 
 protected:
   /*handling sending event*/
@@ -86,6 +88,20 @@ private:
   static std::string session_prefix;
 
   bool s_closed = false;
+
+  enum class SessionState : uint8_t {
+            Unkown,
+            Alive,                      //online
+            Kicked,
+            LogoutPending,    //
+            Terminated
+  };
+
+  /*Session State flag*/
+  std::atomic<SessionState> m_state = Session::SessionState::Alive;
+
+  /*logout pending handler*/
+  std::function<void()> m_finalSendCompleteHandler;
 
   /*store unique user id(uuid)*/
   std::string s_uuid;

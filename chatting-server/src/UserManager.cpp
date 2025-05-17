@@ -17,29 +17,51 @@ UserManager::getSession(const std::string &uuid) {
 
 bool UserManager::removeUsrSession(const std::string &uuid) {
 
-  typename ContainerType::accessor accessor;
-  bool status = m_waitingToBeClosed.find(accessor, uuid);
-  if (status) {
-    /*remove the item from the container*/
-    accessor->second->closeSession();
-    m_waitingToBeClosed.erase(accessor);
-  }
-  return status;
+          typename ContainerType::accessor accessor;
+          if (!m_waitingToBeClosed.find(accessor, uuid))
+                    return false;
+
+          auto session = accessor->second;
+
+          //Mark as delete this session later
+          //maybe it still has some other commitments to do
+          session->markAsDeferredTerminated([this, uuid, session]() {
+                    session->closeSession();
+                    eraseWaitingSession(uuid);
+                    });
+
+          return true;
 }
 
 bool UserManager::removeUsrSession(const std::string &uuid,
                                    const std::string &session_id) {
 
   typename ContainerType::accessor accessor;
-  bool status = m_waitingToBeClosed.find(accessor, uuid);
-  if (status) {
-    if (accessor->second->get_session_id() == session_id) {
-      /*remove the item from the container*/
-      accessor->second->closeSession();
-      m_waitingToBeClosed.erase(accessor);
-    }
+  if (!m_waitingToBeClosed.find(accessor, uuid)) 
+            return false;
+
+  auto session = accessor->second;
+  if (session->get_session_id() != session_id) {
+            spdlog::warn("[{}] removeUsrSession called with mismatched session_id for UUID {}", 
+                      ServerConfig::get_instance()->GrpcServerName, uuid);
+            return false;
   }
-  return status;
+
+  //Mark as delete this session later
+  //maybe it still has some other commitments to do
+  session->markAsDeferredTerminated([this, uuid, session]() {
+            session->closeSession();
+            eraseWaitingSession(uuid);
+            });
+
+  return true;
+}
+
+void UserManager::eraseWaitingSession(const std::string& uuid) {
+          typename ContainerType::accessor erase_accessor;
+          if (m_waitingToBeClosed.find(erase_accessor, uuid)) {
+                    m_waitingToBeClosed.erase(erase_accessor);
+          }
 }
 
 void UserManager::createUserSession(const std::string &uuid,
@@ -49,17 +71,16 @@ void UserManager::createUserSession(const std::string &uuid,
 }
 
 bool UserManager::moveUserToTerminationZone(const std::string &uuid) {
+
   typename ContainerType::accessor accessor;
-  bool status = m_uuid2Session.find(accessor, uuid);
-  if (status) {
-    {
-      typename ContainerType::accessor close_accessor;
-      m_waitingToBeClosed.insert(close_accessor, uuid);
-      close_accessor->second = std::move(accessor->second);
-    }
-    m_uuid2Session.erase(accessor);
-  }
-  return status;
+  if (!m_uuid2Session.find(accessor, uuid))
+            return false;
+
+  typename ContainerType::accessor close_accessor;
+  m_waitingToBeClosed.insert(close_accessor, uuid);
+  close_accessor->second = std::move(accessor->second);
+  m_uuid2Session.erase(accessor);
+  return true;
 }
 
 void UserManager::teminate() {

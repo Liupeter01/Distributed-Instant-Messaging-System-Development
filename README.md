@@ -7,7 +7,7 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 ### **Frontend Development:**
 
 - Developed a chat dialog using **Qt**, using `QListWidget` for an efficient chat record list and combining `QGridLayout` and `QPainter` for customized chat bubble styling to enhance the user experience.
-- Encapsulated **Qt Network** modules to support HTTP and CP service communication.
+- Encapsulated **Qt Network** modules to support HTTP and C/S service communication.
 - Implemented core features such as adding friends, friend communication, and chat record display.
 - Integrated file transfer functionality to allow users to upload and download files.
 - Implemented an intuitive file management interface with drag-and-drop support.
@@ -122,15 +122,13 @@ Ensure you have the following installed:
 
 ### Basic Infrastructures
 
-- 
-
 **It's strongly suggested to use docker to build up those services ^_^**
 
 **If you intended to pass a host directory, please use absolute path.**
 
 #### Redis Memory Database
 
-- Create a local volume on host machine and editing configration files. **Please don't forget to change your password.**
+- Create a local volume on host machine and editing configuration files. **Please don't forget to change your password.**
 
   ```ini
   #if you are using windows, please download WSL2
@@ -422,6 +420,7 @@ port=64400
 [ChattingServer]
 port=60000
 send_queue_size=1000
+heart_beat_timeout = 60      # seconds
 
 [Redis]
 host=127.0.0.1
@@ -706,6 +705,22 @@ endif()
 
 
 
+#### Same account logged in from a different location
+
+- expired login
+
+  ![expired_login](./assets/expired_login.gif)
+
+- current login
+
+  ![current_login](./assets/current_login.gif)
+
+#### Avatar Cropper
+
+![Avatar_Cropper](./assets/Avatar_Cropper.gif)
+
+
+
 ### Server
 
 #### Gateway-server Initialize 
@@ -739,6 +754,10 @@ endif()
 #### Chatting-server Handling Logout
 
 ![image-20250418134829389](./assets/Chatting-server1.png)
+
+#### Same account logged in from a different location
+
+![Chatting-server2](./assets/Chatting-server2.png)
 
 #### Resources-server Initialize 
 

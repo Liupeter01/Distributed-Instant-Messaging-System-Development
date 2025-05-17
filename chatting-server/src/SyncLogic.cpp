@@ -361,7 +361,7 @@ void SyncLogic::generateErrorMessage(const std::string &log, ServiceType type,
   obj["error"] = static_cast<uint8_t>(status);
   spdlog::warn(std::string("[{}]: ") + log,
                ServerConfig::get_instance()->GrpcServerName);
-  conn->sendMessage(type, boost::json::serialize(obj));
+  conn->sendMessage(type, boost::json::serialize(obj), conn);
 }
 
 void SyncLogic::processing() {
@@ -544,7 +544,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
 
   /*send it back*/
   session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                       boost::json::serialize(redis_root));
+                       boost::json::serialize(redis_root), session);
 
   /*
    * add user connection counter for current server
@@ -676,7 +676,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
   dst_root["description"] = info->m_description;
 
   session->sendMessage(ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
-                       boost::json::serialize(dst_root));
+                       boost::json::serialize(dst_root), session);
 }
 
 /*the person who init friend request*/
@@ -798,10 +798,12 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
     dst_root["src_desc"] = src_namecard->m_description;
     dst_root["src_sex"] = static_cast<uint8_t>(src_namecard->m_sex);
 
+    auto session_ptr = session_op.value();
+
     /*propagate the message to dst user*/
-    session_op.value()->sendMessage(
+    session_ptr->sendMessage(
         ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
-        boost::json::serialize(dst_root));
+        boost::json::serialize(dst_root), session_ptr);
 
     result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   } else {
@@ -843,7 +845,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
   result_root["src_uuid"] = src_uuid;
   result_root["dst_uuid"] = dst_uuid;
   session->sendMessage(ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                       boost::json::serialize(result_root));
+                       boost::json::serialize(result_root), session);
 }
 
 /*the person who receive friend request are going to confirm it*/
@@ -907,7 +909,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
    */
   result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   session->sendMessage(ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
-                       boost::json::serialize(result_root));
+                       boost::json::serialize(result_root), session);
 
   /*
    * update the database, and add biddirectional friend authentication messages
@@ -978,7 +980,7 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
     root["friend_sex"] = static_cast<uint8_t>(src_namecard->m_sex);
 
     session->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-                         boost::json::serialize(root));
+                         boost::json::serialize(root), session);
   }
 
   /*
@@ -1024,10 +1026,12 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
     root["friend_desc"] = dst_namecard->m_description;
     root["friend_sex"] = static_cast<uint8_t>(dst_namecard->m_sex);
 
+    auto session_ptr = session_op.value();
+
     /*propagate the message to dst user*/
-    session_op.value()->sendMessage(
+    session_ptr->sendMessage(
         ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-        boost::json::serialize(root));
+        boost::json::serialize(root), session_ptr);
   } else {
     /*
      * GRPC REQUEST
@@ -1142,10 +1146,12 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
     dst_root["text_receiver"] = receiver_uuid;
     dst_root["text_msg"] = msg_array;
 
+    auto receiver_session_ptr = receiver_session.value();
+
     /*propagate the message to dst user*/
-    receiver_session.value()->sendMessage(
+    receiver_session_ptr->sendMessage(
         ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
-        boost::json::serialize(dst_root));
+        boost::json::serialize(dst_root), receiver_session_ptr);
 
   } else {
     // Cross-server: use gRPC to forward
@@ -1206,7 +1212,7 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
   result_root["text_receiver"] = receiver_uuid;
 
   session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
-                       boost::json::serialize(result_root));
+                       boost::json::serialize(result_root), session);
 }
 
 /*Handling the user send chatting text msg to others*/
@@ -1244,7 +1250,7 @@ void SyncLogic::handlingHeartBeat(ServiceType srv_type,
 
   /*send it back*/
   session->sendMessage(ServiceType::SERVICE_HEARTBEAT_RESPONSE,
-                       boost::json::serialize(result_root));
+                       boost::json::serialize(result_root), session);
 }
 
 /*get user's basic info(name, age, sex, ...) from redis*/

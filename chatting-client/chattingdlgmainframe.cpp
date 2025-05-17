@@ -73,7 +73,7 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
                            "chat_icon_clicked.png", "contact_list_normal.png",
                            "contact_list_hover.png", "contact_list_clicked.png",
                            "settings_normal.png", "settings_hover.png",
-                           "settings_clicked.png"
+                           "settings_clicked.png",
                            "logout.png"},
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);

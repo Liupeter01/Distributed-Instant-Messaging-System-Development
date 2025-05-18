@@ -55,6 +55,11 @@ private:
   void registerSearchEditSignal();
   void updateSearchUserButton();
 
+  void updateSideBarWidget(SideBarWidget *widget,
+                           const QString &normal_pic_path,
+                           const QString &hover_pic_path,
+                           const QString &clicked_pic_path);
+
 protected:
   /*windows switcher(accroding to m_dlgMode)*/
   void switchRelevantListWidget();
@@ -64,6 +69,9 @@ protected:
 
   /*register handler for Contact list*/
   void updateMyContact();
+
+  /*register handler for settings*/
+  void updateMySettings();
 
   /*delegate sidebar widget*/
   void addLabel(SideBarWidget *widget);
@@ -80,6 +88,9 @@ protected:
 
   /*switch to user profile page by using stackedWidget*/
   void switchUserProfilePage();
+
+  /*swith to user setting page*/
+  void swithUserSettingPage();
 
   /*wait for remote server data*/
   void waitForDataFromRemote(bool status);
@@ -122,7 +133,7 @@ private slots:
   /*when side bar button activated, then display relevant info on show_list*/
   void slot_display_chat_list();
   void slot_display_contact_list();
-
+  void slot_display_setting();
   /*
    * user click the item shown in the search list
    * 1. ListItemType::Default: DO NOTHING
@@ -212,7 +223,8 @@ private:
   enum class ChattingDlgMode {
     ChattingDlgChattingMode,  // show multiple user chatting dialog
     ChattingDlgSearchingMode, // allow user to search
-    chattingDlgContactMode    // show contacts
+    ChattingDlgContactMode,   // show contacts
+    ChattingDlgSettingMode    // User Setting
   } m_dlgMode;
 };
 

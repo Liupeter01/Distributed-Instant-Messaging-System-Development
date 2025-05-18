@@ -78,11 +78,11 @@ private:
 private:
   struct ChattingServerInfo {
     ChattingServerInfo() : uuid(), host(), port(), token() {}
-    void clear(){
-        uuid.clear();
-        host.clear();
-        port.clear();
-        token.clear();
+    void clear() {
+      uuid.clear();
+      host.clear();
+      port.clear();
+      token.clear();
     }
     QString uuid;
     QString host;

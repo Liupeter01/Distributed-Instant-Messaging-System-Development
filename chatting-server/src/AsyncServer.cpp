@@ -23,11 +23,7 @@ AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
                ServerConfig::get_instance()->GrpcServerName, port);
 }
 
-AsyncServer::~AsyncServer() {
-
-  spdlog::critical("[{}] Sever Shutting Down!",
-                   ServerConfig::get_instance()->GrpcServerName);
-}
+AsyncServer::~AsyncServer() {}
 
 void AsyncServer::startAccept() {
   auto &ioc = IOServicePool::get_instance()->getIOServiceContext();

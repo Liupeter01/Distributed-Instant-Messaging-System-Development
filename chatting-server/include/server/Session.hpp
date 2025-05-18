@@ -39,7 +39,8 @@ public:
   void closeSession();
   void sendOfflineMessage();
   void setUUID(const std::string &uuid) { s_uuid = uuid; }
-  void sendMessage(ServiceType srv_type, const std::string &message, std::shared_ptr<Session> self);
+  void sendMessage(ServiceType srv_type, const std::string &message,
+                   std::shared_ptr<Session> self);
   [[nodiscard]] bool isSessionTimeout(const std::time_t &now) const;
   void updateLastHeartBeat();
   const std::string &get_user_uuid() const;
@@ -92,11 +93,11 @@ private:
   bool s_closed = false;
 
   enum class SessionState : uint8_t {
-            Unkown,
-            Alive,                      //online
-            Kicked,
-            LogoutPending,    //
-            Terminated
+    Unkown,
+    Alive, // online
+    Kicked,
+    LogoutPending, //
+    Terminated
   };
 
   /*Session State flag*/

@@ -65,9 +65,8 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
     auto session_ptr = session_op.value();
 
     /*send a forwarding packet*/
-    session_ptr->sendMessage(
-              ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
-              boost::json::serialize(root), session_ptr);
+    session_ptr->sendMessage(ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
+                             boost::json::serialize(root), session_ptr);
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());
@@ -111,9 +110,8 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
     auto session_ptr = session_op.value();
 
     /*send a forwarding packet*/
-    session_ptr->sendMessage(
-              ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-              boost::json::serialize(root), session_ptr);
+    session_ptr->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                             boost::json::serialize(root), session_ptr);
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());
@@ -186,9 +184,8 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
     auto session_ptr = session_op.value();
 
     /*send a forwarding packet*/
-    session_ptr->sendMessage(
-        ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
-        boost::json::serialize(dst_root), session_ptr);
+    session_ptr->sendMessage(ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
+                             boost::json::serialize(dst_root), session_ptr);
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());

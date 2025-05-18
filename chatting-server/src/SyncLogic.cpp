@@ -801,9 +801,8 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
     auto session_ptr = session_op.value();
 
     /*propagate the message to dst user*/
-    session_ptr->sendMessage(
-        ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
-        boost::json::serialize(dst_root), session_ptr);
+    session_ptr->sendMessage(ServiceType::SERVICE_FRIENDREINCOMINGREQUEST,
+                             boost::json::serialize(dst_root), session_ptr);
 
     result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   } else {
@@ -1029,9 +1028,8 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
     auto session_ptr = session_op.value();
 
     /*propagate the message to dst user*/
-    session_ptr->sendMessage(
-        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
-        boost::json::serialize(root), session_ptr);
+    session_ptr->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                             boost::json::serialize(root), session_ptr);
   } else {
     /*
      * GRPC REQUEST

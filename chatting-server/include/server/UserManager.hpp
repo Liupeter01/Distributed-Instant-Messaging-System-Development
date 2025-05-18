@@ -36,7 +36,7 @@ public:
 
 protected:
   void teminate();
-  void eraseWaitingSession(const std::string& uuid);
+  void eraseWaitingSession(const std::string &uuid);
 
 private:
   ContainerType m_uuid2Session;

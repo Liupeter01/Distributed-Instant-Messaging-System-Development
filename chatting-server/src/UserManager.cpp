@@ -17,51 +17,52 @@ UserManager::getSession(const std::string &uuid) {
 
 bool UserManager::removeUsrSession(const std::string &uuid) {
 
-          typename ContainerType::accessor accessor;
-          if (!m_waitingToBeClosed.find(accessor, uuid))
-                    return false;
+  typename ContainerType::accessor accessor;
+  if (!m_waitingToBeClosed.find(accessor, uuid))
+    return false;
 
-          auto session = accessor->second;
+  auto session = accessor->second;
 
-          //Mark as delete this session later
-          //maybe it still has some other commitments to do
-          session->markAsDeferredTerminated([this, uuid, session]() {
-                    session->closeSession();
-                    eraseWaitingSession(uuid);
-                    });
+  // Mark as delete this session later
+  // maybe it still has some other commitments to do
+  session->markAsDeferredTerminated([this, uuid, session]() {
+    session->closeSession();
+    eraseWaitingSession(uuid);
+  });
 
-          return true;
+  return true;
 }
 
 bool UserManager::removeUsrSession(const std::string &uuid,
                                    const std::string &session_id) {
 
   typename ContainerType::accessor accessor;
-  if (!m_waitingToBeClosed.find(accessor, uuid)) 
-            return false;
+  if (!m_waitingToBeClosed.find(accessor, uuid))
+    return false;
 
   auto session = accessor->second;
   if (session->get_session_id() != session_id) {
-            spdlog::warn("[{}] removeUsrSession called with mismatched session_id for UUID {}", 
-                      ServerConfig::get_instance()->GrpcServerName, uuid);
-            return false;
+    spdlog::warn(
+        "[{}] removeUsrSession called with mismatched session_id for UUID {}",
+        ServerConfig::get_instance()->GrpcServerName, uuid);
+    return false;
   }
 
-  //Mark as delete this session later
-  //maybe it still has some other commitments to do
+  // Mark as delete this session later
+  // maybe it still has some other commitments to do
   session->markAsDeferredTerminated([this, uuid, session]() {
-            session->closeSession();
-            eraseWaitingSession(uuid);
-            });
+    session->closeSession();
+    eraseWaitingSession(uuid);
+  });
 
   return true;
 }
 
-void UserManager::eraseWaitingSession(const std::string& uuid) {
-          typename ContainerType::accessor erase_accessor;
-          if (m_waitingToBeClosed.find(erase_accessor, uuid)) {
-                    m_waitingToBeClosed.erase(erase_accessor);
-          }
+void UserManager::eraseWaitingSession(const std::string &uuid) {
+  typename ContainerType::accessor erase_accessor;
+  if (m_waitingToBeClosed.find(erase_accessor, uuid)) {
+    m_waitingToBeClosed.erase(erase_accessor);
+  }
 }
 
 void UserManager::createUserSession(const std::string &uuid,
@@ -74,7 +75,7 @@ bool UserManager::moveUserToTerminationZone(const std::string &uuid) {
 
   typename ContainerType::accessor accessor;
   if (!m_uuid2Session.find(accessor, uuid))
-            return false;
+    return false;
 
   typename ContainerType::accessor close_accessor;
   m_waitingToBeClosed.insert(close_accessor, uuid);

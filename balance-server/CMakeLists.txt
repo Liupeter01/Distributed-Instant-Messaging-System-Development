@@ -31,19 +31,6 @@ add_custom_command(
     --plugin=protoc-gen-grpc=${_GRPC_CPP_PLUGIN_EXECUTABLE} ${MESSAGE_PROTO}
   COMMENT "Processing proto files...")
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
-if(NOT MSVC)
-  find_program(CCACHE_PROGRAM ccache)
-  if(CCACHE_PROGRAM)
-    message(STATUS "Found CCache: ${CCACHE_PROGRAM}")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
-  endif()
-endif()
-
 project(
   LoadBalanceServer
   VERSION 2.2.2
@@ -62,3 +49,9 @@ target_link_libraries(LoadBalanceServer PUBLIC boost_balance grpc++ inicpp
 
 target_compile_definitions(
   LoadBalanceServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
+
+  if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+  message(STATUS "This is a Debug build.")
+    target_sources(LoadBalanceServer  PUBLIC ${BACKWARD_ENABLE})
+    add_backward(LoadBalanceServer)
+endif()

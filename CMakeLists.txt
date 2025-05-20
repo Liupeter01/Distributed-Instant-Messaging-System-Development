@@ -3,6 +3,31 @@ project(DistributedIMSystem)
 
 option(DIMS_BUILD_TESTING "Enable DistributedIMSystem building tests" ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+    message(STATUS "No CMAKE_BUILD_TYPE found, Set Release build as default.")
+endif()
+
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Rr]elease")
+  message(STATUS "This is a Release build.")
+  set(TBB_TEST OFF CACHE BOOL "Disable oneTBB tests" FORCE)
+  set(DIMS_BUILD_TESTING  OFF CACHE BOOL "Disable tests generation" FORCE)
+endif()
+
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+  message(STATUS "This is a Debug build.")
+  add_subdirectory(external/backward-cpp)
+endif()
+
+if(NOT MSVC)
+  find_program(CCACHE_PROGRAM ccache)
+  if(CCACHE_PROGRAM)
+    message(STATUS "Found CCache: ${CCACHE_PROGRAM}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
+  endif()
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

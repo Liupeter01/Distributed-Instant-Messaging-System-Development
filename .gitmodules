@@ -10,3 +10,6 @@
 [submodule "external/oneTBB"]
 	path = external/oneTBB
 	url = https://github.com/uxlfoundation/oneTBB
+[submodule "external/backward-cpp"]
+	path = external/backward-cpp
+	url = https://github.com/bombela/backward-cpp

@@ -80,18 +80,14 @@ protected:
 
 template <typename WhichPool, typename _Type> struct ConnectionRAII {
   using wrapper = tools::ResourcesWrapper<_Type>;
-  ConnectionRAII(const ConnectionRAII&) = delete;
-  ConnectionRAII& operator=(const ConnectionRAII&) = delete;
+  ConnectionRAII(const ConnectionRAII &) = delete;
+  ConnectionRAII &operator=(const ConnectionRAII &) = delete;
 
-  ConnectionRAII(ConnectionRAII&&) = default;
-  ConnectionRAII& operator=(ConnectionRAII&&) = default;
+  ConnectionRAII(ConnectionRAII &&) = default;
+  ConnectionRAII &operator=(ConnectionRAII &&) = default;
 
-  ConnectionRAII() : status(true) {
-            acquire();
-  }
-  virtual ~ConnectionRAII() {
-            release();
-  }
+  ConnectionRAII() : status(true) { acquire(); }
+  virtual ~ConnectionRAII() { release(); }
   std::optional<wrapper> operator->() {
     if (is_active()) {
       return wrapper(m_stub.get());
@@ -99,41 +95,37 @@ template <typename WhichPool, typename _Type> struct ConnectionRAII {
     return std::nullopt;
   }
 
-  std::optional <  std::reference_wrapper< std::unique_ptr<_Type>>> get_native() {
-            if (is_active()) {
-                      return  std::ref(m_stub);
-            }
-            return std::nullopt;
+  std::optional<std::reference_wrapper<std::unique_ptr<_Type>>> get_native() {
+    if (is_active()) {
+      return std::ref(m_stub);
+    }
+    return std::nullopt;
   }
 
-  //Raii no longer needs to put this resources back to container!
-  void invalidate() {
-            status = false;
-  }
+  // Raii no longer needs to put this resources back to container!
+  void invalidate() { status = false; }
 
-  bool is_active() const {
-            return status;
-  }
+  bool is_active() const { return status; }
 
 protected:
   void acquire() {
-            //valid resources retrieved!
-            if (auto optional = WhichPool::get_instance()->acquire(); optional) {
-                      m_stub = std::move(optional.value());
-                      return;
-            }
+    // valid resources retrieved!
+    if (auto optional = WhichPool::get_instance()->acquire(); optional) {
+      m_stub = std::move(optional.value());
+      return;
+    }
 
-            invalidate();
+    invalidate();
   }
 
   void release() {
-            if (is_active()) {
+    if (is_active()) {
 
-                      WhichPool::get_instance()->release(std::move(m_stub));
+      WhichPool::get_instance()->release(std::move(m_stub));
 
-                      /*Stub no longer active*/
-                      invalidate();
-            }
+      /*Stub no longer active*/
+      invalidate();
+    }
   }
 
 private:

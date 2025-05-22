@@ -89,26 +89,27 @@ void AsyncServer::heartBeatEvent(const boost::system::error_code &ec) {
   /*only record "dead" session's uuid, and we deal with them later*/
   std::vector<std::string> to_be_terminated;
 
-  //copy original session to a duplicate one
-  UserManager::ContainerType copy = UserManager::get_instance()->m_uuid2Session;
+  // copy original session to a duplicate one
+  UserManager::ContainerType &lists =
+      UserManager::get_instance()->m_uuid2Session;
 
-  //record valid connection amount
-  std::size_t session_counter{ 0 };
+  // record valid connection amount
+  std::size_t session_counter{0};
 
-  for (auto &client : copy) {
+  for (auto &client : lists) {
     // check if this user already timeout!
-            if (!client.second->isSessionTimeout(now)) {
-                      //not timeout, continue
-                      ++session_counter;
-                      continue;
-            }
+    if (!client.second->isSessionTimeout(now)) {
+      // not timeout, continue
+      ++session_counter;
+      continue;
+    }
 
     // Ask the client to be offlined, and move it to waitingToBeClosed queue
     client.second->sendOfflineMessage();
     client.second->removeRedisCache(client.second->get_user_uuid(),
                                     client.second->get_session_id());
 
-    //collect expired client info, and we process them later!
+    // collect expired client info, and we process them later!
     to_be_terminated.push_back(client.first);
   }
 

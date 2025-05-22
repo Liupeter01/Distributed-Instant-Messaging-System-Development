@@ -61,8 +61,8 @@ private:
     ChattingServerPort = m_ini["ChattingServer"]["port"].as<unsigned short>();
     ChattingServerQueueSize =
         m_ini["ChattingServer"]["send_queue_size"].as<int>();
-    heart_beat_timeout = 
-              m_ini["ChattingServer"]["heart_beat_timeout"].as<int>();
+    heart_beat_timeout =
+        m_ini["ChattingServer"]["heart_beat_timeout"].as<int>();
   }
 
   void loadBalanceServiceInfo() {

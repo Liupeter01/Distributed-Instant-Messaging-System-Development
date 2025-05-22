@@ -5,13 +5,17 @@ option(DIMS_BUILD_TESTING "Enable DistributedIMSystem building tests" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
-    message(STATUS "No CMAKE_BUILD_TYPE found, Set Release build as default.")
+  message(STATUS "No CMAKE_BUILD_TYPE found, Set Release build as default.")
 endif()
 
 if("${CMAKE_BUILD_TYPE}" MATCHES "[Rr]elease")
   message(STATUS "This is a Release build.")
-  set(TBB_TEST OFF CACHE BOOL "Disable oneTBB tests" FORCE)
-  set(DIMS_BUILD_TESTING  OFF CACHE BOOL "Disable tests generation" FORCE)
+  set(TBB_TEST
+      OFF
+      CACHE BOOL "Disable oneTBB tests" FORCE)
+  set(DIMS_BUILD_TESTING
+      OFF
+      CACHE BOOL "Disable tests generation" FORCE)
 endif()
 
 if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
@@ -98,9 +102,9 @@ FetchContent_MakeAvailable(boost gRPC)
 set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
-if (DIMS_BUILD_TESTING)
-    enable_testing()
-    add_subdirectory(tests)
+if(DIMS_BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
 
 add_library(boost_common INTERFACE)

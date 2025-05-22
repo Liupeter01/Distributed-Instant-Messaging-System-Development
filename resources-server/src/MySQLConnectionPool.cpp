@@ -214,7 +214,7 @@ void mysql::MySQLConnectionPool::roundRobinCheckLowGranularity() {
        * and re-create connction*/
       if (!instance->get()->checkTimeout(currentTimeStamp, m_timeout))
           [[unlikely]]
-      throw std::runtime_error("Check Timeout Failed!");
+        throw std::runtime_error("Check Timeout Failed!");
 
       /*update current operation time!*/
       instance->get()->last_operation_time = currentTimeStamp;

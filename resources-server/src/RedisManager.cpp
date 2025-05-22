@@ -83,7 +83,7 @@ void redis::RedisConnectionPool::roundRobinChecking() {
       /*execute timeout checking, if there is sth wrong , then throw exceptionn
        * and re-create connction*/
       if (!instance->get()->heartBeat()) [[unlikely]]
-                throw std::runtime_error("Check Timeout Failed!");
+        throw std::runtime_error("Check Timeout Failed!");
 
       /*update current operation time!*/
       instance->get()->last_operation_time = currentTimeStamp;

@@ -9,7 +9,7 @@ mysql::MySQLConnectionPool::MySQLConnectionPool() noexcept
                           ServerConfig::get_instance()->MySQL_database,
                           ServerConfig::get_instance()->MySQL_host,
                           ServerConfig::get_instance()->MySQL_port) {
-  spdlog::info("Connecting to MySQL service ip: {0}, port: {1}, database: {2}",
+  spdlog::info("[MySQL Connector]: Connecting to MySQL Server: {0}, port: {1}, database: {2}",
                ServerConfig::get_instance()->MySQL_username,
                ServerConfig::get_instance()->MySQL_passwd,
                ServerConfig::get_instance()->MySQL_database);
@@ -21,22 +21,29 @@ mysql::MySQLConnectionPool::MySQLConnectionPool(
     const std::string &host, const std::string &port) noexcept
     : m_timeout(timeOut), m_username(username), m_password(password),
       m_database(database), m_host(host), m_port(port) {
+
   registerSQLStatement();
 
   for (std::size_t i = 0; i < m_queue_size; ++i) {
-    m_stub_queue.push(std::move(std::make_unique<mysql::MySQLConnection>(
-        username, password, database, host, port, this)));
+            [[maybe_unused]] bool res = connector(username, password, database, host, port);
   }
 
   m_RRThread = std::thread([this]() {
-    while (!m_stop) {
-      spdlog::info("[HeartBeat Check]: Timeout Setting {}s", m_timeout);
 
-      roundRobinChecking();
+            thread_local std::size_t counter{ 0 };
+            spdlog::info("[MySQL HeartBeat Check]: Timeout Setting {}s", m_timeout);
 
-      /*suspend this thread by timeout setting*/
-      std::this_thread::sleep_for(std::chrono::seconds(m_timeout));
-    }
+            while (m_stop) {
+
+                      if (counter == m_timeout) {
+                                roundRobinChecking();
+                                counter = 0;    //reset
+                      }
+
+                      /*suspend this thread by timeout setting*/
+                      std::this_thread::sleep_for(std::chrono::seconds(1));
+                      counter++;
+            }
   });
   m_RRThread.detach();
 }
@@ -91,26 +98,95 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
 }
 
 void mysql::MySQLConnectionPool::roundRobinChecking() {
-  std::lock_guard<std::mutex> _lckg(m_RRMutex);
-  if (m_stop) {
-    return;
-  }
+          roundRobinCheckLowGranularity();
+}
 
-  for (std::size_t i = 0; i < m_stub_queue.size(); ++i) {
-    connection::ConnectionRAII<mysql::MySQLConnectionPool,
-                               mysql::MySQLConnection>
-        instance;
+void mysql::MySQLConnectionPool::roundRobinCheckLowGranularity()
+{
+          if (m_stop) 
+                    return;
 
-    [[maybe_unused]] bool status = instance->get()->checkTimeout(
-        std::chrono::steady_clock::now(), m_timeout);
+          std::size_t fail_count = 0;
+          std::size_t expectedStubs{ 0 }, currentStubs{ 0 };
+          auto currentTimeStamp = std::chrono::steady_clock::now();
 
-    /*checktimeout error, then create a new connection*/
-    if (!status) [[unlikely]] {
-      /*create a new connection*/
-      m_stub_queue.push(std::move(std::make_unique<mysql::MySQLConnection>(
-          m_username, m_password, m_database, m_host, m_port, this)));
+          //get target queue size first, we need to know how many stubs are instead the queue
+          {
+                    std::lock_guard<std::mutex> _lckg(m_mtx);
+                    expectedStubs = m_stub_queue.size();
+          }
 
-      m_cv.notify_one();
-    }
-  }
+          for (; !expectedStubs &&currentStubs < expectedStubs; currentStubs++) {
+
+                    {
+                              //sometimes. m_stub_queue might be empty;
+                              std::lock_guard<std::mutex> _lckg(m_mtx);
+                              if (m_stub_queue.empty()) {
+                                        break;
+                              }
+                    }
+
+                    //get stub from the queue
+                    connection::ConnectionRAII<mysql::MySQLConnectionPool,
+                              mysql::MySQLConnection>
+                              instance;
+
+                    if (std::chrono::duration_cast<std::chrono::seconds>(
+                              currentTimeStamp - instance->get()->last_operation_time) < std::chrono::seconds(5)) {
+                              continue;
+                    }
+
+                    try {
+                              /*execute timeout checking, if there is sth wrong , then throw exceptionn and re-create connction*/
+                              if (!instance->get()->checkTimeout(currentTimeStamp, m_timeout)) [[unlikely]]
+                                        throw std::exception("Check Timeout Failed!");
+
+                              /*update current operation time!*/
+                              instance->get()->last_operation_time = currentTimeStamp;
+                    }
+                    catch (const std::exception& e) {
+
+                              /*checktimeout error, but we will handle restart later*/
+                              spdlog::warn("[MySQL DataBase]: Error = {} Restarting Connection...", e.what());
+
+                              //disable RAII feature to return this item back to the pool
+                              instance.invalidate();
+
+                              fail_count++;       //record failed time!
+                    }
+          }
+
+          //handle failed events, and try to reconnect
+          while (fail_count > 0) {
+                    if (!connector(m_username, m_password, m_database, m_host, m_port)) [[unlikely]]{
+                              return;
+                    }
+                    fail_count--;
+          }
+}
+
+bool
+mysql::MySQLConnectionPool::connector(const std::string& username, 
+                                                                      const std::string& password,
+                                                                      const std::string& database, 
+                                                                      const std::string& host, 
+                                                                      const std::string& port)
+{
+          auto currentTimeStamp = std::chrono::steady_clock::now();
+
+          try{
+                    auto new_item = std::make_unique<mysql::MySQLConnection>(username, password, database, host, port, this);
+                    new_item->last_operation_time = currentTimeStamp;
+                    
+                    {
+                              std::lock_guard<std::mutex> _lckg(m_mtx);
+                              m_stub_queue.push(std::move(new_item));
+                    }
+
+                    return true;
+          }
+          catch (const std::exception&e){
+                    spdlog::warn("[MySQL Connector]: Error = {}", e.what());
+          }
+          return false;
 }

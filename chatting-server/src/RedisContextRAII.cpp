@@ -30,8 +30,9 @@ bool redis::RedisContext::setValue(const std::string &key,
   auto status = m_replyDelegate->redisCommand(*this, std::string("SET %s %s"),
                                               key.c_str(), value.c_str());
   if (status) {
-    spdlog::info("[Redis]: Execute command [ SET key = {0}, value = {1}] successfully!",
-                 key.c_str(), value.c_str());
+    spdlog::info(
+        "[Redis]: Execute command [ SET key = {0}, value = {1}] successfully!",
+        key.c_str(), value.c_str());
     return true;
   }
   return false;
@@ -51,9 +52,10 @@ bool redis::RedisContext::setValue2Hash(const std::string &key,
                                     key.c_str(), field.c_str(), value.c_str());
 
   if (status) {
-    spdlog::info("[Redis]: Execute command [ HSET key = {0}, field = {1}, value = {2}] "
-                 "successfully!",
-                 key.c_str(), field.c_str(), value.c_str());
+    spdlog::info(
+        "[Redis]: Execute command [ HSET key = {0}, field = {1}, value = {2}] "
+        "successfully!",
+        key.c_str(), field.c_str(), value.c_str());
     return true;
   }
   return false;
@@ -91,9 +93,9 @@ bool redis::RedisContext::leftPush(const std::string &key,
   auto status = m_replyDelegate->redisCommand(*this, std::string("LPUSH %s %s"),
                                               key.c_str(), value.c_str());
   if (status) {
-    spdlog::info(
-        "[Redis]: Execute command  [ LPUSH key = {0}, value = {1}]  successfully!",
-        key.c_str(), value.c_str());
+    spdlog::info("[Redis]: Execute command  [ LPUSH key = {0}, value = {1}]  "
+                 "successfully!",
+                 key.c_str(), value.c_str());
     return true;
   }
   return false;
@@ -110,9 +112,9 @@ bool redis::RedisContext::rightPush(const std::string &key,
   auto status = m_replyDelegate->redisCommand(*this, std::string("RPUSH %s %s"),
                                               key.c_str(), value.c_str());
   if (status) {
-    spdlog::info(
-        "[Redis]: Execute command  [ RPUSH key = {0}, value = {1}]  successfully!",
-        key.c_str(), value.c_str());
+    spdlog::info("[Redis]: Execute command  [ RPUSH key = {0}, value = {1}]  "
+                 "successfully!",
+                 key.c_str(), value.c_str());
     return true;
   }
   return false;
@@ -128,7 +130,8 @@ bool redis::RedisContext::delPair(const std::string &key) {
   auto status =
       m_replyDelegate->redisCommand(*this, std::string("DEL %s"), key.c_str());
   if (status) {
-    spdlog::info("[Redis]: Execute command [ DEL key = {} ]successfully!", key.c_str());
+    spdlog::info("[Redis]: Execute command [ DEL key = {} ]successfully!",
+                 key.c_str());
     return true;
   }
   return false;
@@ -152,21 +155,20 @@ bool redis::RedisContext::existKey(const std::string &key) {
 }
 
 bool redis::RedisContext::heartBeat() {
-          std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
-          auto status = m_replyDelegate->redisCommand(*this, std::string("PING"));
-          if (!m_replyDelegate->redisCommand(*this, std::string("PING"))) {
-                    return false;
-          }
+  std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
+  if (!m_replyDelegate->redisCommand(*this, std::string("PING"))) {
+    return false;
+  }
 
-          if (m_replyDelegate->getType().has_value() &&
-                    m_replyDelegate->getType().value() != REDIS_REPLY_STRING) {
-                    return false;
-          }
-          if (m_replyDelegate->getMessage() == "PONG") {
-                    spdlog::info("[Redis]: Execute command [ PING ] successfully!");
-                    return true;
-          }
-          return false;
+  if (m_replyDelegate->getType().has_value() &&
+      m_replyDelegate->getType().value() != REDIS_REPLY_STRING) {
+    return false;
+  }
+  if (m_replyDelegate->getMessage() == "PONG") {
+    spdlog::info("[Redis]: Execute command [ PING ] successfully!");
+    return true;
+  }
+  return false;
 }
 
 std::optional<std::string>
@@ -185,7 +187,8 @@ redis::RedisContext::checkValue(const std::string &key) {
       m_replyDelegate->getType().value() != REDIS_REPLY_STRING) {
     return std::nullopt;
   }
-  spdlog::info("[Redis]: Execute command [ GET key = %s ] successfully!", key.c_str());
+  spdlog::info("[Redis]: Execute command [ GET key = %s ] successfully!",
+               key.c_str());
   return m_replyDelegate->getMessage();
 }
 
@@ -208,7 +211,8 @@ redis::RedisContext::leftPop(const std::string &key) {
       m_replyDelegate->getType().value() == REDIS_REPLY_NIL) {
     return std::nullopt;
   }
-  spdlog::info("[Redis]: Execute command [ LPOP key = {} ] successfully!", key.c_str());
+  spdlog::info("[Redis]: Execute command [ LPOP key = {} ] successfully!",
+               key.c_str());
   return m_replyDelegate->getMessage();
 }
 
@@ -228,7 +232,8 @@ redis::RedisContext::rightPop(const std::string &key) {
       m_replyDelegate->getType().value() == REDIS_REPLY_NIL) {
     return std::nullopt;
   }
-  spdlog::info("[Redis]: Execute command  [ RPOP key = {}] successfully!", key.c_str());
+  spdlog::info("[Redis]: Execute command  [ RPOP key = {}] successfully!",
+               key.c_str());
   return m_replyDelegate->getMessage();
 }
 

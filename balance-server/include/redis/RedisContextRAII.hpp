@@ -1,9 +1,14 @@
 #pragma once
 #ifndef _REDISCONTEXTRAII_HPP_
 #define _REDISCONTEXTRAII_HPP_
+#include <chrono>
 #include <string>
 #include <string_view>
 #include <tools/tools.hpp>
+
+namespace redis {
+class RedisConnectionPool;
+}
 
 namespace redis {
 
@@ -11,6 +16,7 @@ enum class TimeUnit { Seconds, Milliseconds };
 
 class RedisContext {
   friend class RedisReply;
+  friend class RedisConnectionPool;
 
   /*also remove copy ctor*/
   RedisContext(const RedisContext &) = delete;
@@ -41,6 +47,7 @@ public:
   bool rightPush(const std::string &key, const std::string &value);
   bool delPair(const std::string &key);
   bool existKey(const std::string &key);
+  bool heartBeat();
 
   std::optional<std::string> checkValue(const std::string &key);
   std::optional<std::string> leftPop(const std::string &key);
@@ -80,6 +87,9 @@ private:
 
   /*redis context*/
   tools::RedisSmartPtr<redisContext> m_redisContext;
+
+  /*last operation time*/
+  std::chrono::steady_clock::time_point last_operation_time;
 };
 } // namespace redis
 

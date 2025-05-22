@@ -1,13 +1,13 @@
 #pragma once
 #ifndef _REDISCONTEXTRAII_HPP_
 #define _REDISCONTEXTRAII_HPP_
+#include <chrono>
 #include <string>
 #include <string_view>
 #include <tools/tools.hpp>
-#include <chrono>
 
 namespace redis {
-          class RedisConnectionPool;
+class RedisConnectionPool;
 }
 
 namespace redis {

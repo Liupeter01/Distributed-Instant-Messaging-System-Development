@@ -24,6 +24,7 @@ public:
   std::string Redis_ip_addr;
   unsigned short Redis_port;
   std::string Redis_passwd;
+  std::size_t Redis_timeout;
 
   std::string MySQL_host;
   std::string MySQL_port;
@@ -76,6 +77,7 @@ private:
     Redis_port = m_ini["Redis"]["port"].as<unsigned short>();
     Redis_ip_addr = m_ini["Redis"]["host"].as<std::string>();
     Redis_passwd = m_ini["Redis"]["password"].as<std::string>();
+    Redis_timeout = m_ini["Redis"]["timeout"].as<unsigned long>();
   }
 
   void loadMySQLInfo() {

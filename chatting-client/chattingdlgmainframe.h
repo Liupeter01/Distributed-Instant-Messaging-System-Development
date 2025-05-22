@@ -35,6 +35,9 @@ public:
   explicit ChattingDlgMainFrame(QWidget *parent = nullptr);
   virtual ~ChattingDlgMainFrame();
 
+public:
+  static void sendHeartBeat();
+
 signals:
   void switchToLogin();
   void signal_teminate_chatting_server(const QString &, const QString &);

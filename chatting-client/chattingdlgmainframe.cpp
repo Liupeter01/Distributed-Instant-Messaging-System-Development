@@ -98,6 +98,22 @@ ChattingDlgMainFrame::~ChattingDlgMainFrame() {
   delete ui;
 }
 
+void ChattingDlgMainFrame::sendHeartBeat()
+{
+    QJsonObject obj;
+    obj["uuid"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
+
+    QJsonDocument doc(obj);
+    auto json = doc.toJson(QJsonDocument::Compact);
+
+    auto buffer = std::make_shared<SendNodeType>(
+        static_cast<uint16_t>(ServiceType::SERVICE_HEARTBEAT_REQUEST), json,
+        ByteOrderConverterReverse{});
+
+    /*after connection to server, send TCP request*/
+    emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
+}
+
 bool ChattingDlgMainFrame::eventFilter(QObject *object, QEvent *event) {
   /*mouse button press event*/
   if (event->type() == QEvent::MouseButtonPress) {
@@ -234,18 +250,7 @@ void ChattingDlgMainFrame::registerSignal() {
 
   /*setup timer for sending heartbeat package*/
   connect(m_timer, &QTimer::timeout, this, [this]() {
-    QJsonObject obj;
-    obj["uuid"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
-
-    QJsonDocument doc(obj);
-    auto json = doc.toJson(QJsonDocument::Compact);
-
-    auto buffer = std::make_shared<SendNodeType>(
-        static_cast<uint16_t>(ServiceType::SERVICE_HEARTBEAT_REQUEST), json,
-        ByteOrderConverterReverse{});
-
-    /*after connection to server, send TCP request*/
-    emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
+      sendHeartBeat();
   });
 
   /*use to terminate timer*/

@@ -121,7 +121,7 @@ bool redis::RedisConnectionPool::connector(const std::string &_ip,
     // We have to do auth, to check whether password is correct or not!
     if (!new_item->checkAuth(m_passwd)) {
       new_item.reset();
-      throw std::runtime_error("Redis Auth Failed!")
+      throw std::runtime_error("Redis Auth Failed!");
     }
 
     {

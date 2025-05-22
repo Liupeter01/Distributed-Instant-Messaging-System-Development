@@ -17,8 +17,8 @@ public:
   virtual ~MySQLConnectionPool();
 
 protected:
-          void registerSQLStatement();
-          void roundRobinChecking();
+  void registerSQLStatement();
+  void roundRobinChecking();
 
 private:
   MySQLConnectionPool() noexcept;
@@ -30,10 +30,10 @@ private:
 
   void roundRobinCheckLowGranularity();
 
-  bool
-            connector(const std::string& username, const std::string& password, const std::string& database,
-            const std::string& host = "localhost",
-            const std::string& port = boost::mysql::default_port_string);
+  bool connector(const std::string &username, const std::string &password,
+                 const std::string &database,
+                 const std::string &host = "localhost",
+                 const std::string &port = boost::mysql::default_port_string);
 
 private:
   std::string m_username;
@@ -43,7 +43,7 @@ private:
   std::string m_port;
 
   /*round-robin timeout check(second)*/
-  //std::mutex m_RRMutex;
+  // std::mutex m_RRMutex;
   std::size_t m_timeout;
 
   /*round robin thread*/

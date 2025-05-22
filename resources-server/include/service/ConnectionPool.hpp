@@ -78,38 +78,66 @@ protected:
   std::queue<stub_ptr> m_stub_queue;
 };
 
-/*
- * get stub automatically!
- */
-template <typename WhichPool, typename _Type> class ConnectionRAII {
+template <typename WhichPool, typename _Type> struct ConnectionRAII {
   using wrapper = tools::ResourcesWrapper<_Type>;
+  ConnectionRAII(const ConnectionRAII&) = delete;
+  ConnectionRAII& operator=(const ConnectionRAII&) = delete;
 
-public:
+  ConnectionRAII(ConnectionRAII&&) = default;
+  ConnectionRAII& operator=(ConnectionRAII&&) = default;
+
   ConnectionRAII() : status(true) {
-    auto optional = WhichPool::get_instance()->acquire();
-    if (!optional.has_value()) {
-      status = false;
-    } else {
-      m_stub = std::move(optional.value());
-    }
+            acquire();
   }
   virtual ~ConnectionRAII() {
-    if (status) {
-      WhichPool::get_instance()->release(std::move(m_stub));
-
-      /*StubRAII failed!!*/
-      status = false;
-    }
+            release();
   }
   std::optional<wrapper> operator->() {
-    if (status) {
+    if (is_active()) {
       return wrapper(m_stub.get());
     }
     return std::nullopt;
   }
 
+  std::optional <  std::reference_wrapper< std::unique_ptr<_Type>>> get_native() {
+            if (is_active()) {
+                      return  std::ref(m_stub);
+            }
+            return std::nullopt;
+  }
+
+  //Raii no longer needs to put this resources back to container!
+  void invalidate() {
+            status = false;
+  }
+
+  bool is_active() const {
+            return status;
+  }
+
+protected:
+  void acquire() {
+            //valid resources retrieved!
+            if (auto optional = WhichPool::get_instance()->acquire(); optional) {
+                      m_stub = std::move(optional.value());
+                      return;
+            }
+
+            invalidate();
+  }
+
+  void release() {
+            if (is_active()) {
+
+                      WhichPool::get_instance()->release(std::move(m_stub));
+
+                      /*Stub no longer active*/
+                      invalidate();
+            }
+  }
+
 private:
-  std::atomic<bool> status; // load stub success flag
+  bool status; // load stub success flag
   std::unique_ptr<_Type> m_stub;
 };
 } // namespace connection

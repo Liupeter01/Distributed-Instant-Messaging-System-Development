@@ -118,10 +118,10 @@ bool redis::RedisConnectionPool::connector(const std::string &_ip,
     auto new_item = std::make_unique<redis::RedisContext>(_ip, _port, _passwd);
     new_item->last_operation_time = currentTimeStamp;
 
-    //We have to do auth, to check whether password is correct or not!
+    // We have to do auth, to check whether password is correct or not!
     if (!new_item->checkAuth(m_passwd)) {
-              new_item.reset();
-              throw std::runtime_error("Redis Auth Failed!")
+      new_item.reset();
+      throw std::runtime_error("Redis Auth Failed!")
     }
 
     {

@@ -16,30 +16,29 @@ class RedisConnectionPool
   friend class Singleton<RedisConnectionPool>;
 
   RedisConnectionPool() noexcept;
-  RedisConnectionPool(const std::size_t _timeout, 
-                                        const std::string& _ip, 
-                                        const  std::string& _passwd, 
-                                        const unsigned short _port) noexcept;
+  RedisConnectionPool(const std::size_t _timeout, const std::string &_ip,
+                      const std::string &_passwd,
+                      const unsigned short _port) noexcept;
 
 public:
   ~RedisConnectionPool() = default;
 
 protected:
-          void roundRobinChecking();
+  void roundRobinChecking();
 
 private:
-          bool connector(const std::string &_ip, const  std::string& _passwd, const unsigned short _port);
+  bool connector(const std::string &_ip, const std::string &_passwd,
+                 const unsigned short _port);
 
 private:
-          /*redis connector*/
-          std::string m_ip;
-          std::string m_passwd;
-          unsigned short m_port;
+  /*redis connector*/
+  std::string m_ip;
+  std::string m_passwd;
+  unsigned short m_port;
 
-          /*round robin thread*/
-          std::size_t m_timeout;
-          std::thread m_RRThread;
-
+  /*round robin thread*/
+  std::size_t m_timeout;
+  std::thread m_RRThread;
 };
 } // namespace redis
 #endif

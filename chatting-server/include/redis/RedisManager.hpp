@@ -15,21 +15,31 @@ class RedisConnectionPool
   using context_ptr = std::unique_ptr<context>;
   friend class Singleton<RedisConnectionPool>;
 
-  RedisConnectionPool() {
-    spdlog::info("Connecting to Redis service ip: {0}, port: {1}",
-                 ServerConfig::get_instance()->Redis_ip_addr.c_str(),
-                 ServerConfig::get_instance()->Redis_port);
-
-    for (std::size_t i = 0; i < m_queue_size; ++i) {
-      m_stub_queue.push(std::move(std::make_unique<context>(
-          ServerConfig::get_instance()->Redis_ip_addr,
-          ServerConfig::get_instance()->Redis_port,
-          ServerConfig::get_instance()->Redis_passwd)));
-    }
-  }
+  RedisConnectionPool() noexcept;
+  RedisConnectionPool(const std::size_t _timeout, 
+                                        const std::string& _ip, 
+                                        const  std::string& _passwd, 
+                                        const unsigned short _port) noexcept;
 
 public:
   ~RedisConnectionPool() = default;
+
+protected:
+          void roundRobinChecking();
+
+private:
+          bool connector(const std::string &_ip, const  std::string& _passwd, const unsigned short _port);
+
+private:
+          /*redis connector*/
+          std::string m_ip;
+          std::string m_passwd;
+          unsigned short m_port;
+
+          /*round robin thread*/
+          std::size_t m_timeout;
+          std::thread m_RRThread;
+
 };
 } // namespace redis
 #endif

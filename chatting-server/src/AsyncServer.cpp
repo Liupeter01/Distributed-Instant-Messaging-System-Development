@@ -71,11 +71,12 @@ void AsyncServer::stopTimer() {
 
 void AsyncServer::shutdown() {
 
-          spdlog::info("[{}] Start Kicking All The Clients Off The Server, Please Stand By ...",
-                    ServerConfig::get_instance()->GrpcServerName);
+  spdlog::info(
+      "[{}] Start Kicking All The Clients Off The Server, Please Stand By ...",
+      ServerConfig::get_instance()->GrpcServerName);
 
-          //send offline message to all the clients
-          UserManager::get_instance()->teminate();
+  // send offline message to all the clients
+  UserManager::get_instance()->teminate();
 }
 
 void AsyncServer::heartBeatEvent(const boost::system::error_code &ec) {

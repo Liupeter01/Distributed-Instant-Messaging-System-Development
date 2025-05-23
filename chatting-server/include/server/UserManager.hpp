@@ -39,7 +39,7 @@ protected:
   void eraseWaitingSession(const std::string &uuid);
 
 private:
-          bool m_status;
+  bool m_status;
   ContainerType m_uuid2Session;
   ContainerType m_waitingToBeClosed;
 };

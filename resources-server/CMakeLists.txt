@@ -33,7 +33,7 @@ add_custom_command(
 
 project(
   ResourcesServer
-  VERSION 1.2.3
+  VERSION 1.3.1
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)

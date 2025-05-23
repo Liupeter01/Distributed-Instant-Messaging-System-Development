@@ -74,8 +74,13 @@ int main() {
         ServerConfig::get_instance()->ResourceServerPort);
 
     async->startAccept();
+    async->startTimer(); // start zombie kill timer
+
     /**/
     ioc.run();
+
+    async->stopTimer(); // terminate timer!
+    async->shutdown(); // shutdown system and kick out all the clients
 
     /*
      * Resources  server shutdown

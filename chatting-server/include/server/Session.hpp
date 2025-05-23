@@ -16,10 +16,12 @@ class GrpcDistributedChattingImpl;
 
 class AsyncServer;
 class SyncLogic;
+class UserManager;
 
 class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
+  friend class UserManager;
   friend class grpc::GrpcDistributedChattingImpl;
 
   using Recv = RecvNode<std::string, ByteOrderConverter>;

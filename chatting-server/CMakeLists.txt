@@ -33,7 +33,7 @@ add_custom_command(
 
 project(
   ChattingServer
-  VERSION 2.4.1
+  VERSION 2.4.2
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)

@@ -11,11 +11,13 @@
 
 class AsyncServer;
 class SyncLogic;
+class UserManager;
 class RequestHandlerNode;
 
 class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
+  friend class UserManager;
   friend class RequestHandlerNode;
 
   using Recv = RecvNode<std::string, ByteOrderConverter>;
@@ -30,13 +32,17 @@ public:
 public:
   void startSession();
   void closeSession();
-  void setUUID(const std::string &uuid);
-  void sendMessage(ServiceType srv_type, const std::string &message);
-  const std::string &get_user_uuid() const;
-  const std::string &get_session_id() const;
+  void sendOfflineMessage();
+  void setUUID(const std::string& uuid) { s_uuid = uuid; }
+  void sendMessage(ServiceType srv_type, const std::string &message, std::shared_ptr<Session> self);
+  [[nodiscard]] bool isSessionTimeout(const std::time_t& now) const;
+  void updateLastHeartBeat();
+  const std::string& get_user_uuid() const { return s_uuid; }
+  const std::string& get_session_id() const { return s_session_id; }
 
-private:
-  void terminateAndRemoveFromServer(const std::string &user_uuid);
+  void markAsDeferredTerminated(std::function<void()>&& callable);
+
+protected:
 
   /*handling sending event*/
   void handle_write(std::shared_ptr<Session> session,
@@ -50,8 +56,30 @@ private:
                       boost::system::error_code ec,
                       std::size_t bytes_transferred);
 
+  bool checkDeferredTermination();
+
+private:
+          void terminateAndRemoveFromServer(const std::string& user_uuid);
+          void  terminateAndRemoveFromServer(const std::string& user_uuid, const std::string& expected_session_id);
+
+  void purgeRemoveConnection(std::shared_ptr<Session> session);
+
 private:
   bool s_closed = false;
+
+  enum class SessionState : uint8_t {
+            Unkown,
+            Alive, // online
+            Kicked,
+            LogoutPending, //
+            Terminated
+  };
+
+  /*Session State flag*/
+  std::atomic<SessionState> m_state = Session::SessionState::Alive;
+
+  /*logout pending handler*/
+  std::function<void()> m_finalSendCompleteHandler;
 
   /*store unique user id(uuid)*/
   std::string s_uuid;
@@ -61,6 +89,12 @@ private:
 
   /*user's socket*/
   boost::asio::ip::tcp::socket s_socket;
+
+  /*
+ * the last time that this session recv data from client
+ * we can not consider about boost::asio::steady_timer, because it's unsafe
+ */
+  std::atomic<std::time_t> m_last_heartbeat;
 
   /*pointing to the server it belongs to*/
   AsyncServer *s_gate;

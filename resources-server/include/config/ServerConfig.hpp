@@ -20,6 +20,7 @@ public:
   unsigned short ResourceServerPort;
   std::size_t ResourceQueueSize;
   std::size_t ResourcesMsgLength;
+  std::size_t heart_beat_timeout;
 
   std::string Redis_ip_addr;
   unsigned short Redis_port;
@@ -65,6 +66,9 @@ private:
 
     ResourcesMsgLength =
         m_ini["ResourcesServer"]["msg_length"].as<unsigned long>();
+
+    heart_beat_timeout =
+              m_ini["ResourcesServer"]["heart_beat_timeout"].as<int>();
   }
 
   void loadGrpcServerInfo() {

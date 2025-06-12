@@ -104,6 +104,9 @@ enum class ServiceStatus : uint8_t {
   LOGOUT_UNSUCCESSFUL,      // common logout uncessfully reason, due to internel
   // error
   SEARCHING_USERNAME_NOT_FOUND, // client search another user's username not
+  
+  CHATTHREAD_NOT_EXIST,       //chat thread
+  CHATTHREAD_PARSE_ERROR,
 
   CHATRECORD_NOT_EXIST,       //chat record not exist
   CHATRECORD_PARSE_ERROR,

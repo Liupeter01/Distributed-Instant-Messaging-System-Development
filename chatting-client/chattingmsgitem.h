@@ -8,6 +8,12 @@
 #include <QSpacerItem>
 #include <QWidget>
 
+enum class MessageStatus{
+    UNREAD,
+    READ,
+    FAILED  //message sent error
+};
+
 /*
  * chattingmsgbubble is one of the component in ChattingMsgItem
  */
@@ -22,9 +28,13 @@ public:
   void setupUserName(const QString &name);
   void setupIconPixmap(const QPixmap &icon);
   void setupBubbleWidget(QWidget *bubble);
+  void setupMsgStatus(const MessageStatus status);
 
   static constexpr std::size_t icon_width = 45;
   static constexpr std::size_t icon_height = 45;
+
+  static constexpr std::size_t statusLabel_width = 15;
+  static constexpr std::size_t statusLabel_height = 15;
 
 private:
   void addStyleSheet();
@@ -34,6 +44,7 @@ private:
   ChattingRole m_role;
   QLabel *m_nameLabel; /*display name*/
   QLabel *m_iconLabel; /*display user avator*/
+  QLabel *m_statusLabel;    /*display if message is read or not?*/
   QGridLayout *m_grid; /*grid layout*/
   QSpacerItem *m_spacer;
   QWidget *m_bubble;

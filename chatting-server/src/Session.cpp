@@ -5,7 +5,7 @@
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/Session.hpp>
-#include <server/UserManager.hpp>
+#include <user/UserManager.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
 

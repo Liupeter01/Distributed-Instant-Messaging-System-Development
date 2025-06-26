@@ -1,6 +1,6 @@
 #include <config/ServerConfig.hpp>
 #include <server/AsyncServer.hpp>
-#include <server/UserManager.hpp>
+#include <user/UserManager.hpp>
 #include <service/IOServicePool.hpp>
 #include <spdlog/spdlog.h>
 

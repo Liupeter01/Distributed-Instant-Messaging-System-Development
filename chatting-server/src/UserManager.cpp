@@ -1,5 +1,5 @@
 #include <network/def.hpp>
-#include <server/UserManager.hpp>
+#include <user/UserManager.hpp>
 
 UserManager::UserManager() : m_status(true) {}
 

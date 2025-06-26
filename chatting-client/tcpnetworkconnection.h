@@ -17,6 +17,7 @@
 struct UserNameCard;
 struct UserFriendRequest;
 struct ChattingTextMsg;
+struct ChatThreadPageResult;
 enum class MsgType;
 
 enum class TargetServer { CHATTINGSERVER, RESOURCESSERVER };
@@ -155,6 +156,12 @@ signals:
    */
   void signal_incoming_text_msg(
       MsgType type, std::optional<std::shared_ptr<ChattingTextMsg>> chat);
+
+  /*
+   * This function is mainly for the main interface
+   * to update it's chatting history UI widget
+   */
+  void signal_update_chat_thread(std::shared_ptr<ChatThreadPageResult> package);
 
 private:
   /*establish tcp socket with server*/

@@ -30,7 +30,7 @@ void ChattingHistoryWidget::setItemDisplay() {
   //     size.height())
   //         .value();
   // ui->user_avator->setPixmap(QPixmap::fromImage(image));
-  ui->user_name->setText(m_userinfo->m_nickname);
+  ui->user_name->setText(m_userinfo->getUserNameCard()->m_nickname);
 }
 
 std::shared_ptr<FriendChattingHistory>

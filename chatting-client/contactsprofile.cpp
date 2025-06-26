@@ -2,7 +2,7 @@
 #include "ui_contactsprofile.h"
 #include <QDebug>
 #include <QPixmap>
-#include <UserNameCard.h>
+#include <UserDef.hpp>
 #include <tools.h>
 
 ContactsProfile::ContactsProfile(QWidget *parent)

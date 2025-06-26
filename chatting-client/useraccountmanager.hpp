@@ -3,7 +3,7 @@
 
 #include "singleton.hpp"
 #include <QString>
-#include <UserFriendRequest.hpp>
+#include <UserDef.hpp>
 #include <unordered_map>
 #include <vector>
 

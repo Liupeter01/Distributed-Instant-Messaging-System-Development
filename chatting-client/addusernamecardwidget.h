@@ -1,7 +1,7 @@
 #ifndef ADDUSERNAMECARDWIDGET_H
 #define ADDUSERNAMECARDWIDGET_H
 
-#include "UserFriendRequest.hpp"
+#include <UserDef.hpp>
 #include <QFrame>
 #include <memory>
 

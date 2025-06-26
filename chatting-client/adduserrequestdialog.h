@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 /*store user info*/
-#include "UserNameCard.h"
+#include <UserDef.hpp>
 #include "onceclickableqlabel.h"
 #include "usertagwidget.h"
 #include <ByteOrderConverter.hpp>

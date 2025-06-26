@@ -1,5 +1,5 @@
 #include "addusernamecardwidget.h"
-#include "UserFriendRequest.hpp"
+#include <UserDef.hpp>
 #include "ui_addusernamecardwidget.h"
 
 AddUserNameCardWidget::AddUserNameCardWidget(QWidget *parent)
@@ -21,18 +21,18 @@ void AddUserNameCardWidget::setNameCardInfo(
   m_info = std::move(info);
 
   /*set avator qlabel*/
-  Tools::loadImgResources({m_info->m_avatorPath}, image_width, image_height,
+  Tools::loadImgResources({m_info->sender_card.m_avatorPath}, image_width, image_height,
                           "/static/");
 
-  Tools::setQLableImage(ui->avator, m_info->m_avatorPath, "/static/");
+  Tools::setQLableImage(ui->avator, m_info->sender_card.m_avatorPath, "/static/");
 
   ui->avator->setScaledContents(true);
 
   /*set friend name*/
-  ui->friend_name->setText(m_info->m_description);
+  ui->friend_name->setText(m_info->sender_card.m_description);
 
   /*set last message*/
-  ui->last_message->setText(m_info->m_description);
+  ui->last_message->setText(m_info->sender_card.m_description);
 }
 
 const QSize AddUserNameCardWidget::getImageSize() {

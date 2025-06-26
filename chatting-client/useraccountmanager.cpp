@@ -168,7 +168,7 @@ bool UserAccountManager::alreadyExistInRequestList(const QString &uuid) const {
       std::find_if(m_friend_request_list.begin(), m_friend_request_list.end(),
                    [uuid](std::shared_ptr<UserFriendRequest> item) {
                      // uuid should equal to m_uuid(from_uuid)
-                     return item->m_uuid == uuid;
+                     return item->sender_card.m_uuid == uuid;
                    });
 
   return it != m_friend_request_list.end();

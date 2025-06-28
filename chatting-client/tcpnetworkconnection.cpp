@@ -1,17 +1,17 @@
 #include "tcpnetworkconnection.h"
-#include <UserDef.hpp>
 #include "useraccountmanager.hpp"
 #include <ChattingHistory.hpp>
+#include <ChattingThreadDef.hpp>
 #include <QDataStream>
 #include <QDebug>
 #include <QJsonDocument>
+#include <UserDef.hpp>
 #include <logicmethod.h>
+#include <magic_enum.hpp>
 #include <msgtextedit.h>
 #include <qjsonarray.h>
 #include <resourcestoragemanager.h>
-#include <ChattingThreadDef.hpp>
 #include <tools.h>
-#include <magic_enum.hpp>
 
 TCPNetworkConnection::TCPNetworkConnection()
     : m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
@@ -567,63 +567,56 @@ void TCPNetworkConnection::registerCallback() {
         }
       }));
 
-
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
       ServiceType::SERVICE_PULLCHATTHREADRESPONSE, [this](QJsonObject &&json) {
-          /*error occured!*/
-          if (!json.contains("error")) {
-              qDebug() << "Json Parse Error!";
-              return;
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Pull Chatting Threads Return value Error!";
+          return;
+        }
+
+        // any more data?
+        [[maybe_unused]] auto status = json["is_complete"].toBool();
+
+        // if so, whats the next thread_id we are going to use in next round
+        // query!
+        [[maybe_unused]] auto next_thread_id =
+            json["next_thread_id"].toString();
+
+        auto thread_info = std::move(json["threads"].toArray());
+
+        std::vector<std::unique_ptr<ChatThreadMeta>> lists;
+        for (const QJsonValue &info : thread_info) {
+
+          auto type = info["type"].toString();
+          auto thread_id = info["thread_id"].toString();
+          auto user1_uuid = info["user1_uuid"].toString();
+          auto user2_uuid = info["user2_uuid"].toString();
+
+          UserChatType chattype =
+              reflect::name_to_enum<UserChatType>(type.toStdString());
+
+          if (chattype == UserChatType::GROUP) {
+            auto group_item = std::make_unique<ChatThreadMeta>(
+                thread_id.toStdString(), chattype);
+
+            lists.push_back(std::move(group_item));
+          } else if (chattype == UserChatType::PRIVATE) {
+            auto private_item = std::make_unique<ChatThreadMeta>(
+                thread_id.toStdString(), chattype, user1_uuid.toStdString(),
+                user2_uuid.toStdString());
+
+            lists.push_back(std::move(private_item));
           }
-          if (json["error"].toInt() !=
-              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-              qDebug() << "Pull Chatting Threads Return value Error!";
-              return;
-          }
 
-          //any more data?
-          [[maybe_unused]] auto status = json["is_complete"].toBool();
-
-          //if so, whats the next thread_id we are going to use in next round query!
-          [[maybe_unused]] auto next_thread_id = json["next_thread_id"].toString();
-
-          auto thread_info = std::move(json["threads"].toArray());
-
-          std::vector<std::unique_ptr<ChatThreadMeta>> lists;
-          for(const QJsonValue& info : thread_info){
-
-              auto type = info["type"].toString();
-              auto thread_id = info["thread_id"].toString();
-              auto user1_uuid = info["user1_uuid"].toString();
-              auto user2_uuid = info["user2_uuid"].toString();
-
-
-              UserChatType chattype = reflect::name_to_enum<UserChatType>(type.toStdString());
-
-              if(chattype == UserChatType::GROUP){
-                  auto group_item = std::make_unique<ChatThreadMeta>(
-                      thread_id.toStdString(),
-                      chattype
-                  );
-
-                  lists.push_back(std::move(group_item));
-              }
-              else if(chattype == UserChatType::PRIVATE){
-                  auto private_item = std::make_unique<ChatThreadMeta>(
-                      thread_id.toStdString(),
-                      chattype,
-                      user1_uuid.toStdString(),
-                      user2_uuid.toStdString()
-                  );
-
-                lists.push_back(std::move(private_item));
-              }
-
-              emit signal_update_chat_thread(std::make_shared<ChatThreadPageResult>(
-                  status,
-                  next_thread_id,
-                  std::move(lists)));
-          }
+          emit signal_update_chat_thread(std::make_shared<ChatThreadPageResult>(
+              status, next_thread_id, std::move(lists)));
+        }
       }));
 }
 

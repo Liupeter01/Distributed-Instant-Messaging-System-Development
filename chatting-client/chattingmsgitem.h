@@ -8,10 +8,10 @@
 #include <QSpacerItem>
 #include <QWidget>
 
-enum class MessageStatus{
-    UNREAD,
-    READ,
-    FAILED  //message sent error
+enum class MessageStatus {
+  UNREAD,
+  READ,
+  FAILED // message sent error
 };
 
 /*
@@ -42,10 +42,10 @@ private:
 private:
   QFont m_font;
   ChattingRole m_role;
-  QLabel *m_nameLabel; /*display name*/
-  QLabel *m_iconLabel; /*display user avator*/
-  QLabel *m_statusLabel;    /*display if message is read or not?*/
-  QGridLayout *m_grid; /*grid layout*/
+  QLabel *m_nameLabel;   /*display name*/
+  QLabel *m_iconLabel;   /*display user avator*/
+  QLabel *m_statusLabel; /*display if message is read or not?*/
+  QGridLayout *m_grid;   /*grid layout*/
   QSpacerItem *m_spacer;
   QWidget *m_bubble;
 };

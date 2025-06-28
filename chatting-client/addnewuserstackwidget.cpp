@@ -35,8 +35,9 @@ void AddNewUserStackWidget::addNewWidgetItem(
                 new AuthenticateNewFriendRequestDialog(this);
             auth->setModal(true);
             auth->setUserInfo(std::make_unique<UserNameCard>(
-                info->sender_card.m_uuid, info->sender_card.m_avatorPath, info->sender_card.m_username,
-                info->sender_card.m_nickname, info->sender_card.m_description, info->sender_card.m_sex));
+                info->sender_card.m_uuid, info->sender_card.m_avatorPath,
+                info->sender_card.m_username, info->sender_card.m_nickname,
+                info->sender_card.m_description, info->sender_card.m_sex));
 
             auth->show();
           });
@@ -89,7 +90,8 @@ void AddNewUserStackWidget::slot_init_friend_request_list() {
 void AddNewUserStackWidget::slot_incoming_friend_request(
     std::optional<std::shared_ptr<UserFriendRequest>> info) {
   if (info.has_value()) {
-    qDebug() << "Receive Friend Request From " << info.value()->sender_card.m_uuid;
+    qDebug() << "Receive Friend Request From "
+             << info.value()->sender_card.m_uuid;
     /*did the friend request sender send the request before?*/
     if (UserAccountManager::get_instance()->alreadyExistInRequestList(
             info.value()->sender_card.m_uuid)) {

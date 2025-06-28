@@ -1,17 +1,17 @@
-#include <tools.h>
 #include "chattingmsgitem.h"
+#include <tools.h>
 
 ChattingMsgItem::ChattingMsgItem(ChattingRole role, QWidget *parent)
     : m_role(role), QWidget{parent}, m_font("Microsoft YaHei"),
-    m_nameLabel(new QLabel), m_iconLabel(new QLabel), m_grid(new QGridLayout),m_statusLabel(new QLabel)
-      ,m_spacer(new QSpacerItem(40, 20, QSizePolicy::Expanding,
+      m_nameLabel(new QLabel), m_iconLabel(new QLabel), m_grid(new QGridLayout),
+      m_statusLabel(new QLabel),
+      m_spacer(new QSpacerItem(40, 20, QSizePolicy::Expanding,
                                QSizePolicy::Minimum)),
       m_bubble(new QWidget) {
 
-    /*load qimage*/
-    Tools::loadImgResources({"read.png", "unread.png","send_fail.png"},
-                            statusLabel_width,
-                            statusLabel_height);
+  /*load qimage*/
+  Tools::loadImgResources({"read.png", "unread.png", "send_fail.png"},
+                          statusLabel_width, statusLabel_height);
 
   m_font.setPointSize(10);
   m_nameLabel->setObjectName("msg_item_username");
@@ -53,10 +53,12 @@ ChattingMsgItem::ChattingMsgItem(ChattingRole role, QWidget *parent)
 
     m_grid->addItem(m_spacer, 1, 0, 1, 1);
 
-    m_grid->setColumnStretch(0, 2); //for col: 0
-    m_grid->setColumnStretch(1, 0); //for col: 1(statusLabel should be a fix size)
-    m_grid->setColumnStretch(2, 3); //for col: 2(m_bubble could be extend on both direction)
-    m_grid->setColumnStretch(3, 0); //for col: 3
+    m_grid->setColumnStretch(0, 2); // for col: 0
+    m_grid->setColumnStretch(1,
+                             0); // for col: 1(statusLabel should be a fix size)
+    m_grid->setColumnStretch(
+        2, 3); // for col: 2(m_bubble could be extend on both direction)
+    m_grid->setColumnStretch(3, 0); // for col: 3
 
   } else {
 
@@ -111,22 +113,20 @@ void ChattingMsgItem::setupBubbleWidget(QWidget *bubble) {
   m_bubble = bubble;
 }
 
-void ChattingMsgItem::setupMsgStatus(const MessageStatus status){
+void ChattingMsgItem::setupMsgStatus(const MessageStatus status) {
 
-    if(!m_statusLabel){
-        qDebug() << "status label init failed!\n";
-        return;
-    }
+  if (!m_statusLabel) {
+    qDebug() << "status label init failed!\n";
+    return;
+  }
 
-    if(status == MessageStatus::UNREAD){
-        Tools::setQLableImage(m_statusLabel, "unread.png");
-    }
-    else if(status == MessageStatus::READ){
-        Tools::setQLableImage(m_statusLabel, "read.png");
-    }
-    else if(status == MessageStatus::FAILED){
-        Tools::setQLableImage(m_statusLabel, "send_fail.png");
-    }
+  if (status == MessageStatus::UNREAD) {
+    Tools::setQLableImage(m_statusLabel, "unread.png");
+  } else if (status == MessageStatus::READ) {
+    Tools::setQLableImage(m_statusLabel, "read.png");
+  } else if (status == MessageStatus::FAILED) {
+    Tools::setQLableImage(m_statusLabel, "send_fail.png");
+  }
 }
 
 void ChattingMsgItem::addStyleSheet() {

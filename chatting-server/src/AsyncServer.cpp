@@ -1,8 +1,8 @@
 #include <config/ServerConfig.hpp>
 #include <server/AsyncServer.hpp>
-#include <user/UserManager.hpp>
 #include <service/IOServicePool.hpp>
 #include <spdlog/spdlog.h>
+#include <user/UserManager.hpp>
 
 AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
     : m_ioc(_ioc),

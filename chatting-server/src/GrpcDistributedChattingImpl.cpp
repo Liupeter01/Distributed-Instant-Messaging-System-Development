@@ -5,9 +5,9 @@
 #include <grpc/GrpcDistributedChattingImpl.hpp>
 #include <handler/SyncLogic.hpp>
 #include <server/Session.hpp>
-#include <user/UserManager.hpp>
-#include <user/UserDef.hpp>
 #include <spdlog/spdlog.h>
+#include <user/UserDef.hpp>
+#include <user/UserManager.hpp>
 
 grpc::GrpcDistributedChattingImpl::GrpcDistributedChattingImpl() {}
 

@@ -1,8 +1,8 @@
 #ifndef ADDUSERNAMECARDWIDGET_H
 #define ADDUSERNAMECARDWIDGET_H
 
-#include <UserDef.hpp>
 #include <QFrame>
+#include <UserDef.hpp>
 #include <memory>
 
 namespace Ui {

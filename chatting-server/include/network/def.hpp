@@ -20,14 +20,16 @@ enum class ServiceType : uint8_t {
   SERVICE_SEARCHUSERNAME,         // client search another user's username
   SERVICE_SEARCHUSERNAMERESPONSE, //
 
-  SERVICE_PULLCHATTHREAD,                         //pull chat threads, which are the index of chat record
+  SERVICE_PULLCHATTHREAD, // pull chat threads, which are the index of chat
+                          // record
   SERVICE_PULLCHATTHREADRESPONSE,
 
-  SERVICE_PULLCHATRECORD,                         //user use uuid to pull chat record
-  SERVICE_PULLCHATRECORDRESPONSE,       //
+  SERVICE_PULLCHATRECORD,         // user use uuid to pull chat record
+  SERVICE_PULLCHATRECORDRESPONSE, //
 
-  SERVICE_CREATENEWPRIVATECHAT,                             //when user start init chat with others, the data with sync to the server
-  SERVICE_CREATENEWPRIVATECHAT_RESPONSE,          //allocate a thread_id
+  SERVICE_CREATENEWPRIVATECHAT, // when user start init chat with others, the
+                                // data with sync to the server
+  SERVICE_CREATENEWPRIVATECHAT_RESPONSE, // allocate a thread_id
 
   /*
    * User A init a friending request to User B
@@ -109,10 +111,10 @@ enum class ServiceStatus : uint8_t {
   // error
   SEARCHING_USERNAME_NOT_FOUND, // client search another user's username not
 
-  CHATTHREAD_NOT_EXIST,       //chat thread
+  CHATTHREAD_NOT_EXIST, // chat thread
   CHATTHREAD_PARSE_ERROR,
 
-  CHATRECORD_NOT_EXIST,       //chat record not exist
+  CHATRECORD_NOT_EXIST, // chat record not exist
   CHATRECORD_PARSE_ERROR,
 
   CREATE_PRIVATE_CHAT_FAILED,

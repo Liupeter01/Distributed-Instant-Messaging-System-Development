@@ -1,7 +1,6 @@
 #pragma once
 #ifndef _CONNECTIONPOOOL_HPP_
 #define _CONNECTIONPOOOL_HPP_
-
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -10,6 +9,15 @@
 #include <singleton/singleton.hpp>
 #include <thread>
 #include <tools/tools.hpp>
+
+/*forward*/
+namespace mysql {
+          class MySQLConnectionPool;
+}
+
+namespace redis {
+          class RedisConnectionPool;
+}
 
 namespace connection {
 /*please pass your new pool as template parameter*/
@@ -79,6 +87,10 @@ protected:
 };
 
 template <typename WhichPool, typename _Type> struct ConnectionRAII {
+
+          friend class mysql::MySQLConnectionPool;
+          friend class redis::RedisConnectionPool;
+
   using wrapper = tools::ResourcesWrapper<_Type>;
   ConnectionRAII(const ConnectionRAII &) = delete;
   ConnectionRAII &operator=(const ConnectionRAII &) = delete;
@@ -102,9 +114,6 @@ template <typename WhichPool, typename _Type> struct ConnectionRAII {
     return std::nullopt;
   }
 
-  // Raii no longer needs to put this resources back to container!
-  void invalidate() { status = false; }
-
   bool is_active() const { return status; }
 
 protected:
@@ -127,6 +136,10 @@ protected:
       invalidate();
     }
   }
+
+private:
+          // Raii no longer needs to put this resources back to container!
+          void invalidate() { status = false; }
 
 private:
   bool status; // load stub success flag

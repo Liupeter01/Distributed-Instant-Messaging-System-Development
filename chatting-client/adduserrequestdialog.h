@@ -9,7 +9,6 @@
 /*store user info*/
 #include "onceclickableqlabel.h"
 #include "usertagwidget.h"
-#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
 #include <UserDef.hpp>
 

@@ -9,6 +9,10 @@
 namespace chat {
 enum class UserChatType { PRIVATE, GROUP };
 
+enum class MsgType {
+          DEFAULT, TEXT, IMAGE, FILE, AUDIO, VIDEO
+};
+
 /*
  * ThreadInfo is a TEMP structure aiming to store the the relationship of
  * thread_id <--Private Chat-> (user_one, user_two)
@@ -77,6 +81,33 @@ struct ChattingThreadDesc {
   ChatThreadMeta _meta;
   std::optional<std::string> _last_msg_id; // last msg id for data retrieve!
 };
+
+struct FriendingConfirmInfo {
+          FriendingConfirmInfo() = default;
+
+          FriendingConfirmInfo(const MsgType msg_type, 
+                    const std::string& threadId,
+                    const std::string& messageId,
+                    const std::string& sender,
+                    const std::string& receiver,
+                    const std::string& content)
+                    : message_type(msg_type),
+                    thread_id(threadId),
+                    message_id(messageId),
+                    message_sender(sender),
+                    message_receiver(receiver),
+                    message_content(content) {
+          }
+
+          MsgType message_type;
+          std::string thread_id;
+          std::string message_id;
+          std::string message_sender;
+          std::string message_receiver;
+          std::string message_content;
+};
+
+
 } // namespace chat
 
 #endif //_CHATTINGTHREADDEF_H

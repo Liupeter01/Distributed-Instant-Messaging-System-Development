@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MSGTEXTEDIT_H
 #define MSGTEXTEDIT_H
 
@@ -11,7 +12,7 @@
 #include <QVector>
 #include <QWidget>
 
-enum class MsgType { TEXT, IMAGE, FILE };
+enum class MsgType;
 
 struct MsgInfo {
   MsgType type;

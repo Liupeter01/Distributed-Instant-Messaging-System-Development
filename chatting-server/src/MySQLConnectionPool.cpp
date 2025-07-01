@@ -52,6 +52,12 @@ mysql::MySQLConnectionPool::~MySQLConnectionPool() {}
 
 void mysql::MySQLConnectionPool::registerSQLStatement() {
   m_sql.insert(std::pair(MySQLSelection::HEART_BEAT, fmt::format("SELECT 1")));
+
+  /*Transaction Control*/
+  m_sql.insert(std::pair(MySQLSelection::START_TRANSACTION, fmt::format("START TRANSACTION")));
+  m_sql.insert(std::pair(MySQLSelection::COMMIT_TRANSACTION, fmt::format("COMMIT")));
+  m_sql.insert(std::pair(MySQLSelection::ROLLBACK_TRANSACTION, fmt::format("ROLLBACK")));
+
   m_sql.insert(std::pair(
       MySQLSelection::FIND_EXISTING_USER,
       fmt::format("SELECT * FROM Authentication WHERE {} = ? AND {} = ?",
@@ -128,6 +134,18 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
           std::string("FriendRequest.id"), std::string("FriendRequest.id"))));
 
   m_sql.insert(std::pair(
+            MySQLSelection::CHECK_FRIEND_REQUEST_LIST_WITH_LOCK, 
+            fmt::format("SELECT {}, {}, {} FROM {} "
+                              "WHERE {} = ? AND {} = ? "
+                              "FOR UPDATE", 
+                      std::string("id"),
+                      std::string("nickname"),
+                      std::string("message"),
+                      std::string("FriendRequest"),
+                      std::string("src_uuid "),
+                      std::string("dst_uuid"))));
+
+  m_sql.insert(std::pair(
       MySQLSelection::GET_AUTH_FRIEND_LIST,
       fmt::format("SELECT {}, {}, {}, {}, {}, {}"
                   " FROM AuthFriend AS AF "
@@ -167,6 +185,83 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
                                      std::string("friend_uuid"),
                                      std::string("self_uuid"),
                                      std::string("alternative_name"))));
+
+
+  m_sql.insert(
+            std::pair(MySQLSelection::GET_USER_CHAT_THREADS,
+                      fmt::format(
+                                "WITH all_threads AS ("
+                                "SELECT {0}, {1}, {2}, {6} AS {3} "
+                                "FROM {8} "
+                                "WHERE ({1} = ? OR {2} = ?) AND {8}.{0} > ? "
+                                "UNION ALL "
+                                "SELECT {0}, {9} AS {1}, {9} AS {2}, {7} AS {3} "
+                                "FROM {10} "
+                                "WHERE {4} = ? AND {10}.{0} > ?"
+                                ") "
+                                "SELECT * FROM all_threads ORDER BY {0}"
+                                "  LIMIT ?;",
+                                std::string("thread_id"),              // {0}
+                                std::string("user1_uuid"),             // {1}
+                                std::string("user2_uuid"),             // {2}
+                                std::string("type"),                   // {3}
+                                std::string("user_uuid"),              // {4}
+                                std::string("unused"),                 // {5} 
+                                std::string("'PRIVATE'"),              // {6}
+                                std::string("'GROUP'"),                // {7}
+                                std::string("chatting.PrivateChat"),   // {8}
+                                std::string("NULL"),                   // {9}
+                                std::string("chatting.GroupMember")    // {10}
+                      )));
+
+  m_sql.insert(
+            std::pair(MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK,
+                      fmt::format(
+                                "SELECT {0} FROM {1} "
+                                "WHERE ({2} = ? AND {3} = ?) "
+                                "FOR UPDATE;",
+                                std::string("thread_id"),             // {0}
+                                std::string("PrivateChat"),  // {1}
+                                std::string("user1_uuid"),            // {2}
+                                std::string("user2_uuid")             // {3}
+                      )));
+
+
+  m_sql.insert(
+            std::pair(MySQLSelection::CREATE_PRIVATE_CHAT_BY_USER_PAIR,
+                     fmt::format(
+                                "INSERT INTO {0} ({1}, {2}, {3}, {4}) "
+                                "VALUES (?, ?, ?, NOW());",
+                                std::string("PrivateChat"),  // {0}
+                                std::string("thread_id"),             // {1}
+                                std::string("user1_uuid"),            // {2}
+                                std::string("user2_uuid"),            // {3}
+                                std::string("created_at")             // {4}
+                      )));
+
+  m_sql.insert(
+            std::pair(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
+                      fmt::format(
+                                "INSERT INTO {} ({}, {}, {}, {}, {}, {}, {}) "
+                                " VALUES (?, ?, ?, ?, NOW(), NOW(), ?);",
+                                std::string("ChatMsgHistoryBank"),
+                                std::string("thread_id"),
+                                std::string("message_status"),
+                                std::string("message_sender"),
+                                std::string("message_receiver"),
+                                std::string("created_at"),
+                                std::string("updated_at"),
+                                std::string("message_content")
+                      )));
+
+  m_sql.insert(
+            std::pair(MySQLSelection::CREATE_PRIVATE_GLOBAL_THREAD_INDEX,
+                      fmt::format(
+                                "INSERT INTO {0} ({1}, {2}) VALUES (?, NOW());",
+                                std::string("GlobalThreadIndexTable"),  // {0}
+                                std::string("type"),                              // {1}
+                                std::string("created_at")                        // {2}
+                      )));
 }
 
 void mysql::MySQLConnectionPool::roundRobinChecking() {

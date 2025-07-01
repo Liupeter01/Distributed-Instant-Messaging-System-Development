@@ -7,13 +7,15 @@
 #include <chrono>
 #include <map>
 #include <optional>
-#include <server/UserNameCard.hpp>
+#include <chat/ChattingThreadDef.hpp>
+#include <user/UserDef.hpp>
 #include <string_view>
 #include <vector>
 
 /*delcaration*/
 struct UserNameCard;
 struct UserFriendRequest;
+struct ChatThreadInfo;
 
 struct MySQLRequestStruct {
   std::string_view m_username;
@@ -26,6 +28,10 @@ class MySQLConnectionPool;
 
 enum class MySQLSelection : uint8_t {
   HEART_BEAT,
+  START_TRANSACTION,
+ COMMIT_TRANSACTION,
+ ROLLBACK_TRANSACTION,
+
   FIND_EXISTING_USER,
   CREATE_NEW_USER,    // register new user
   UPDATE_USER_PASSWD, // update user password
@@ -41,13 +47,36 @@ enum class MySQLSelection : uint8_t {
                                 // AuthFriend Table
 
   GET_FRIEND_REQUEST_LIST, // Get User's Request List
+  CHECK_FRIEND_REQUEST_LIST_WITH_LOCK, //get friend request list with lock
   GET_AUTH_FRIEND_LIST,    // Get User's Auth Friend List
+
+  GET_USER_CHAT_THREADS,      //only return chat threads for user(data are not included!!!!!)
+  GET_USER_CHAT_RECORDS,       //user could use thread_id and other info to retrieve the REAL CHAT RECORD
+
+  CREATE_PRIVATE_GLOBAL_THREAD_INDEX,   //YOU MUST GENERATE A GLOBAL THREAD IDX BEFORE INSERT TO PRIVATE CHAT TABLE
+  CREATE_GROUP_GLOBAL_THREAD_INDEX,
+
+  CHECK_PRIVATE_CHAT_WITH_LOCK, //check private chat info with FOR UPDATE lock
+  CREATE_PRIVATE_CHAT_BY_USER_PAIR,          //insert user pair data into privatechat table by thread_id
+
+  CREATE_MSG_HISTORY_BANK_TUPLE                         //create item inside sql history table
 };
 
 class MySQLConnection {
   friend class MySQLConnectionPool;
   MySQLConnection(const MySQLConnection &) = delete;
   MySQLConnection &operator=(const MySQLConnection &) = delete;
+
+  struct TransactionGuard {
+            TransactionGuard(MySQLConnection& conn);
+            ~TransactionGuard();
+            void commit();
+  private:
+            TransactionGuard(TransactionGuard&&) = delete;
+            TransactionGuard& operator=(TransactionGuard&&) = delete;
+            MySQLConnection& m_conn;
+            bool m_active;
+  };
 
 public:
   MySQLConnection(std::string_view username, std::string_view password,
@@ -59,7 +88,8 @@ public:
 
 public:
   /*get user profile*/
-  std::optional<std::unique_ptr<UserNameCard>> getUserProfile(std::size_t uuid);
+  std::optional<std::unique_ptr<user::UserNameCard>> 
+            getUserProfile(std::size_t uuid);
 
   /*create user friend request MySQLSelection::USER_FRIEND_REQUEST*/
   bool createFriendRequest(const std::size_t src_uuid,
@@ -79,15 +109,22 @@ public:
    * which is restricted by a startpos and an interval
    * the valid data is from [starpos, startpos + interval - 1]
    */
-  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
+  std::optional<std::vector<std::unique_ptr<user::UserFriendRequest>>>
   getFriendingRequestList(const std::size_t dst_uuid,
                           const std::size_t start_pos,
                           const std::size_t interval);
 
-  std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+  std::optional<std::vector<std::unique_ptr<user::UserNameCard>>>
   getAuthenticFriendsList(const std::size_t self_uuid,
                           const std::size_t start_pos,
                           const std::size_t interval);
+
+  std::optional<std::vector<std::unique_ptr<chat::ChatThreadMeta>>>
+  getUserChattingThreadIdx(const std::size_t self_uuid,
+            const std::size_t cur_thread_id,
+            const std::size_t interval,
+            std::string&next_thread_id,
+            bool &is_EOF);
 
   /*insert new user, call MySQLSelection::CREATE_NEW_USER*/
   bool registerNewUser(MySQLRequestStruct &&request);
@@ -109,17 +146,46 @@ public:
   std::optional<std::size_t> getUUIDByUsername(std::string_view username);
   std::optional<std::string> getUsernameByUUID(std::size_t uuid);
 
+  std::optional<std::string> checkPrivateChatExistance(const std::size_t user1_uuid,
+                                                                                           const std::size_t user2_uuid);
+
+  std::optional<std::string> createNewPrivateChat(const std::size_t user1_uuid,
+                                                                                 const std::size_t user2_uuid);
+
+  /*
+   * Confirm mutual friendship between requester and confirmer.
+   * This transaction includes:
+   * 1. Updating the friending request status to 'confirmed'
+   * 2. Inserting mutual friend relations: A ¡ú B (with alias), B ¡ú A (no alias)
+   * If any step fails, the entire transaction is rolled back.
+   *
+   * @param requester_uuid UUID of the user who sent the friend request
+   * @param confirmer_uuid UUID of the user who confirmed the friend request
+   */
+  [[nodiscard]]
+  std::optional<std::vector<std::shared_ptr<chat::FriendingConfirmInfo>>> 
+  execFriendConfirmationTransaction(const std::size_t requester_uuid,
+                                                                      const std::size_t confirmer_uuid);
+
 private:
   template <typename... Args>
   std::optional<boost::mysql::results> executeCommand(MySQLSelection select,
-                                                      Args &&...args);
+                                                                                            Args &&...args);
 
-  void updateTimer();
+  template <typename... Args>
+  boost::mysql::results executeCommandOrThrow(MySQLSelection select,
+                                                                                Args &&...args);
+
+  void updateTimer() {  last_operation_time = std::chrono::steady_clock::now(); }
 
   /*send heart packet to mysql to prevent from disconnecting*/
-  bool sendHeartBeat();
+  bool sendHeartBeat() {
+            return executeCommand(MySQLSelection::HEART_BEAT).has_value();
+  }
 
 private:
+          bool m_inTransaction = false;
+
   std::shared_ptr<MySQLConnectionPool> m_delegator;
 
   // The execution context, required to run I/O operations.

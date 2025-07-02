@@ -12,7 +12,7 @@ ChattingHistoryWidget::ChattingHistoryWidget(QWidget *parent)
 ChattingHistoryWidget::~ChattingHistoryWidget() { delete ui; }
 
 void ChattingHistoryWidget::setUserInfo(
-    std::shared_ptr<FriendChattingHistory> info) {
+    std::shared_ptr<UserNameCard> info) {
   /*store the friendchattinghistory obj*/
   m_userinfo = info;
 
@@ -20,7 +20,7 @@ void ChattingHistoryWidget::setUserInfo(
 }
 
 void ChattingHistoryWidget::updateLastMsg() {
-  setLastMessage<ChattingTextMsg>();
+  //setLastMessage<ChattingTextMsg>();
 }
 
 void ChattingHistoryWidget::setItemDisplay() {
@@ -30,10 +30,10 @@ void ChattingHistoryWidget::setItemDisplay() {
   //     size.height())
   //         .value();
   // ui->user_avator->setPixmap(QPixmap::fromImage(image));
-  ui->user_name->setText(m_userinfo->getUserNameCard()->m_nickname);
+  ui->user_name->setText(m_userinfo->m_nickname);
 }
 
-std::shared_ptr<FriendChattingHistory>
-ChattingHistoryWidget::getChattingContext() {
+std::shared_ptr<UserNameCard>
+ChattingHistoryWidget::getFriendsInfo(){
   return m_userinfo;
 }

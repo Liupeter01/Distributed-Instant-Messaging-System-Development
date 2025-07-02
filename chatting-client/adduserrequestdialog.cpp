@@ -302,18 +302,10 @@ void AddUserRequestDialog::on_confirm_button_clicked() {
   obj["message"] = req_msg;
   obj["nickname"] = nickname;
 
-  QJsonDocument doc(obj);
-
-  /*it should be store as a temporary object, because send_buffer will modify
-   * it!*/
-  auto json_data = doc.toJson(QJsonDocument::Compact);
-
-  SendNodeType send_buffer(
-      static_cast<uint16_t>(ServiceType::SERVICE_FRIENDREQUESTSENDER),
-      json_data, ByteOrderConverterReverse{});
-
   /*after connection to server, send TCP request*/
-  TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_FRIENDREQUESTSENDER,
+                                    std::move(obj)
+  );
 
   closeDialog();
 }

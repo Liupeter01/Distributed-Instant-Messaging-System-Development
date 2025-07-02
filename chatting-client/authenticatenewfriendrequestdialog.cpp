@@ -4,7 +4,6 @@
 #include "tcpnetworkconnection.h"
 #include "tools.h"
 #include "ui_authenticatenewfriendrequestdialog.h"
-#include <ByteOrderConverter.hpp>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -297,18 +296,10 @@ void AuthenticateNewFriendRequestDialog::on_confirm_button_clicked() {
   obj["dst_uuid"] = UserAccountManager::get_instance()->get_uuid(); // my uuid
   obj["alternative_name"] = alternativeName;
 
-  QJsonDocument doc(obj);
-
-  /*it should be store as a temporary object, because send_buffer will modify
-   * it!*/
-  auto json_data = doc.toJson(QJsonDocument::Compact);
-
-  SendNodeType send_buffer(
-      static_cast<uint16_t>(ServiceType::SERVICE_FRIENDREQUESTCONFIRM),
-      json_data, ByteOrderConverterReverse{});
-
   /*after connection to server, send TCP request*/
-  TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_FRIENDREQUESTCONFIRM,
+                                    std::move(obj)
+   );
 
   closeDialog();
 }

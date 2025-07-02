@@ -217,18 +217,10 @@ void LoginInterface::slot_connection_status(bool status) {
     json_obj["uuid"] = UserAccountManager::get_instance()->get_uuid();
     json_obj["token"] = UserAccountManager::get_instance()->get_token();
 
-    QJsonDocument json_doc(json_obj);
-
-    /*it should be store as a temporary object, because send_buffer will modify
-     * it!*/
-    auto json_data = json_doc.toJson(QJsonDocument::Compact);
-
-    SendNodeType send_buffer(
-        static_cast<uint16_t>(ServiceType::SERVICE_LOGINSERVER), json_data,
-        ByteOrderConverterReverse{});
-
     /*after connection to server, send TCP request*/
-    TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+    TCPNetworkConnection::send_buffer(ServiceType::SERVICE_LOGINSERVER,
+                                      std::move(json_obj)
+     );
 
   } else {
     Tools::setWidgetAttribute(ui->status_label_3, QString("Network error!"),

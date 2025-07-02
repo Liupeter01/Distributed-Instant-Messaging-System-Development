@@ -1,140 +1,128 @@
 #pragma once
 #ifndef CHATMESSAGEBUFFER_H
 #define CHATMESSAGEBUFFER_H
-#include <list>
-#include <QString>
-#include <memory>
-#include <vector>
-#include <unordered_map>
-#include <map>
 #include <QDebug>
+#include <QString>
+#include <list>
+#include <map>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
-template<typename T>
-class MessageBuffer {
+template <typename T> class MessageBuffer {
 public:
-    MessageBuffer() = default;
-    virtual ~MessageBuffer() = default;
+  MessageBuffer() = default;
+  virtual ~MessageBuffer() = default;
 
 public:
-    bool
-    updateVerificationStatus(const QString& unique_id,
-                             const QString& msg_id) {
+  bool updateVerificationStatus(const QString &unique_id,
+                                const QString &msg_id) {
 
-        if (!m_localMsgIndex.count(unique_id)) {
-            qDebug() << "Unique ID Not Found!";
-            return false;
-        }
-
-        auto it = m_localMsgIndex.find(unique_id);
-        std::shared_ptr<T> msg = *(it->second);
-        msg->setMsgID(msg_id);
-
-        return insertVerified(msg) && removeLocal(unique_id);
+    if (!m_localMsgIndex.count(unique_id)) {
+      qDebug() << "Unique ID Not Found!";
+      return false;
     }
 
-    [[nodiscard]]
-    std::vector<std::shared_ptr<T>>
-    dumpAllChatData() const {
-        std::vector<std::shared_ptr<T>> ret;
-        ret.reserve(m_verifyMessage.size() + m_localMessage.size());
+    auto it = m_localMsgIndex.find(unique_id);
+    std::shared_ptr<T> msg = *(it->second);
+    msg->setMsgID(msg_id);
 
-        for (const auto& pair : m_verifyMessage)
-            ret.push_back(pair.second);
+    return insertVerified(msg) && removeLocal(unique_id);
+  }
 
-        for (const auto& msg : m_localMessage)
-            ret.push_back(msg);
+  [[nodiscard]]
+  std::vector<std::shared_ptr<T>> dumpAllChatData() const {
+    std::vector<std::shared_ptr<T>> ret;
+    ret.reserve(m_verifyMessage.size() + m_localMessage.size());
 
-        return ret;
+    for (const auto &pair : m_verifyMessage)
+      ret.push_back(pair.second);
+
+    for (const auto &msg : m_localMessage)
+      ret.push_back(msg);
+
+    return ret;
+  }
+
+  bool insertMessage(std::shared_ptr<T> type) { return _insert(type); }
+
+  bool _insert(std::shared_ptr<T> value) {
+
+    if (value->isOnLocal()) {
+      return insertLocal(value);
     }
+    return insertVerified(value);
+  }
 
-    bool
-    insertMessage(std::shared_ptr<T> type){
-        return _insert(type);
-    }
+  [[nodiscard]]
+  std::vector<std::shared_ptr<T>> getLocalMessages() const {
+    return {m_localMessage.begin(), m_localMessage.end()};
+  }
 
-    bool
-    _insert(std::shared_ptr<T> value){
-
-        if(value->isOnLocal()){
-            return insertLocal(value);
-        }
-        return insertVerified(value);
-    }
-
-    [[nodiscard]]
-    std::vector<std::shared_ptr<T>>
-    getLocalMessages() const {
-        return {m_localMessage.begin(), m_localMessage.end()};
-    }
-
-    void
-    clear() {
-        m_localMessage.clear();
-        m_localMsgIndex.clear();
-        m_verifyMessage.clear();
-        m_lastFetchedMsgId.clear();
-    }
+  void clear() {
+    m_localMessage.clear();
+    m_localMsgIndex.clear();
+    m_verifyMessage.clear();
+    m_lastFetchedMsgId.clear();
+  }
 
 private:
-    bool
-    insertLocal(std::shared_ptr<T> msg) {
-        const QString& id = msg->getUniqueId();
-        if (m_localMsgIndex.count(id)) return false;
+  bool insertLocal(std::shared_ptr<T> msg) {
+    const QString &id = msg->getUniqueId();
+    if (m_localMsgIndex.count(id))
+      return false;
 
-        auto it = m_localMessage.insert(m_localMessage.end(), msg);
-        m_localMsgIndex[id] = it;
-        return true;
+    auto it = m_localMessage.insert(m_localMessage.end(), msg);
+    m_localMsgIndex[id] = it;
+    return true;
+  }
+
+  bool removeLocal(const QString &id) {
+    if (!m_localMsgIndex.count(id))
+      return false;
+
+    auto it = m_localMsgIndex.find(id);
+    m_localMessage.erase(it->second);
+    m_localMsgIndex.erase(it);
+    return true;
+  }
+
+  bool insertVerified(std::shared_ptr<T> value) {
+    bool ok{};
+    auto opt = value->getMsgID();
+    if (!opt.has_value())
+      return false;
+
+    qint64 msgid = opt->toLongLong(&ok);
+    if (!ok) {
+      qDebug() << "Invalid msg_id! It should be an integer!";
+      return false;
     }
 
-    bool
-    removeLocal(const QString& id) {
-        if (!m_localMsgIndex.count(id)) return false;
-
-        auto it = m_localMsgIndex.find(id);
-        m_localMessage.erase(it->second);
-        m_localMsgIndex.erase(it);
-        return true;
+    if (m_verifyMessage.count(msgid)) {
+      qDebug() << "Msg ID already exists in verified messages!";
+      return false;
     }
 
-    bool
-    insertVerified(std::shared_ptr<T> value) {
-        bool ok{};
-        auto opt = value->getMsgID();
-        if (!opt.has_value()) return false;
-
-        qint64 msgid = opt->toLongLong(&ok);
-        if (!ok) {
-            qDebug() << "Invalid msg_id! It should be an integer!";
-            return false;
-        }
-
-        if (m_verifyMessage.count(msgid)) {
-            qDebug() << "Msg ID already exists in verified messages!";
-            return false;
-        }
-
-        m_verifyMessage[msgid] = value;
-        m_lastFetchedMsgId = *opt;
-        return true;
-    }
-
+    m_verifyMessage[msgid] = value;
+    m_lastFetchedMsgId = *opt;
+    return true;
+  }
 
 private:
-    //Messages which only exist on local!
-    std::list<std::shared_ptr<T>> m_localMessage;
+  // Messages which only exist on local!
+  std::list<std::shared_ptr<T>> m_localMessage;
 
-    std::unordered_map<
-        QString,
-        typename decltype(m_localMessage)::iterator>
-        m_localMsgIndex;
+  std::unordered_map<QString, typename decltype(m_localMessage)::iterator>
+      m_localMsgIndex;
 
-    //Messages which are verified by the server!
-    std::map<
-        /*msg_id*/ qint64,
-        /*msg_data*/std::shared_ptr<T>
-        > m_verifyMessage;
+  // Messages which are verified by the server!
+  std::map<
+      /*msg_id*/ qint64,
+      /*msg_data*/ std::shared_ptr<T>>
+      m_verifyMessage;
 
-    QString m_lastFetchedMsgId;
+  QString m_lastFetchedMsgId;
 };
 
 #endif // CHATMESSAGEBUFFER_H

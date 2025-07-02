@@ -3,12 +3,12 @@
 #ifndef _MSGNODE_H_
 #define _MSGNODE_H_
 #include <QtEndian>
-#include <type_traits>
 #include <cstdint>
 #include <functional>
 #include <iterator>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <type_traits> //SFINAE
 #include <utility>     // for std::declval
 
@@ -27,7 +27,7 @@ struct has_qt_endian : std::false_type {};
 template <typename T>
 struct has_qt_endian<
     T, std::void_t<decltype(qToBigEndian<T>(std::declval<T>())),
-                decltype(qFromBigEndian<T>(std::declval<T>()))>>
+                   decltype(qFromBigEndian<T>(std::declval<T>()))>>
     : std::true_type {};
 
 template <typename _Ty>
@@ -37,24 +37,23 @@ using check_qt_endian_v =
 // --- Qt Specialization ---
 template <typename T, check_qt_endian_v<T> = 0>
 T convert_from_network(T value) {
-    return qFromBigEndian<T>(value);
+  return qFromBigEndian<T>(value);
 }
 
-template <typename T, check_qt_endian_v<T> = 0>
-T convert_to_network(T value) {
-    return qToBigEndian<T>(value);
+template <typename T, check_qt_endian_v<T> = 0> T convert_to_network(T value) {
+  return qToBigEndian<T>(value);
 }
 
 struct ByteOrderConverter {
-    template <typename T> T operator()(T value) const {
-        return convert_from_network(value);
-    }
+  template <typename T> T operator()(T value) const {
+    return convert_from_network(value);
+  }
 };
 
 struct ByteOrderConverterReverse {
-    template <typename T> T operator()(T value) const {
-        return convert_to_network(value);
-    }
+  template <typename T> T operator()(T value) const {
+    return convert_to_network(value);
+  }
 };
 
 template <typename _Ty> struct add_const_lvalue_reference {

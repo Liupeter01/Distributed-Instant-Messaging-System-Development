@@ -3,10 +3,10 @@
 #include "picturemsgbubble.h"
 #include "textmsgbubble.h"
 #include "ui_chattingstackpage.h"
-#include <QUuid>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QUuid>
 #include <filetransferdialog.h>
 #include <tcpnetworkconnection.h>
 #include <useraccountmanager.hpp>
@@ -91,128 +91,130 @@ void ChattingStackPage::handle_hover(MultiClickableQLabel *label,
   }
 }
 
-bool ChattingStackPage::isThreadSwitchingNeeded(const QString &target_uuid) const{
+bool ChattingStackPage::isThreadSwitchingNeeded(
+    const QString &target_uuid) const {
 
-    /*friendinfo doesn't load any friend info yet*/
-    if (!m_curFriendIdentity) {
-        return true;
-    }
-    return !(m_curFriendIdentity->m_uuid == target_uuid);
+  /*friendinfo doesn't load any friend info yet*/
+  if (!m_curFriendIdentity) {
+    return true;
+  }
+  return !(m_curFriendIdentity->m_uuid == target_uuid);
 }
 
-void ChattingStackPage::switchChattingThread(std::shared_ptr<UserChatThread> user_thread){
+void ChattingStackPage::switchChattingThread(
+    std::shared_ptr<UserChatThread> user_thread) {
 
-      /*set chatting dlghistory for current friend conversation thread info*/
-    if(isThreadSwitchingNeeded(m_curFriendIdentity->m_uuid)){
+  /*set chatting dlghistory for current friend conversation thread info*/
+  if (isThreadSwitchingNeeded(m_curFriendIdentity->m_uuid)) {
 
-          m_curFriendIdentity = user_thread->getUserNameCard();
+    m_curFriendIdentity = user_thread->getUserNameCard();
 
-          /*replace placeholder text*/
-          ui->friend_name->setText(m_curFriendIdentity->m_nickname);
+    /*replace placeholder text*/
+    ui->friend_name->setText(m_curFriendIdentity->m_nickname);
 
-          setChattingThreadData(user_thread);
-    }
+    setChattingThreadData(user_thread);
+  }
 }
 
-bool ChattingStackPage::isChatValid(const MsgType type){
-    return type == MsgType::DEFAULT ? false: true;
+bool ChattingStackPage::isChatValid(const MsgType type) {
+  return type == MsgType::DEFAULT ? false : true;
 }
 
-const
-ChattingRole
-ChattingStackPage::getRole(std::shared_ptr<ChattingBaseType> value)
-{
-    return UserAccountManager::get_instance()->getCurUserInfo()->m_uuid == value->sender_uuid
-               ? ChattingRole::Sender : ChattingRole::Receiver;
+const ChattingRole
+ChattingStackPage::getRole(std::shared_ptr<ChattingBaseType> value) {
+  return UserAccountManager::get_instance()->getCurUserInfo()->m_uuid ==
+                 value->sender_uuid
+             ? ChattingRole::Sender
+             : ChattingRole::Receiver;
 }
 
 std::optional<ChattingMsgItem *>
-ChattingStackPage::setupChattingMsgItem(const ChattingRole role){
+ChattingStackPage::setupChattingMsgItem(const ChattingRole role) {
 
-    QString username, pixmap_path;
+  QString username, pixmap_path;
 
-     if (role == ChattingRole::Sender) {
-        auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
-        username = curUserInfo->m_nickname;
-        pixmap_path = curUserInfo->m_avatorPath;
+  if (role == ChattingRole::Sender) {
+    auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
+    username = curUserInfo->m_nickname;
+    pixmap_path = curUserInfo->m_avatorPath;
 
-     }
-     else{
+  } else {
 
-         auto opt = UserAccountManager::get_instance()->findAuthFriendsInfo(m_curFriendIdentity->m_uuid);
-         if (!opt.has_value()) {
-             qDebug() << "User Friend Info Not Found!";
-             return std::nullopt;
-         }
-         auto namecard = opt.value();
-         username = namecard->m_nickname;
-         pixmap_path = namecard->m_avatorPath;
-     }
+    auto opt = UserAccountManager::get_instance()->findAuthFriendsInfo(
+        m_curFriendIdentity->m_uuid);
+    if (!opt.has_value()) {
+      qDebug() << "User Friend Info Not Found!";
+      return std::nullopt;
+    }
+    auto namecard = opt.value();
+    username = namecard->m_nickname;
+    pixmap_path = namecard->m_avatorPath;
+  }
 
-     ChattingMsgItem *item = new ChattingMsgItem(role);
-      if(!item) return std::nullopt;
+  ChattingMsgItem *item = new ChattingMsgItem(role);
+  if (!item)
+    return std::nullopt;
 
-     item->setupUserName(username);
-     item->setupIconPixmap(QPixmap(pixmap_path));
-     return item;
+  item->setupUserName(username);
+  item->setupIconPixmap(QPixmap(pixmap_path));
+  return item;
 }
 
-void ChattingStackPage::setupBubbleFrameOnItem(const ChattingRole role,
-                                                const MsgType type,
-                                               ChattingMsgItem * item,
-                                               std::shared_ptr<ChattingBaseType> value)
-{
-    //Create Bubble Frame in UI
-    QWidget *bubble{};
+void ChattingStackPage::setupBubbleFrameOnItem(
+    const ChattingRole role, const MsgType type, ChattingMsgItem *item,
+    std::shared_ptr<ChattingBaseType> value) {
+  // Create Bubble Frame in UI
+  QWidget *bubble{};
 
-    if(!item) return;
+  if (!item)
+    return;
 
-    if(type == MsgType::TEXT){
-        bubble = new TextMsgBubble(role, value->getMsgContent());
-    }
-    else if(type == MsgType::IMAGE){
-        bubble = new PictureMsgBubble(role, value->getMsgContent());
-    }
-    else if(type ==MsgType::AUDIO){}
-    else if(type == MsgType::VIDEO){}
-    else if(type == MsgType::FILE){}
+  if (type == MsgType::TEXT) {
+    bubble = new TextMsgBubble(role, value->getMsgContent());
+  } else if (type == MsgType::IMAGE) {
+    bubble = new PictureMsgBubble(role, value->getMsgContent());
+  } else if (type == MsgType::AUDIO) {
+  } else if (type == MsgType::VIDEO) {
+  } else if (type == MsgType::FILE) {
+  }
 
-    if(bubble){
-        item->setupBubbleWidget(bubble);
-        ui->chatting_record->pushBackItem(item);
-    }
+  if (bubble) {
+    item->setupBubbleWidget(bubble);
+    ui->chatting_record->pushBackItem(item);
+  }
 }
 
-void ChattingStackPage::distribute(std::shared_ptr<ChattingBaseType> value){
+void ChattingStackPage::distribute(std::shared_ptr<ChattingBaseType> value) {
 
-    const auto type = value->getMsgType();
-    const auto role = getRole(value);
+  const auto type = value->getMsgType();
+  const auto role = getRole(value);
 
-    if(!isChatValid(type)){
-        qDebug() << "Invalid ChattingMsgType!";
-        return;
-    }
+  if (!isChatValid(type)) {
+    qDebug() << "Invalid ChattingMsgType!";
+    return;
+  }
 
-    //Set ChattingMsgItem
-    auto msg_item = setupChattingMsgItem(role);
-    if(!msg_item.has_value()){
-        qDebug() << "Sth Went Wrong In setupChattingMsgItem";
-        return;
-    }
+  // Set ChattingMsgItem
+  auto msg_item = setupChattingMsgItem(role);
+  if (!msg_item.has_value()) {
+    qDebug() << "Sth Went Wrong In setupChattingMsgItem";
+    return;
+  }
 
-    //Set Bubble Frame
-    setupBubbleFrameOnItem(role, type, *msg_item, value);
+  // Set Bubble Frame
+  setupBubbleFrameOnItem(role, type, *msg_item, value);
 }
 
-void ChattingStackPage::setChattingThreadData(std::shared_ptr<UserChatThread> history){
+void ChattingStackPage::setChattingThreadData(
+    std::shared_ptr<UserChatThread> history) {
 
-    /*remove all items*/
-    ui->chatting_record->removeAllItem();
+  /*remove all items*/
+  ui->chatting_record->removeAllItem();
 
-    auto all = history->dumpAll();
+  auto all = history->dumpAll();
 
-    for(const auto &value : all)
-        distribute(value);
+  for (const auto &value : all)
+    distribute(value);
 }
 
 void ChattingStackPage::on_send_message_clicked() {
@@ -264,9 +266,8 @@ void ChattingStackPage::on_send_message_clicked() {
         m_text_msg_counter = 0;
 
         /*after connection to server, send TCP request*/
-        TCPNetworkConnection::send_buffer(ServiceType::SERVICE_TEXTCHATMSGREQUEST,
-                                          std::move(obj)
-        );
+        TCPNetworkConnection::send_buffer(
+            ServiceType::SERVICE_TEXTCHATMSGREQUEST, std::move(obj));
       }
 
       /*
@@ -284,9 +285,9 @@ void ChattingStackPage::on_send_message_clicked() {
 
       /*update counter*/
       m_text_msg_counter += info.content.length();
+    } else if (info.type == MsgType::IMAGE) {
+    } else if (info.type == MsgType::FILE) {
     }
-    else if (info.type == MsgType::IMAGE) {}
-    else if (info.type == MsgType::FILE) {}
 
     // if (bubble_send != nullptr) {
     //   item_sender->setupBubbleWidget(bubble_send);
@@ -294,13 +295,12 @@ void ChattingStackPage::on_send_message_clicked() {
     // }
 
     /*
-     * although the messages which are sent will appear on the chattingstackpage,
-     * the message will not be recorded in the UserAccountManager locally!
+     * although the messages which are sent will appear on the
+     * chattingstackpage, the message will not be recorded in the
+     * UserAccountManager locally!
      */
-    emit signal_append_chat_data_on_local(info.type,
-                                          my_uuid,
-                                          m_curFriendIdentity->m_uuid,
-                                          obj);
+    emit signal_append_chat_data_on_local(info.type, my_uuid,
+                                          m_curFriendIdentity->m_uuid, obj);
   }
 
   /*if there is less data to send*/

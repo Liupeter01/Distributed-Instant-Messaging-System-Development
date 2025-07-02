@@ -298,8 +298,7 @@ void AuthenticateNewFriendRequestDialog::on_confirm_button_clicked() {
 
   /*after connection to server, send TCP request*/
   TCPNetworkConnection::send_buffer(ServiceType::SERVICE_FRIENDREQUESTCONFIRM,
-                                    std::move(obj)
-   );
+                                    std::move(obj));
 
   closeDialog();
 }

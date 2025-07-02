@@ -6,29 +6,29 @@
 #include <service/IOServicePool.hpp>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
-#include <tools/tools.hpp>
 #include <sql/MySQLConnectionPool.hpp>
 #include <tools/magic_enum.hpp>
+#include <tools/tools.hpp>
 
-inline mysql::MySQLConnection::TransactionGuard::TransactionGuard(MySQLConnection& conn)
-          : m_conn(conn), m_active(true){
-          m_conn.executeCommandOrThrow(MySQLSelection::START_TRANSACTION);
+inline mysql::MySQLConnection::TransactionGuard::TransactionGuard(
+    MySQLConnection &conn)
+    : m_conn(conn), m_active(true) {
+  m_conn.executeCommandOrThrow(MySQLSelection::START_TRANSACTION);
 }
 
 inline mysql::MySQLConnection::TransactionGuard::~TransactionGuard() {
-          if (m_active) {
-                    try {
-                              m_conn.executeCommandOrThrow(MySQLSelection::ROLLBACK_TRANSACTION);
-                    }
-                    catch (...) {
-                              spdlog::error("Rollback failed in destructor.");
-                    }
-          }
+  if (m_active) {
+    try {
+      m_conn.executeCommandOrThrow(MySQLSelection::ROLLBACK_TRANSACTION);
+    } catch (...) {
+      spdlog::error("Rollback failed in destructor.");
+    }
+  }
 }
 
 inline void mysql::MySQLConnection::TransactionGuard::commit() {
-          m_conn.executeCommandOrThrow(MySQLSelection::COMMIT_TRANSACTION);
-          m_active = false;
+  m_conn.executeCommandOrThrow(MySQLSelection::COMMIT_TRANSACTION);
+  m_active = false;
 }
 
 mysql::MySQLConnection::MySQLConnection(
@@ -70,19 +70,19 @@ template <typename... Args>
 std::optional<boost::mysql::results>
 mysql::MySQLConnection::executeCommand(MySQLSelection select, Args &&...args) {
 
-          bool exception_flag = false;
+  bool exception_flag = false;
 
   try {
     if (select == MySQLSelection::START_TRANSACTION) {
-              m_inTransaction = true;
+      m_inTransaction = true;
     }
     if (select == MySQLSelection::COMMIT_TRANSACTION ||
-              select == MySQLSelection::ROLLBACK_TRANSACTION) {
-              m_inTransaction = false;
+        select == MySQLSelection::ROLLBACK_TRANSACTION) {
+      m_inTransaction = false;
     }
 
-    [[maybe_unused]] boost::mysql::results result = 
-              executeCommandOrThrow(select, std::forward<Args>(args)...);
+    [[maybe_unused]] boost::mysql::results result =
+        executeCommandOrThrow(select, std::forward<Args>(args)...);
 
     /*is there any results find?
      * prevent segementation fault
@@ -94,50 +94,48 @@ mysql::MySQLConnection::executeCommand(MySQLSelection select, Args &&...args) {
 
   } catch (const boost::mysql::error_with_diagnostics &err) {
 
-            /*exception happened!*/
-            exception_flag = true;
+    /*exception happened!*/
+    exception_flag = true;
 
-            spdlog::error(
-                      "{0}:{1} Operation failed with error code: {2} Server diagnostics: {3}",
-                      __FILE__, __LINE__, std::to_string(err.code().value()),
-                      err.get_diagnostics().server_message().data());
+    spdlog::error(
+        "{0}:{1} Operation failed with error code: {2} Server diagnostics: {3}",
+        __FILE__, __LINE__, std::to_string(err.code().value()),
+        err.get_diagnostics().server_message().data());
   }
 
   if (exception_flag && m_inTransaction) {
 
-            try {
-                      executeCommandOrThrow(MySQLSelection::ROLLBACK_TRANSACTION);
-            }
-            catch (...) {
-                      spdlog::warn("Rollback failed unexpectedly.");
-            }
-            m_inTransaction = false;
+    try {
+      executeCommandOrThrow(MySQLSelection::ROLLBACK_TRANSACTION);
+    } catch (...) {
+      spdlog::warn("Rollback failed unexpectedly.");
+    }
+    m_inTransaction = false;
   }
 
   return std::nullopt;
 }
 
-template<typename ...Args>
-boost::mysql::results 
-mysql::MySQLConnection::executeCommandOrThrow(MySQLSelection select, 
-                                                                                          Args && ...args){
+template <typename... Args>
+boost::mysql::results
+mysql::MySQLConnection::executeCommandOrThrow(MySQLSelection select,
+                                              Args &&...args) {
 
-          boost::mysql::results result;
-          std::string key = m_delegator.get()->m_sql[select];
+  boost::mysql::results result;
+  std::string key = m_delegator.get()->m_sql[select];
 
-          if (select != MySQLSelection::HEART_BEAT) {
-                    spdlog::info("Executing MySQL Query: {}", key);
-          }
-          if (select == MySQLSelection::START_TRANSACTION ||
-                    select == MySQLSelection::COMMIT_TRANSACTION ||
-                    select == MySQLSelection::ROLLBACK_TRANSACTION) {
-                    conn.execute(key, result);  
-          }
-          else {
-                    boost::mysql::statement stmt = conn.prepare_statement(key);
-                    conn.execute(stmt.bind(std::forward<Args>(args)...), result);
-          }
-          return result;
+  if (select != MySQLSelection::HEART_BEAT) {
+    spdlog::info("Executing MySQL Query: {}", key);
+  }
+  if (select == MySQLSelection::START_TRANSACTION ||
+      select == MySQLSelection::COMMIT_TRANSACTION ||
+      select == MySQLSelection::ROLLBACK_TRANSACTION) {
+    conn.execute(key, result);
+  } else {
+    boost::mysql::statement stmt = conn.prepare_statement(key);
+    conn.execute(stmt.bind(std::forward<Args>(args)...), result);
+  }
+  return result;
 }
 
 std::optional<std::size_t>
@@ -262,16 +260,17 @@ mysql::MySQLConnection::getFriendingRequestList(const std::size_t dst_uuid,
 
   std::vector<std::unique_ptr<user::UserFriendRequest>> list;
   for (auto ib = result.rows().begin(); ib != result.rows().end(); ib++) {
-    std::unique_ptr<user::UserFriendRequest> req(std::make_unique<user::UserFriendRequest>(
-        std::to_string(ib->at(0).as_int64()),          /*src_uuid*/
-        std::to_string(dst_uuid),                      /*dst_uuid*/
-        ib->at(1).as_string(),                         /*nickname*/
-        ib->at(2).as_string(),                         /*msg*/
-        ib->at(3).as_string(),                         /*avator*/
-        ib->at(4).as_string(),                         /*user name*/
-        ib->at(5).as_string(),                         /*description*/
-        ib->at(6).as_int64() ? user::Sex::Male : user::Sex::Female /*sex*/
-        ));
+    std::unique_ptr<user::UserFriendRequest> req(
+        std::make_unique<user::UserFriendRequest>(
+            std::to_string(ib->at(0).as_int64()), /*src_uuid*/
+            std::to_string(dst_uuid),             /*dst_uuid*/
+            ib->at(1).as_string(),                /*nickname*/
+            ib->at(2).as_string(),                /*msg*/
+            ib->at(3).as_string(),                /*avator*/
+            ib->at(4).as_string(),                /*user name*/
+            ib->at(5).as_string(),                /*description*/
+            ib->at(6).as_int64() ? user::Sex::Male : user::Sex::Female /*sex*/
+            ));
     list.push_back(std::move(req));
   }
   return list;
@@ -303,90 +302,83 @@ mysql::MySQLConnection::getAuthenticFriendsList(const std::size_t self_uuid,
 
   std::vector<std::unique_ptr<user::UserNameCard>> list;
   for (auto ib = result.rows().begin(); ib != result.rows().end(); ib++) {
-    std::unique_ptr<user::UserNameCard> req(std::make_unique<user::UserNameCard>(
-        std::to_string(ib->at(0).as_int64()),          /*friend_uuid*/
-        ib->at(1).as_string(),                         /*nickname*/
-        ib->at(2).as_string(),                         /*avator*/
-        ib->at(3).as_string(),                         /*user name*/
-        ib->at(4).as_string(),                         /*description*/
-        ib->at(5).as_int64() ? user::Sex::Male : user::Sex::Female /*sex*/
-        ));
+    std::unique_ptr<user::UserNameCard> req(
+        std::make_unique<user::UserNameCard>(
+            std::to_string(ib->at(0).as_int64()), /*friend_uuid*/
+            ib->at(1).as_string(),                /*nickname*/
+            ib->at(2).as_string(),                /*avator*/
+            ib->at(3).as_string(),                /*user name*/
+            ib->at(4).as_string(),                /*description*/
+            ib->at(5).as_int64() ? user::Sex::Male : user::Sex::Female /*sex*/
+            ));
     list.push_back(std::move(req));
   }
   return list;
 }
 
 std::optional<std::vector<std::unique_ptr<chat::ChatThreadMeta>>>
-mysql::MySQLConnection::getUserChattingThreadIdx(const std::size_t self_uuid, 
-                                                                                          const std::size_t cur_thread_id, 
-                                                                                          const std::size_t interval, 
-                                                                                          std::string& next_thread_id, 
-                                                                                          bool& is_EOF)
-{
-          /*init*/
-          is_EOF = true;
-          next_thread_id = cur_thread_id;
+mysql::MySQLConnection::getUserChattingThreadIdx(
+    const std::size_t self_uuid, const std::size_t cur_thread_id,
+    const std::size_t interval, std::string &next_thread_id, bool &is_EOF) {
+  /*init*/
+  is_EOF = true;
+  next_thread_id = cur_thread_id;
 
-          if (!checkUUID(self_uuid)) {
-                    spdlog::warn("Invalid Dst UUID!");
-                    return std::nullopt;
-          }
+  if (!checkUUID(self_uuid)) {
+    spdlog::warn("Invalid Dst UUID!");
+    return std::nullopt;
+  }
 
-          [[maybe_unused]] auto res =
-                    executeCommand(MySQLSelection::GET_USER_CHAT_THREADS, self_uuid,
-                              self_uuid, 
-                              cur_thread_id, 
-                              self_uuid, 
-                              cur_thread_id, 
-                              /*we need to test EOF*/interval + 1
-                    );
+  [[maybe_unused]] auto res =
+      executeCommand(MySQLSelection::GET_USER_CHAT_THREADS, self_uuid,
+                     self_uuid, cur_thread_id, self_uuid, cur_thread_id,
+                     /*we need to test EOF*/ interval + 1);
 
-          /*after execute sql query => no value*/
-          if (!res.has_value()) {
-                    return std::nullopt;
-          }
+  /*after execute sql query => no value*/
+  if (!res.has_value()) {
+    return std::nullopt;
+  }
 
-          /*sql execute successfully, but no data retrieved!*/
-          boost::mysql::results result = res.value();
-          if (!result.rows().size()) {
-                    return std::nullopt;
-          }
+  /*sql execute successfully, but no data retrieved!*/
+  boost::mysql::results result = res.value();
+  if (!result.rows().size()) {
+    return std::nullopt;
+  }
 
-          std::vector<std::unique_ptr<chat::ChatThreadMeta>> list;
-          for (auto ib = result.rows().begin(); ib != result.rows().end(); ib++) {
-                    std::string thread_id = std::to_string(ib->at(0).as_int64());         //std::string("thread_id")
-                    std::string type_str = ib->at(3).as_string();
-                    auto type_enum = tools::reflect::name_to_enum< chat::UserChatType, 0, 2>(type_str);
-                    if (type_enum == chat::UserChatType::GROUP) {
+  std::vector<std::unique_ptr<chat::ChatThreadMeta>> list;
+  for (auto ib = result.rows().begin(); ib != result.rows().end(); ib++) {
+    std::string thread_id =
+        std::to_string(ib->at(0).as_int64()); // std::string("thread_id")
+    std::string type_str = ib->at(3).as_string();
+    auto type_enum =
+        tools::reflect::name_to_enum<chat::UserChatType, 0, 2>(type_str);
+    if (type_enum == chat::UserChatType::GROUP) {
 
-                              std::unique_ptr<chat::ChatThreadMeta> req(std::make_unique<chat::ChatThreadMeta>(thread_id, type_enum));
-                              list.push_back(std::move(req));
-                    }
-                    else {
-                              auto user1_uuid = std::to_string(ib->at(1).as_int64());
-                              auto user2_uuid = std::to_string(ib->at(2).as_int64());
-                              std::unique_ptr<chat::ChatThreadMeta> req(std::make_unique<chat::ChatThreadMeta>(
-                                        thread_id,
-                                        type_enum,
-                                        user1_uuid,
-                                        user2_uuid
-                              ));
-                              list.push_back(std::move(req));
-                    }
-          }
+      std::unique_ptr<chat::ChatThreadMeta> req(
+          std::make_unique<chat::ChatThreadMeta>(thread_id, type_enum));
+      list.push_back(std::move(req));
+    } else {
+      auto user1_uuid = std::to_string(ib->at(1).as_int64());
+      auto user2_uuid = std::to_string(ib->at(2).as_int64());
+      std::unique_ptr<chat::ChatThreadMeta> req(
+          std::make_unique<chat::ChatThreadMeta>(thread_id, type_enum,
+                                                 user1_uuid, user2_uuid));
+      list.push_back(std::move(req));
+    }
+  }
 
-          //if current list size is more than interval(interval + 1)
-          //it means, there are some other items to be retrieved
-          //it is not the end
-          if (list.size() > interval) {
-                    is_EOF = false;
-                    list.pop_back();    //we ignore the last one, because its just for EOF test!
-          }
+  // if current list size is more than interval(interval + 1)
+  // it means, there are some other items to be retrieved
+  // it is not the end
+  if (list.size() > interval) {
+    is_EOF = false;
+    list.pop_back(); // we ignore the last one, because its just for EOF test!
+  }
 
-          if (!list.empty()) {
-                    next_thread_id = list.back()->_thread_id;
-          }
-          return list;
+  if (!list.empty()) {
+    next_thread_id = list.back()->_thread_id;
+  }
+  return list;
 }
 
 bool mysql::MySQLConnection::registerNewUser(MySQLRequestStruct &&request) {
@@ -450,58 +442,56 @@ mysql::MySQLConnection::getUsernameByUUID(std::size_t uuid) {
   return (*res.value().rows().begin()).at(1).as_string();
 }
 
-std::optional<std::string> 
-mysql::MySQLConnection::checkPrivateChatExistance(const std::size_t user1_uuid,
-                                                                                            const std::size_t user2_uuid)
-{
-          auto res = executeCommand(MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK, user1_uuid, user2_uuid);
-          if (!res.has_value()) {
-                    return std::nullopt;
-          }
+std::optional<std::string> mysql::MySQLConnection::checkPrivateChatExistance(
+    const std::size_t user1_uuid, const std::size_t user2_uuid) {
+  auto res = executeCommand(MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK,
+                            user1_uuid, user2_uuid);
+  if (!res.has_value()) {
+    return std::nullopt;
+  }
 
-          //thread_id!
-          return (*res.value().rows().begin()).at(0).as_string();
+  // thread_id!
+  return (*res.value().rows().begin()).at(0).as_string();
 }
 
-std::optional<std::string> 
+std::optional<std::string>
 mysql::MySQLConnection::createNewPrivateChat(const std::size_t user1_uuid,
-                                                                            const std::size_t user2_uuid)
-{
-          const std::size_t user_one = std::min(user1_uuid, user2_uuid);
-          const std::size_t user_two = std::max(user1_uuid, user2_uuid);
+                                             const std::size_t user2_uuid) {
+  const std::size_t user_one = std::min(user1_uuid, user2_uuid);
+  const std::size_t user_two = std::max(user1_uuid, user2_uuid);
 
-          auto res1 = executeCommand(MySQLSelection::USER_UUID_CHECK, user1_uuid);
-          auto res2 = executeCommand(MySQLSelection::USER_UUID_CHECK, user2_uuid);
+  auto res1 = executeCommand(MySQLSelection::USER_UUID_CHECK, user1_uuid);
+  auto res2 = executeCommand(MySQLSelection::USER_UUID_CHECK, user2_uuid);
 
-          //Not user uuid found!
-          if (!res1.has_value() || !res2.has_value()) 
-                    return std::nullopt;
-          
-          try {
-                    TransactionGuard transaction_guard(*this);
-                    if (auto existing = checkPrivateChatExistance(user_one, user_two); existing) {
-                              transaction_guard.commit();
-                              return existing.value();
-                    }
+  // Not user uuid found!
+  if (!res1.has_value() || !res2.has_value())
+    return std::nullopt;
 
-                    auto res = executeCommandOrThrow(
-                              MySQLSelection::CREATE_PRIVATE_GLOBAL_THREAD_INDEX, "PRIVATE");
-                    std::string thread_id = std::to_string(res.last_insert_id());
+  try {
+    TransactionGuard transaction_guard(*this);
+    if (auto existing = checkPrivateChatExistance(user_one, user_two);
+        existing) {
+      transaction_guard.commit();
+      return existing.value();
+    }
 
-                    executeCommandOrThrow(MySQLSelection::CREATE_PRIVATE_CHAT_BY_USER_PAIR, 
-                              thread_id, user_one, user_two);
+    auto res = executeCommandOrThrow(
+        MySQLSelection::CREATE_PRIVATE_GLOBAL_THREAD_INDEX, "PRIVATE");
+    std::string thread_id = std::to_string(res.last_insert_id());
 
-                    transaction_guard.commit();
-                    return thread_id;
-          }
-          catch (const boost::mysql::error_with_diagnostics& err) {
-                    spdlog::error(
-                              "createPrivateChat failed: {0}:{1} Operation failed with error code: {2} Server diagnostics: {3}",
-                              __FILE__, __LINE__, std::to_string(err.code().value()),
-                              err.get_diagnostics().server_message().data());
+    executeCommandOrThrow(MySQLSelection::CREATE_PRIVATE_CHAT_BY_USER_PAIR,
+                          thread_id, user_one, user_two);
 
-                    return std::nullopt;
-          }
+    transaction_guard.commit();
+    return thread_id;
+  } catch (const boost::mysql::error_with_diagnostics &err) {
+    spdlog::error("createPrivateChat failed: {0}:{1} Operation failed with "
+                  "error code: {2} Server diagnostics: {3}",
+                  __FILE__, __LINE__, std::to_string(err.code().value()),
+                  err.get_diagnostics().server_message().data());
+
+    return std::nullopt;
+  }
 }
 
 /*
@@ -514,131 +504,133 @@ mysql::MySQLConnection::createNewPrivateChat(const std::size_t user1_uuid,
  * @param requester_uuid UUID of the user who sent the friend request
  * @param confirmer_uuid UUID of the user who confirmed the friend request
  */
-std::optional<std::vector<std::shared_ptr<chat::FriendingConfirmInfo>>> 
-mysql::MySQLConnection::execFriendConfirmationTransaction(const std::size_t requester_uuid,
-                                                                                                          const std::size_t confirmer_uuid)
-{
-          auto is_rows_afftected = [](const boost::mysql::results& flag) {return flag.rows().begin() != flag.rows().end(); };
-          const std::size_t user_one = std::min(requester_uuid, confirmer_uuid);
-          const std::size_t user_two = std::max(requester_uuid, confirmer_uuid);
-         const std::string requester =  std::to_string(requester_uuid);
-          const std::string confimer = std::to_string(confirmer_uuid);
-          std::string confirm_message = fmt::format("We are friends now!");
-          std::string message_id{};
+std::optional<std::vector<std::shared_ptr<chat::FriendingConfirmInfo>>>
+mysql::MySQLConnection::execFriendConfirmationTransaction(
+    const std::size_t requester_uuid, const std::size_t confirmer_uuid) {
+  auto is_rows_afftected = [](const boost::mysql::results &flag) {
+    return flag.rows().begin() != flag.rows().end();
+  };
+  const std::size_t user_one = std::min(requester_uuid, confirmer_uuid);
+  const std::size_t user_two = std::max(requester_uuid, confirmer_uuid);
+  const std::string requester = std::to_string(requester_uuid);
+  const std::string confimer = std::to_string(confirmer_uuid);
+  std::string confirm_message = fmt::format("We are friends now!");
+  std::string message_id{};
 
-          try {
-                    TransactionGuard transaction_guard(*this);
-                    std::vector<std::shared_ptr<chat::FriendingConfirmInfo>> res;
-                    boost::mysql::results flag = executeCommandOrThrow(
-                              MySQLSelection::CHECK_FRIEND_REQUEST_LIST_WITH_LOCK,
-                              requester_uuid, confirmer_uuid);
-                  
-                    if (!is_rows_afftected(flag))  return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
-                    
-                    std::string nickname = (*flag.rows().begin()).at(1).as_string();   //requester nickname
-                    std::string req_message = (*flag.rows().begin()).at(2).as_string();   //requester message
+  try {
+    TransactionGuard transaction_guard(*this);
+    std::vector<std::shared_ptr<chat::FriendingConfirmInfo>> res;
+    boost::mysql::results flag = executeCommandOrThrow(
+        MySQLSelection::CHECK_FRIEND_REQUEST_LIST_WITH_LOCK, requester_uuid,
+        confirmer_uuid);
 
-                    /*Generate Default Message if the message is empty!*/
-                    req_message = req_message.empty() ?
-                              fmt::format("Hi, I' am {} and looking forward to chat with you!", nickname) : req_message;
+    if (!is_rows_afftected(flag))
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    /*check if update friending status success!*/
-                    flag = executeCommandOrThrow(MySQLSelection::UPDATE_FRIEND_REQUEST_STATUS, 
-                              1, requester_uuid, confirmer_uuid);
-        
-                    if (!flag.affected_rows())  return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
-                    
-                    /*
-                     * update the database, and add biddirectional friend authentication messages
-                     * It should be a double way friend adding, so create friend relationship
-                     * should be called twice 1 | src = A | dst = B(authenticator) |
-                     * alternative_name |
-                     */
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_AUTH_FRIEND_ENTRY, 
-                              requester_uuid, 
-                              confirmer_uuid, 
-                              nickname);
+    std::string nickname =
+        (*flag.rows().begin()).at(1).as_string(); // requester nickname
+    std::string req_message =
+        (*flag.rows().begin()).at(2).as_string(); // requester message
 
-                    if (!flag.affected_rows())  return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
+    /*Generate Default Message if the message is empty!*/
+    req_message =
+        req_message.empty()
+            ? fmt::format("Hi, I' am {} and looking forward to chat with you!",
+                          nickname)
+            : req_message;
 
-                    /*
-                     * update the database, and add biddirectional friend authentication messages
-                     * It should be a double way friend adding, so create friend relationship
-                     * MESSAGE SHOULD BE SENT TO THE SESSION UNDER SRC_UUID
-                     * 2 | B | A                         | <leave it to blank> |
-                     */
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_AUTH_FRIEND_ENTRY,  
-                              confirmer_uuid, 
-                              requester_uuid, 
-                              "");
-                    if (!flag.affected_rows())   return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
+    /*check if update friending status success!*/
+    flag = executeCommandOrThrow(MySQLSelection::UPDATE_FRIEND_REQUEST_STATUS,
+                                 1, requester_uuid, confirmer_uuid);
 
-                    //Create a tuple in GlobalThreadIndexTable
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_PRIVATE_GLOBAL_THREAD_INDEX, "PRIVATE");
-                    if (!flag.affected_rows())   return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    //get id from GlobalThreadIndexTable
-                    std::string thread_id = std::to_string(flag.last_insert_id());
+    /*
+     * update the database, and add biddirectional friend authentication
+     * messages It should be a double way friend adding, so create friend
+     * relationship should be called twice 1 | src = A | dst = B(authenticator)
+     * | alternative_name |
+     */
+    flag = executeCommandOrThrow(MySQLSelection::CREATE_AUTH_FRIEND_ENTRY,
+                                 requester_uuid, confirmer_uuid, nickname);
 
-                    //Create a tuple in .PrivateChat
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_PRIVATE_CHAT_BY_USER_PAIR, thread_id, user_one, user_two);
-                    if (!flag.affected_rows())  return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    /*Store Request->Confirmer Init Chat Info In ChatMsgHistoryBank*/
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
-                              /*thread_id = */          thread_id,
-                              /*message_status = */  0,
-                              /*message_sender= */     requester_uuid,
-                              /*message_receiver= */   confirmer_uuid,
-                              /*message_content = */req_message
-                    );
+    /*
+     * update the database, and add biddirectional friend authentication
+     * messages It should be a double way friend adding, so create friend
+     * relationship MESSAGE SHOULD BE SENT TO THE SESSION UNDER SRC_UUID 2 | B |
+     * A                         | <leave it to blank> |
+     */
+    flag = executeCommandOrThrow(MySQLSelection::CREATE_AUTH_FRIEND_ENTRY,
+                                 confirmer_uuid, requester_uuid, "");
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    if (!flag.affected_rows())   return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
+    // Create a tuple in GlobalThreadIndexTable
+    flag = executeCommandOrThrow(
+        MySQLSelection::CREATE_PRIVATE_GLOBAL_THREAD_INDEX, "PRIVATE");
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    message_id.clear();
-                   message_id = std::to_string(flag.last_insert_id());
-                    
-                    res.push_back(std::make_shared<chat::FriendingConfirmInfo>(
-                              chat::MsgType::TEXT,
-                              thread_id,
-                              message_id,
-                              requester,
-                              confimer,
-                              req_message));
+    // get id from GlobalThreadIndexTable
+    std::string thread_id = std::to_string(flag.last_insert_id());
 
-                    /*Store  Confirmer->Request Init Chat Info In ChatMsgHistoryBank*/
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
-                              /*thread_id = */          thread_id,
-                              /*message_status = */  0,
-                              /*message_sender= */     confirmer_uuid,
-                              /*message_receiver= */   requester_uuid,
-                              /*message_content = */confirm_message
-                    );
+    // Create a tuple in .PrivateChat
+    flag =
+        executeCommandOrThrow(MySQLSelection::CREATE_PRIVATE_CHAT_BY_USER_PAIR,
+                              thread_id, user_one, user_two);
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    if (!flag.affected_rows())  return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
+    /*Store Request->Confirmer Init Chat Info In ChatMsgHistoryBank*/
+    flag = executeCommandOrThrow(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
+                                 /*thread_id = */ thread_id,
+                                 /*message_status = */ 0,
+                                 /*message_sender= */ requester_uuid,
+                                 /*message_receiver= */ confirmer_uuid,
+                                 /*message_content = */ req_message);
 
-                    message_id.clear();
-                    message_id = std::to_string(flag.last_insert_id());
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
 
-                    /*COMMIT TRANSACTION!*/
-                    transaction_guard.commit();
+    message_id.clear();
+    message_id = std::to_string(flag.last_insert_id());
 
-                    res.push_back(std::make_shared<chat::FriendingConfirmInfo>(
-                              chat::MsgType::TEXT,
-                              thread_id,
-                              message_id,
-                             confimer,
-                              requester,
-                              confirm_message));
+    res.push_back(std::make_shared<chat::FriendingConfirmInfo>(
+        chat::MsgType::TEXT, thread_id, message_id, requester, confimer,
+        req_message));
 
-                    return res;
-          }
-          catch (const boost::mysql::error_with_diagnostics& err) {
-                    spdlog::error(
-                              "createPrivateChat failed: {0}:{1} Operation failed with error code: {2} Server diagnostics: {3}",
-                              __FILE__, __LINE__, std::to_string(err.code().value()),
-                              err.get_diagnostics().server_message().data());
+    /*Store  Confirmer->Request Init Chat Info In ChatMsgHistoryBank*/
+    flag = executeCommandOrThrow(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
+                                 /*thread_id = */ thread_id,
+                                 /*message_status = */ 0,
+                                 /*message_sender= */ confirmer_uuid,
+                                 /*message_receiver= */ requester_uuid,
+                                 /*message_content = */ confirm_message);
 
-                    return std::nullopt;  //No Relavant Info Found Here! ROLLBACK
-          }
+    if (!flag.affected_rows())
+      return std::nullopt; // No Relavant Info Found Here! ROLLBACK
+
+    message_id.clear();
+    message_id = std::to_string(flag.last_insert_id());
+
+    /*COMMIT TRANSACTION!*/
+    transaction_guard.commit();
+
+    res.push_back(std::make_shared<chat::FriendingConfirmInfo>(
+        chat::MsgType::TEXT, thread_id, message_id, confimer, requester,
+        confirm_message));
+
+    return res;
+  } catch (const boost::mysql::error_with_diagnostics &err) {
+    spdlog::error("createPrivateChat failed: {0}:{1} Operation failed with "
+                  "error code: {2} Server diagnostics: {3}",
+                  __FILE__, __LINE__, std::to_string(err.code().value()),
+                  err.get_diagnostics().server_message().data());
+
+    return std::nullopt; // No Relavant Info Found Here! ROLLBACK
+  }
 }

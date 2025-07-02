@@ -45,7 +45,6 @@ void ChattingContactList::registerSignal() {
   connect(TCPNetworkConnection::get_instance().get(),
           &TCPNetworkConnection::signal_init_auth_friend_list, this,
           &ChattingContactList::slot_init_auth_friend_list);
-
 }
 
 void ChattingContactList::addAddUserWidget() {

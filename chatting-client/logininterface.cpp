@@ -219,8 +219,7 @@ void LoginInterface::slot_connection_status(bool status) {
 
     /*after connection to server, send TCP request*/
     TCPNetworkConnection::send_buffer(ServiceType::SERVICE_LOGINSERVER,
-                                      std::move(json_obj)
-     );
+                                      std::move(json_obj));
 
   } else {
     Tools::setWidgetAttribute(ui->status_label_3, QString("Network error!"),

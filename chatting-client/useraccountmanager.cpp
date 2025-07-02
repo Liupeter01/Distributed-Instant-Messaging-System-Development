@@ -35,44 +35,44 @@ void UserAccountManager::appendArrayToList(TargetList target,
 }
 
 void UserAccountManager::addItem2List(std::shared_ptr<UserFriendRequest> info) {
-    m_friend_request_list.push_back(info);
+  m_friend_request_list.push_back(info);
 }
 
 void UserAccountManager::addItem2List(std::shared_ptr<UserNameCard> info) {
-    if(!m_auth_friend_list.count(info->m_uuid))
-        m_auth_friend_list[info->m_uuid] = info;
+  if (!m_auth_friend_list.count(info->m_uuid))
+    m_auth_friend_list[info->m_uuid] = info;
 }
 
-void UserAccountManager::addItem2List(const QString &friend_uuid,
-                                      std::shared_ptr<ChattingThreadDesc> info)
-{
+void UserAccountManager::addItem2List(
+    const QString &friend_uuid, std::shared_ptr<ChattingThreadDesc> info) {
 
-    QString thread_id = QString::fromStdString(info->getThreadId());
+  QString thread_id = QString::fromStdString(info->getThreadId());
 
-    //relation between thread_id <-> ChattingThreadDesc
-    m_threadDescLists[thread_id] = info;
+  // relation between thread_id <-> ChattingThreadDesc
+  m_threadDescLists[thread_id] = info;
 
-    //relation between user uuid <-> thread_id
-    if (!m_friendOnThreadsLists.count(friend_uuid)) {
-        m_friendOnThreadsLists[friend_uuid] = {};   //init to prevent UB
-    }
+  // relation between user uuid <-> thread_id
+  if (!m_friendOnThreadsLists.count(friend_uuid)) {
+    m_friendOnThreadsLists[friend_uuid] = {}; // init to prevent UB
+  }
 
-    m_friendOnThreadsLists[friend_uuid].push_back(thread_id);
+  m_friendOnThreadsLists[friend_uuid].push_back(thread_id);
 }
 
-void UserAccountManager::addItem2List(const QString &thread_id, std::shared_ptr<UserChatThread> info){
-    if(!m_ThreadData.count(thread_id)){
-        m_ThreadData[thread_id] = info;
-    }
+void UserAccountManager::addItem2List(const QString &thread_id,
+                                      std::shared_ptr<UserChatThread> info) {
+  if (!m_ThreadData.count(thread_id)) {
+    m_ThreadData[thread_id] = info;
+  }
 }
 
 std::optional<std::shared_ptr<UserChatThread>>
-UserAccountManager::getChattingThreadData(const QString &thread_id){
+UserAccountManager::getChattingThreadData(const QString &thread_id) {
 
-    if(!m_ThreadData.count(thread_id))
-        return std::nullopt;
+  if (!m_ThreadData.count(thread_id))
+    return std::nullopt;
 
-    return m_ThreadData[thread_id];
+  return m_ThreadData[thread_id];
 }
 
 std::optional<std::vector<std::shared_ptr<UserFriendRequest>>>
@@ -175,16 +175,16 @@ UserAccountManager::findAuthFriendsInfo(const QString &uuid) {
 }
 
 std::optional<QString>
-UserAccountManager::getThreadIdByUUID(const QString &uuid){
+UserAccountManager::getThreadIdByUUID(const QString &uuid) {
 
-    if(!m_friendOnThreadsLists.count(uuid)){
-        return std::nullopt;
-    }
-    return m_friendOnThreadsLists[uuid];
+  if (!m_friendOnThreadsLists.count(uuid)) {
+    return std::nullopt;
+  }
+  return m_friendOnThreadsLists[uuid];
 }
 
 bool UserAccountManager::alreadyExistInAuthList(const QString &uuid) const {
-    return m_auth_friend_list.find(uuid) != m_auth_friend_list.end();
+  return m_auth_friend_list.find(uuid) != m_auth_friend_list.end();
 }
 
 bool UserAccountManager::alreadyExistInRequestList(const QString &uuid) const {
@@ -206,8 +206,12 @@ void UserAccountManager::clear() {
   m_ThreadData.clear();
 }
 
-UserAccountManager::ChattingServerInfo::ChattingServerInfo() : uuid(), host(), port(), token() {}
+UserAccountManager::ChattingServerInfo::ChattingServerInfo()
+    : uuid(), host(), port(), token() {}
 
 void UserAccountManager::ChattingServerInfo::clear() {
-    uuid.clear();host.clear();port.clear();token.clear();
+  uuid.clear();
+  host.clear();
+  port.clear();
+  token.clear();
 }

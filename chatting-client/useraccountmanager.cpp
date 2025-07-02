@@ -1,5 +1,5 @@
-#include <ChattingHistory.hpp>
 #include <QJsonArray>
+#include <QJsonValue>
 #include <useraccountmanager.hpp>
 
 UserAccountManager::UserAccountManager() : m_info() {}
@@ -27,37 +27,52 @@ void UserAccountManager::appendAuthFriendList(const QJsonArray &array) {
 
 void UserAccountManager::appendArrayToList(TargetList target,
                                            const QJsonArray &array) {
-  if (target == TargetList::FRIENDLIST) {
+
+  if (target == TargetList::FRIENDLIST)
     appendAuthFriendList(array);
-  } else if (target == TargetList::REQUESTLIST) {
+  else if (target == TargetList::REQUESTLIST)
     appendFriendRequestList(array);
-  }
 }
 
 void UserAccountManager::addItem2List(std::shared_ptr<UserFriendRequest> info) {
-  m_friend_request_list.push_back(info);
+    m_friend_request_list.push_back(info);
 }
 
 void UserAccountManager::addItem2List(std::shared_ptr<UserNameCard> info) {
-  m_auth_friend_list[info->m_uuid] = info;
+    if(!m_auth_friend_list.count(info->m_uuid))
+        m_auth_friend_list[info->m_uuid] = info;
 }
 
-void UserAccountManager::addItem2List(
-    const QString &friend_uuid, std::shared_ptr<FriendChattingHistory> info) {
-  m_user_chatting_histroy[friend_uuid] = info;
+void UserAccountManager::addItem2List(const QString &friend_uuid,
+                                      std::shared_ptr<ChattingThreadDesc> info)
+{
+
+    QString thread_id = QString::fromStdString(info->getThreadId());
+
+    //relation between thread_id <-> ChattingThreadDesc
+    m_threadDescLists[thread_id] = info;
+
+    //relation between user uuid <-> thread_id
+    if (!m_friendOnThreadsLists.count(friend_uuid)) {
+        m_friendOnThreadsLists[friend_uuid] = {};   //init to prevent UB
+    }
+
+    m_friendOnThreadsLists[friend_uuid].push_back(thread_id);
 }
 
-std::optional<std::shared_ptr<FriendChattingHistory>>
-UserAccountManager::getChattingHistoryFromList(const QString &friend_uuid) {
-  if (alreadyExistInHistoryList(friend_uuid)) {
-    return m_user_chatting_histroy[friend_uuid];
-  }
-  return std::nullopt;
+void UserAccountManager::addItem2List(const QString &thread_id, std::shared_ptr<UserChatThread> info){
+    if(!m_ThreadData.count(thread_id)){
+        m_ThreadData[thread_id] = info;
+    }
 }
 
-std::vector<std::shared_ptr<UserFriendRequest>>
-UserAccountManager::getFriendRequestList() {
-  return m_friend_request_list;
+std::optional<std::shared_ptr<UserChatThread>>
+UserAccountManager::getChattingThreadData(const QString &thread_id){
+
+    if(!m_ThreadData.count(thread_id))
+        return std::nullopt;
+
+    return m_ThreadData[thread_id];
 }
 
 std::optional<std::vector<std::shared_ptr<UserFriendRequest>>>
@@ -159,8 +174,17 @@ UserAccountManager::findAuthFriendsInfo(const QString &uuid) {
   return m_auth_friend_list.find(uuid)->second;
 }
 
+std::optional<QString>
+UserAccountManager::getThreadIdByUUID(const QString &uuid){
+
+    if(!m_friendOnThreadsLists.count(uuid)){
+        return std::nullopt;
+    }
+    return m_friendOnThreadsLists[uuid];
+}
+
 bool UserAccountManager::alreadyExistInAuthList(const QString &uuid) const {
-  return m_auth_friend_list.find(uuid) != m_auth_friend_list.end();
+    return m_auth_friend_list.find(uuid) != m_auth_friend_list.end();
 }
 
 bool UserAccountManager::alreadyExistInRequestList(const QString &uuid) const {
@@ -174,19 +198,16 @@ bool UserAccountManager::alreadyExistInRequestList(const QString &uuid) const {
   return it != m_friend_request_list.end();
 }
 
-bool UserAccountManager::alreadyExistInHistoryList(
-    const QString &friend_uuid) const {
-  return m_user_chatting_histroy.find(friend_uuid) !=
-         m_user_chatting_histroy.end();
-}
-
-void UserAccountManager::setUserInfo(std::shared_ptr<UserNameCard> info) {
-  m_userInfo = info;
-}
 void UserAccountManager::clear() {
   m_info.clear();
   m_userInfo.reset();
   m_friend_request_list.clear();
   m_auth_friend_list.clear();
-  m_user_chatting_histroy.clear();
+  m_ThreadData.clear();
+}
+
+UserAccountManager::ChattingServerInfo::ChattingServerInfo() : uuid(), host(), port(), token() {}
+
+void UserAccountManager::ChattingServerInfo::clear() {
+    uuid.clear();host.clear();port.clear();token.clear();
 }

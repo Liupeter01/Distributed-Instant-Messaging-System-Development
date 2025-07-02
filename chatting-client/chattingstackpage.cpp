@@ -3,10 +3,10 @@
 #include "picturemsgbubble.h"
 #include "textmsgbubble.h"
 #include "ui_chattingstackpage.h"
+#include <QUuid>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QUuid>
 #include <filetransferdialog.h>
 #include <tcpnetworkconnection.h>
 #include <useraccountmanager.hpp>
@@ -91,118 +91,141 @@ void ChattingStackPage::handle_hover(MultiClickableQLabel *label,
   }
 }
 
-bool ChattingStackPage::isFriendCurrentlyChatting(const QString &target_uuid) {
-  /*friendinfo doesn't load any friend info yet*/
-  if (!m_friendInfo) {
-    return false;
-  }
-  return m_friendInfo->m_uuid == target_uuid;
+bool ChattingStackPage::isThreadSwitchingNeeded(const QString &target_uuid) const{
+
+    /*friendinfo doesn't load any friend info yet*/
+    if (!m_curFriendIdentity) {
+        return true;
+    }
+    return !(m_curFriendIdentity->m_uuid == target_uuid);
 }
 
-void ChattingStackPage::setFriendInfo(
-    std::shared_ptr<FriendChattingHistory> info) {
-  // m_friendInfo.reset();
+void ChattingStackPage::switchChattingThread(std::shared_ptr<UserChatThread> user_thread){
 
-  m_friendInfo = info->getUserNameCard();
+      /*set chatting dlghistory for current friend conversation thread info*/
+    if(isThreadSwitchingNeeded(m_curFriendIdentity->m_uuid)){
 
-  /*replace placeholder text*/
-  ui->friend_name->setText(m_friendInfo->m_nickname);
+          m_curFriendIdentity = user_thread->getUserNameCard();
 
-  /*set chatting dlghistory for current friend conversation*/
-  setChattingDlgHistory(info);
+          /*replace placeholder text*/
+          ui->friend_name->setText(m_curFriendIdentity->m_nickname);
+
+          setChattingThreadData(user_thread);
+    }
 }
 
-void ChattingStackPage::setChattingDlgHistory(
-    std::shared_ptr<FriendChattingHistory> history) {
-  /*remove all items*/
-  ui->chatting_record->removeAllItem();
-
-  /*it could be msg, voice, video*/
-  auto chat_data = history->getChattingHistory();
-
-  std::visit(
-      [this](auto &&T) {
-        if constexpr (std::is_same_v<ChattingTextMsg,
-                                     std::decay_t<decltype(T)>>) {
-          parseChattingTextMsg(T);
-        } else if constexpr (std::is_same_v<ChattingVoice,
-                                            std::decay_t<decltype(T)>>) {
-          parseChattingVoice(T);
-        } else if constexpr (std::is_same_v<ChattingVideo,
-                                            std::decay_t<decltype(T)>>) {
-          parseChattingVideo(T);
-        } else {
-          qDebug() << "Chatting History DataType Error! Loading Failed!";
-          return;
-        }
-      },
-      *chat_data);
-
-  // ui->chatting_record->pushBackItem()
+bool ChattingStackPage::isChatValid(const MsgType type){
+    return type == MsgType::DEFAULT ? false: true;
 }
 
-void ChattingStackPage::insertToHistoryList(
-    std::shared_ptr<ChattingHistoryData> data, MsgType type) {
+const
+ChattingRole
+ChattingStackPage::getRole(std::shared_ptr<ChattingBaseType> value)
+{
+    return UserAccountManager::get_instance()->getCurUserInfo()->m_uuid == value->sender_uuid
+               ? ChattingRole::Sender : ChattingRole::Receiver;
+}
 
-  /*current user's uuid matching the msg sender's uuid*/
-  ChattingRole role =
-      (UserAccountManager::get_instance()->getCurUserInfo()->m_uuid ==
-       data->m_sender_uuid)
-          ? ChattingRole::Sender
-          : ChattingRole::Receiver;
+std::optional<ChattingMsgItem *>
+ChattingStackPage::setupChattingMsgItem(const ChattingRole role){
 
-  ChattingMsgItem *item = new ChattingMsgItem(role);
+    QString username, pixmap_path;
 
-  if (role == ChattingRole::Sender) {
-    auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
-    item->setupUserName(curUserInfo->m_nickname);
-    item->setupIconPixmap(QPixmap(curUserInfo->m_avatorPath));
-  } else {
-    auto friend_info = UserAccountManager::get_instance()->findAuthFriendsInfo(
-        data->m_sender_uuid);
-    if (!friend_info.has_value()) {
-      qDebug() << "User Friend Info Not Found!";
-      return;
+     if (role == ChattingRole::Sender) {
+        auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
+        username = curUserInfo->m_nickname;
+        pixmap_path = curUserInfo->m_avatorPath;
+
+     }
+     else{
+
+         auto opt = UserAccountManager::get_instance()->findAuthFriendsInfo(m_curFriendIdentity->m_uuid);
+         if (!opt.has_value()) {
+             qDebug() << "User Friend Info Not Found!";
+             return std::nullopt;
+         }
+         auto namecard = opt.value();
+         username = namecard->m_nickname;
+         pixmap_path = namecard->m_avatorPath;
+     }
+
+     ChattingMsgItem *item = new ChattingMsgItem(role);
+      if(!item) return std::nullopt;
+
+     item->setupUserName(username);
+     item->setupIconPixmap(QPixmap(pixmap_path));
+     return item;
+}
+
+void ChattingStackPage::setupBubbleFrameOnItem(const ChattingRole role,
+                                                const MsgType type,
+                                               ChattingMsgItem * item,
+                                               std::shared_ptr<ChattingBaseType> value)
+{
+    //Create Bubble Frame in UI
+    QWidget *bubble{};
+
+    if(!item) return;
+
+    if(type == MsgType::TEXT){
+        bubble = new TextMsgBubble(role, value->getMsgContent());
+    }
+    else if(type == MsgType::IMAGE){
+        bubble = new PictureMsgBubble(role, value->getMsgContent());
+    }
+    else if(type ==MsgType::AUDIO){}
+    else if(type == MsgType::VIDEO){}
+    else if(type == MsgType::FILE){}
+
+    if(bubble){
+        item->setupBubbleWidget(bubble);
+        ui->chatting_record->pushBackItem(item);
+    }
+}
+
+void ChattingStackPage::distribute(std::shared_ptr<ChattingBaseType> value){
+
+    const auto type = value->getMsgType();
+    const auto role = getRole(value);
+
+    if(!isChatValid(type)){
+        qDebug() << "Invalid ChattingMsgType!";
+        return;
     }
 
-    item->setupUserName(friend_info.value()->m_nickname);
-    item->setupIconPixmap(QPixmap(friend_info.value()->m_avatorPath));
-  }
+    //Set ChattingMsgItem
+    auto msg_item = setupChattingMsgItem(role);
+    if(!msg_item.has_value()){
+        qDebug() << "Sth Went Wrong In setupChattingMsgItem";
+        return;
+    }
 
-  /*determine who is the msg sender*/
-  QWidget *bubble{};
-
-  if (type == MsgType::TEXT) {
-    bubble = new TextMsgBubble(role, data->m_msg_content);
-  } else if (type == MsgType::IMAGE) {
-    bubble = new PictureMsgBubble(role, data->m_msg_content);
-  } else if (type == MsgType::FILE) {
-    qDebug() << "File message handling not implemented yet.";
-  }
-
-  if (bubble) {
-    item->setupBubbleWidget(bubble);
-    ui->chatting_record->pushBackItem(item);
-  }
+    //Set Bubble Frame
+    setupBubbleFrameOnItem(role, type, *msg_item, value);
 }
 
-void ChattingStackPage::parseChattingTextMsg(const ChattingTextMsg &msg) {
-  for (auto &msg : msg.m_data) {
-    insertToHistoryList(msg, MsgType::TEXT);
-  }
+void ChattingStackPage::setChattingThreadData(std::shared_ptr<UserChatThread> history){
+
+    /*remove all items*/
+    ui->chatting_record->removeAllItem();
+
+    auto all = history->dumpAll();
+
+    for(const auto &value : all)
+        distribute(value);
 }
-
-void ChattingStackPage::parseChattingVoice(const ChattingVoice &msg) {}
-
-void ChattingStackPage::parseChattingVideo(const ChattingVideo &msg) {}
 
 void ChattingStackPage::on_send_message_clicked() {
+
   QJsonObject obj;
   QJsonArray array;
+
   QString send_name =
       UserAccountManager::get_instance()->getCurUserInfo()->m_nickname;
   QString send_icon =
       UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath;
+  QString my_uuid =
+      UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
 
   const QVector<MsgInfo> &list = ui->user_input->getMsgList();
 
@@ -219,22 +242,19 @@ void ChattingStackPage::on_send_message_clicked() {
     // item_sender->setupIconPixmap(QPixmap(send_icon));
 
     /*msg sender and msg receiver identity*/
-    obj["msg_sender"] =
-        UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
-    obj["msg_receiver"] = m_friendInfo->m_uuid;
+    obj["msg_sender"] = my_uuid;
+    obj["msg_receiver"] = m_curFriendIdentity->m_uuid;
 
     if (info.type == MsgType::TEXT) {
       // bubble_send = new TextMsgBubble(ChattingRole::Sender, info.content);
 
       /*text msg buffer counter*/
-      QJsonObject text_obj;
+
       if (m_text_msg_counter + info.content.length() > TXT_MSG_BUFFER_SIZE) {
+        QJsonObject text_obj;
         text_obj["text_sender"] = obj["msg_sender"];
         text_obj["text_receiver"] = obj["msg_receiver"];
         text_obj["text_msg"] = array;
-
-        QJsonDocument doc(obj);
-        auto json = doc.toJson(QJsonDocument::Compact);
 
         /*clean all array value*/
         array = QJsonArray{};
@@ -243,16 +263,18 @@ void ChattingStackPage::on_send_message_clicked() {
         /*clear this counter*/
         m_text_msg_counter = 0;
 
-        SendNodeType send_buffer(
-            static_cast<uint16_t>(ServiceType::SERVICE_TEXTCHATMSGREQUEST),
-            json, ByteOrderConverterReverse{});
-
         /*after connection to server, send TCP request*/
-        TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+        TCPNetworkConnection::send_buffer(ServiceType::SERVICE_TEXTCHATMSGREQUEST,
+                                          std::move(obj)
+        );
       }
 
-      /*generate an unique uuid for this message*/
-      obj["msg_id"] = QUuid::createUuid().toString();
+      /*
+       * generate an unique uuid for this message
+       * and also, this message will be store in local storge
+       * waiting for confirm from server!
+       */
+      obj["unique_id"] = QUuid::createUuid().toString();
 
       /*send message*/
       obj["msg_content"] = QString::fromUtf8(info.content.toUtf8());
@@ -262,27 +284,23 @@ void ChattingStackPage::on_send_message_clicked() {
 
       /*update counter*/
       m_text_msg_counter += info.content.length();
-
-      /*
-       * although the messages which are sent will appear on the
-       * chattingstackpage the message will not be recorded by the in the
-       * chattinghistory which is stored by UserAccountManager
-       */
-      emit signal_sync_chat_msg_on_local(
-          info.type, std::make_shared<ChattingTextMsg>(
-                         obj["msg_sender"].toString(),
-                         obj["msg_receiver"].toString(), array));
-
-    } else if (info.type == MsgType::IMAGE) {
-      // bubble_send = new PictureMsgBubble(ChattingRole::Sender, info.pixmap);
-
-    } else if (info.type == MsgType::FILE) {
     }
+    else if (info.type == MsgType::IMAGE) {}
+    else if (info.type == MsgType::FILE) {}
 
     // if (bubble_send != nullptr) {
     //   item_sender->setupBubbleWidget(bubble_send);
     //   ui->chatting_record->pushBackItem(item_sender);
     // }
+
+    /*
+     * although the messages which are sent will appear on the chattingstackpage,
+     * the message will not be recorded in the UserAccountManager locally!
+     */
+    emit signal_append_chat_data_on_local(info.type,
+                                          my_uuid,
+                                          m_curFriendIdentity->m_uuid,
+                                          obj);
   }
 
   /*if there is less data to send*/
@@ -290,8 +308,10 @@ void ChattingStackPage::on_send_message_clicked() {
   text_obj["text_sender"] = obj["msg_sender"];
   text_obj["text_receiver"] = obj["msg_receiver"];
   text_obj["text_msg"] = array;
-  QJsonDocument doc(text_obj);
-  auto json = doc.toJson(QJsonDocument::Compact);
+
+  /*after connection to server, send TCP request*/
+  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_TEXTCHATMSGREQUEST,
+                                    std::move(text_obj));
 
   /*clean all array value*/
   array = QJsonArray{};
@@ -299,13 +319,6 @@ void ChattingStackPage::on_send_message_clicked() {
 
   /*clear this counter*/
   m_text_msg_counter = 0;
-
-  SendNodeType send_buffer(
-      static_cast<uint16_t>(ServiceType::SERVICE_TEXTCHATMSGREQUEST), json,
-      ByteOrderConverterReverse{});
-
-  /*after connection to server, send TCP request*/
-  TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
 }
 
 void ChattingStackPage::on_clear_message_clicked() { ui->user_input->clear(); }

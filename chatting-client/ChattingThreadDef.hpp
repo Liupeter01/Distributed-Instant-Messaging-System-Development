@@ -1,17 +1,14 @@
 #pragma once
 #ifndef _CHATTINGTHREADDEF_H
 #define _CHATTINGTHREADDEF_H
-#include <vector>
-#include <memory>
 #include <optional>
 #include <string>
-#include <QDebug>
-#include <QString>
 #include <UserDef.hpp>
 #include <QUuid>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <useraccountmanager.hpp>
+#include <ChattingMessageBuffer.hpp>
 
 //Chatting Type
 enum class UserChatType {
@@ -158,10 +155,6 @@ struct FriendingConfirmInfo {
     QString message_content;
 };
 
-
-/*store the friend's identity and the historical info sent before*/
-class UserChatThread {
-public:
     struct ChattingRecordBase{
         ChattingRecordBase() = default;
 
@@ -375,10 +368,10 @@ public:
                                           std::is_same_v<ChattingVoice, _Ty> ||
                                           std::is_same_v<ChattingVideo, _Ty>;
 
-    using ChatType = ChattingRecordBase;
-
+/*store the friend's identity and the historical info sent before*/
+class UserChatThread {
 public:
-
+    using ChatType = ChattingRecordBase;
 
     explicit UserChatThread(const QString &thread_id,
                             const UserNameCard &card,
@@ -387,6 +380,7 @@ public:
         : m_threadId(thread_id)
         , m_peerCard(std::make_shared<UserNameCard>(card))
         , m_userChatType(type)
+        , m_recordStorge()
     {}
 
 public:
@@ -394,7 +388,8 @@ public:
         m_threadId = thread_id;
     }
 
-    const QString &
+    const
+    QString &
     getCurChattingThreadId() const {
         return m_threadId;
     }
@@ -404,47 +399,31 @@ public:
         return m_peerCard;
     }
 
-    const UserChatType
+    const
+    UserChatType
     getUserChatType() const{ return m_userChatType; }
 
-    bool insertMessage(std::shared_ptr<ChatType> type){
-        return _insert(type);
+    bool
+    insertMessage(std::shared_ptr<ChatType> msg) {
+        return m_recordStorge.insertMessage(msg);
     }
-
-    bool updateVerificationStatus(const QString &unique_id,
-                                  const QString &msg_id){
-
-        if(!m_localMesage.count(unique_id)){
-            qDebug() << "Unique ID Not Found!";
-            return false;
-        }
-
-        if(m_verifyMessage.count(msg_id)){
-            qDebug() << "Unexpected Error, Chat Data Exist Under This Msg ID! ";
-            return false;
-        }
-
-        m_verifyMessage[msg_id] = m_localMesage[unique_id];
-        m_verifyMessage[msg_id]->setMsgID(msg_id);
-        m_localMesage.erase(unique_id);
-        return true;
-    }
-
 
     [[nodiscard]]
     std::vector<std::shared_ptr<ChatType>>
-    dumpAllChatData(){
-        std::vector<std::shared_ptr<ChatType>> ret;
-        std::transform( m_localMesage.begin(), m_localMesage.end(),std::back_inserter(ret),
-            [](const auto& value){
-                return value.second;
-        });
+    dumpAll() const {
+        return m_recordStorge.dumpAllChatData();
+    }
 
-        std::transform( m_verifyMessage.begin(), m_verifyMessage.end(),std::back_inserter(ret),
-            [](const auto& value){
-                return value.second;
-        });
-        return ret;
+    [[nodiscard]]
+    std::vector<std::shared_ptr<ChatType>>
+    getLocalMessages() const {
+        return m_recordStorge.getLocalMessages();
+    }
+
+    bool
+    promoteLocalToVerified(const QString& unique_id,
+                           const QString& msg_id) {
+        return m_recordStorge.updateVerificationStatus(unique_id, msg_id);
     }
 
     [[nodiscard]]
@@ -492,30 +471,6 @@ public:
         return res;
     }
 
-
-protected:
-
-    bool _insert(std::shared_ptr<ChatType> value){
-
-        bool isOnLocal = value->isOnLocal();
-        auto &mapping = (isOnLocal ? m_localMesage : m_verifyMessage );
-        const auto key = (isOnLocal ? value->getUniqueId() : value->getMsgID().value() );
-
-        //the check data belongs to this id exist!
-        if(mapping.count(key))
-            return true;
-
-        //set the last message and lastfetchedmessageid
-        m_lastMessage = value;
-
-        if(!isOnLocal)
-            m_lastFetchedMsgId = key;
-
-        //add it to mapping struct
-        mapping[key] = value;
-        return true;
-    }
-
 private:
     /*thread_id*/
     QString m_threadId;
@@ -533,19 +488,12 @@ private:
 
     //PRIVATE CHAT ONLY -- friend uuid
     std::shared_ptr<UserNameCard> m_peerCard;
+
     //GROUP CHAT ONLY
+    //???
 
-    //Messages which only exist on local, status = unsent!
-    std::unordered_map<
-        /*unique_id*/ QString,
-        /*msg_data*/std::shared_ptr<ChatType>
-        > m_localMesage;
-
-    //Messages which are verified by the server!
-    std::unordered_map<
-        /*msg_id*/ QString,
-        /*msg_data*/std::shared_ptr<ChatType>
-        > m_verifyMessage;
+    //Message storge structure
+    MessageBuffer<ChatType> m_recordStorge;
 };
 
 #endif //_CHATTINGTHREADDEF_H

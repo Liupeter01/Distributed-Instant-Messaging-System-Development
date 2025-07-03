@@ -79,88 +79,88 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
 
 // User B agreed with user A's friend adding request
 ::grpc::Status grpc::GrpcDistributedChattingImpl::ConfirmFriendRequest(
-          ::grpc::ServerContext* context, const ::message::AuthoriseRequest* request,
-          ::message::AuthoriseResponse* response) {
+    ::grpc::ServerContext *context, const ::message::AuthoriseRequest *request,
+    ::message::AuthoriseResponse *response) {
 
-          /*setup json data and forward to target user*/
-          boost::json::object root;
-          boost::json::array arr;
+  /*setup json data and forward to target user*/
+  boost::json::object root;
+  boost::json::array arr;
 
-          /*setup response*/
-          response->set_src_uuid(request->src_uuid());
-          response->set_dst_uuid(request->dst_uuid());
+  /*setup response*/
+  response->set_src_uuid(request->src_uuid());
+  response->set_dst_uuid(request->dst_uuid());
 
-          auto msg_packs = request->msg_pack();
-          auto info_packs = request->user_info();
+  auto msg_packs = request->msg_pack();
+  auto info_packs = request->user_info();
 
-          /*Data Integrity Error, Unable to continue processing data!!!!!*/
-          if (msg_packs.size() != ALLOW_MSG_PACKS || info_packs.size() != ALLOW_INFO_PACKS) {
-                    response->set_error(static_cast<uint8_t>(ServiceStatus::FRIENDING_ERROR));
-                    return grpc::Status::OK;
-          }
+  /*Data Integrity Error, Unable to continue processing data!!!!!*/
+  if (msg_packs.size() != ALLOW_MSG_PACKS ||
+      info_packs.size() != ALLOW_INFO_PACKS) {
+    response->set_error(static_cast<uint8_t>(ServiceStatus::FRIENDING_ERROR));
+    return grpc::Status::OK;
+  }
 
-          /*
-* try to locate target user id in this server's user management mapping ds
-* Maybe we can not find this user in the server
-*/
-          std::optional<std::shared_ptr<Session>> session_op =
-                    UserManager::get_instance()->getSession(
-                           request->src_uuid());
+  /*
+   * try to locate target user id in this server's user management mapping ds
+   * Maybe we can not find this user in the server
+   */
+  std::optional<std::shared_ptr<Session>> session_op =
+      UserManager::get_instance()->getSession(request->src_uuid());
 
-          if (!session_op.has_value()) {
-                    spdlog::warn("[GRPC {} Service]: Find Target User {} Error!",
-                              ServerConfig::get_instance()->GrpcServerName,
-                              request->src_uuid());
+  if (!session_op.has_value()) {
+    spdlog::warn("[GRPC {} Service]: Find Target User {} Error!",
+                 ServerConfig::get_instance()->GrpcServerName,
+                 request->src_uuid());
 
-                    /*No need to send session network info!*/
-                    response->set_error(
-                              static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
-                    return grpc::Status::OK;
-          }
+    /*No need to send session network info!*/
+    response->set_error(
+        static_cast<uint8_t>(ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND));
+    return grpc::Status::OK;
+  }
 
   try {
-            auto& user_info = info_packs.at(0);
+    auto &user_info = info_packs.at(0);
 
-            root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-            root["chat_type"] = std::string("PRIVATE");
-            root["thread_id"] = request->thread_id();
-            root["friend_uuid"] = request->dst_uuid();
-            root["friend_nickname"] = user_info.nick_name();
-            root["friend_avator"] = user_info.avator_path();
-            root["friend_username"] = user_info.username();
-            root["friend_desc"] = user_info.description();
-            root["friend_sex"] = user_info.sex();
+    root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+    root["chat_type"] = std::string("PRIVATE");
+    root["thread_id"] = request->thread_id();
+    root["friend_uuid"] = request->dst_uuid();
+    root["friend_nickname"] = user_info.nick_name();
+    root["friend_avator"] = user_info.avator_path();
+    root["friend_username"] = user_info.username();
+    root["friend_desc"] = user_info.description();
+    root["friend_sex"] = user_info.sex();
 
-            /*traversal msg_packs and retrieve all inner data*/
-            std::for_each(msg_packs.begin(), msg_packs.end(),
-                      [&arr](decltype(*msg_packs.begin())& server) {
-                                boost::json::object msg;
+    /*traversal msg_packs and retrieve all inner data*/
+    std::for_each(msg_packs.begin(), msg_packs.end(),
+                  [&arr](decltype(*msg_packs.begin()) &server) {
+                    boost::json::object msg;
 
-                                /*msg sender and msg receiver identity*/
-                                msg["msg_sender"] = server.msg_sender();
-                                msg["msg_receiver"] = server.msg_receiver();
+                    /*msg sender and msg receiver identity*/
+                    msg["msg_sender"] = server.msg_sender();
+                    msg["msg_receiver"] = server.msg_receiver();
 
-                                /*generate an unique uuid for this message*/
-                                msg["msg_id"] = server.msg_id();
+                    /*generate an unique uuid for this message*/
+                    msg["msg_id"] = server.msg_id();
 
-                                /*send message*/
-                                msg["msg_content"] = server.hello_msg();
-                                msg["msg_type"] = server.msg_type();
+                    /*send message*/
+                    msg["msg_content"] = server.hello_msg();
+                    msg["msg_type"] = server.msg_type();
 
-                                arr.push_back(std::move(msg));
-                      });
+                    arr.push_back(std::move(msg));
+                  });
 
-            root["hello_msg"] = arr;
-            response->set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
+    root["hello_msg"] = arr;
+    response->set_error(static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS));
 
-            /*propagate the message to dst user*/
-            (*session_op)->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+    /*propagate the message to dst user*/
+    (*session_op)
+        ->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
                       boost::json::serialize(root), (*session_op));
-  }
-  catch (...) {
-            spdlog::warn("[GRPC {} Service]: Parsing msg_pack & info_pack Error!");
-            root["error"] = static_cast<uint8_t>(ServiceStatus::FRIENDING_ERROR);
-            response->set_error(static_cast<uint8_t>(ServiceStatus::FRIENDING_ERROR));
+  } catch (...) {
+    spdlog::warn("[GRPC {} Service]: Parsing msg_pack & info_pack Error!");
+    root["error"] = static_cast<uint8_t>(ServiceStatus::FRIENDING_ERROR);
+    response->set_error(static_cast<uint8_t>(ServiceStatus::FRIENDING_ERROR));
   }
 
   return grpc::Status::OK;
@@ -220,8 +220,9 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
     dst_root["text_msg"] = std::move(msg_array);
 
     /*send a forwarding packet*/
-    (*session_op)->sendMessage(ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
-                             boost::json::serialize(dst_root), *session_op);
+    (*session_op)
+        ->sendMessage(ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
+                      boost::json::serialize(dst_root), *session_op);
 
     /*setup response*/
     response->set_src_uuid(request->src_uuid());

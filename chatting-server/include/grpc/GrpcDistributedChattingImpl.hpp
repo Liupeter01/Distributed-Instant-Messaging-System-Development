@@ -35,8 +35,9 @@ public:
 
   // User B agreed with user A's friend adding request
   virtual ::grpc::Status
-  ConfirmFriendRequest(::grpc::ServerContext* context, const ::message::AuthoriseRequest* request,
-            ::message::AuthoriseResponse* response);
+  ConfirmFriendRequest(::grpc::ServerContext *context,
+                       const ::message::AuthoriseRequest *request,
+                       ::message::AuthoriseResponse *response);
 
   // transfer chatting message from user A to B
   virtual ::grpc::Status

@@ -351,17 +351,18 @@ mysql::MySQLConnection::getUserChattingThreadIdx(
         std::to_string(ib->at(0).as_int64()); // std::string("thread_id")
     std::string type_str = ib->at(3).as_string();
 
-    if (type_str =="GROUP") {
+    if (type_str == "GROUP") {
 
       std::unique_ptr<chat::ChatThreadMeta> req(
-          std::make_unique<chat::ChatThreadMeta>(thread_id, chat::UserChatType::GROUP));
+          std::make_unique<chat::ChatThreadMeta>(thread_id,
+                                                 chat::UserChatType::GROUP));
       list.push_back(std::move(req));
     } else {
       auto user1_uuid = std::to_string(ib->at(1).as_int64());
       auto user2_uuid = std::to_string(ib->at(2).as_int64());
       std::unique_ptr<chat::ChatThreadMeta> req(
-          std::make_unique<chat::ChatThreadMeta>(thread_id, chat::UserChatType::PRIVATE,
-                                                 user1_uuid, user2_uuid));
+          std::make_unique<chat::ChatThreadMeta>(
+              thread_id, chat::UserChatType::PRIVATE, user1_uuid, user2_uuid));
       list.push_back(std::move(req));
     }
   }
@@ -493,71 +494,72 @@ mysql::MySQLConnection::createNewPrivateChat(const std::size_t user1_uuid,
   }
 }
 
-bool  mysql::MySQLConnection::createModifyChattingHistoryRecord(std::vector<std::shared_ptr<chat::TextMsgInfo>>& info) {
+bool mysql::MySQLConnection::createModifyChattingHistoryRecord(
+    std::vector<std::shared_ptr<chat::TextMsgInfo>> &info) {
 
-          bool status = true;
-          for (auto& item : info) 
-                    status = status && createModifyChattingHistoryRecord(item);
-          return status;
+  bool status = true;
+  for (auto &item : info)
+    status = status && createModifyChattingHistoryRecord(item);
+  return status;
 }
 
-bool mysql::MySQLConnection::createModifyChattingHistoryRecord(std::shared_ptr<chat::TextMsgInfo>& info) {
+bool mysql::MySQLConnection::createModifyChattingHistoryRecord(
+    std::shared_ptr<chat::TextMsgInfo> &info) {
 
-          auto is_rows_afftected = [](const boost::mysql::results& flag) {
-                    return flag.rows().begin() != flag.rows().end();
-                    };
+  auto is_rows_afftected = [](const boost::mysql::results &flag) {
+    return flag.rows().begin() != flag.rows().end();
+  };
 
-          if (info->msg_receiver == info->msg_sender) 
-                    return false;
+  if (info->msg_receiver == info->msg_sender)
+    return false;
 
-          auto user1_uuid = std::stoi(info->msg_sender);
-          auto user2_uuid = std::stoi(info->msg_receiver);
+  auto user1_uuid = std::stoi(info->msg_sender);
+  auto user2_uuid = std::stoi(info->msg_receiver);
 
-          const std::size_t user_one = std::min(user1_uuid, user2_uuid);
-          const std::size_t user_two = std::max(user1_uuid, user2_uuid);
+  const std::size_t user_one = std::min(user1_uuid, user2_uuid);
+  const std::size_t user_two = std::max(user1_uuid, user2_uuid);
 
-          auto res1 = executeCommand(MySQLSelection::USER_UUID_CHECK, user1_uuid);
-          auto res2 = executeCommand(MySQLSelection::USER_UUID_CHECK, user2_uuid);
+  auto res1 = executeCommand(MySQLSelection::USER_UUID_CHECK, user1_uuid);
+  auto res2 = executeCommand(MySQLSelection::USER_UUID_CHECK, user2_uuid);
 
-          // Not user uuid found!
-          if (!res1.has_value() || !res2.has_value()) 
-                    return false;
+  // Not user uuid found!
+  if (!res1.has_value() || !res2.has_value())
+    return false;
 
-          try {
-                    TransactionGuard transaction_guard(*this);
-                    boost::mysql::results flag = executeCommandOrThrow(MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK,
-                              user_one, user_two);
+  try {
+    TransactionGuard transaction_guard(*this);
+    boost::mysql::results flag = executeCommandOrThrow(
+        MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK, user_one, user_two);
 
-                    if (!is_rows_afftected(flag))
-                              return false; // No Relavant Info Found Here! ROLLBACK
+    if (!is_rows_afftected(flag))
+      return false; // No Relavant Info Found Here! ROLLBACK
 
-                    /*Store Request->Confirmer Init Chat Info In ChatMsgHistoryBank*/
-                    flag = executeCommandOrThrow(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
-                              /*thread_id = */ info->thread_id,
-                              /*message_status = */ 0,
-                              /*message_sender= */ user1_uuid,
-                              /*message_receiver= */user2_uuid,
-                              /*message_content = */ info->msg_content);
+    /*Store Request->Confirmer Init Chat Info In ChatMsgHistoryBank*/
+    flag = executeCommandOrThrow(MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
+                                 /*thread_id = */ info->thread_id,
+                                 /*message_status = */ 0,
+                                 /*message_sender= */ user1_uuid,
+                                 /*message_receiver= */ user2_uuid,
+                                 /*message_content = */ info->msg_content);
 
-                    if (!flag.affected_rows())
-                              return false; // No Relavant Info Found Here! ROLLBACK
+    if (!flag.affected_rows())
+      return false; // No Relavant Info Found Here! ROLLBACK
 
-                    // get id from ChatMsgHistoryBank
-                    std::string message_id = std::to_string(flag.last_insert_id());
+    // get id from ChatMsgHistoryBank
+    std::string message_id = std::to_string(flag.last_insert_id());
 
-                    transaction_guard.commit();
+    transaction_guard.commit();
 
-                    info->setMsgID(message_id);
-                    return true;
-          }
-          catch (const boost::mysql::error_with_diagnostics& err) {
-                    spdlog::error("createPrivateChat failed: {0}:{1} Operation failed with "
-                              "error code: {2} Server diagnostics: {3}",
-                              __FILE__, __LINE__, std::to_string(err.code().value()),
-                              err.get_diagnostics().server_message().data());
+    info->setMsgID(message_id);
+    return true;
+  } catch (const boost::mysql::error_with_diagnostics &err) {
+    spdlog::error("createPrivateChat failed: {0}:{1} Operation failed with "
+                  "error code: {2} Server diagnostics: {3}",
+                  __FILE__, __LINE__, std::to_string(err.code().value()),
+                  err.get_diagnostics().server_message().data());
 
-                    return false;
-          }
+    return false;
+  }
 }
 
 /*

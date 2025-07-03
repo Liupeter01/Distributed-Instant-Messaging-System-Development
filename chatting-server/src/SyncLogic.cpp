@@ -1,10 +1,10 @@
+#include <chat/ChattingThreadDef.hpp>
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
 #include <grpc/GrpcRegisterChattingService.hpp>
 #include <grpc/GrpcUserService.hpp>
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
-#include <chat/ChattingThreadDef.hpp>
 #include <spdlog/spdlog.h>
 
 /*redis*/
@@ -414,10 +414,10 @@ SyncLogic::getFriendRequestInfo(const std::string &dst_uuid,
   /*search it in mysql*/
   MySQLRAII mysql;
 
-  //check if we got a valid RAII pointer
+  // check if we got a valid RAII pointer
   if (auto opt = mysql.get_native(); opt) {
-            return (*opt).get()->getFriendingRequestList(uuid_op.value(), start_pos,
-                      interval);
+    return (*opt).get()->getFriendingRequestList(uuid_op.value(), start_pos,
+                                                 interval);
   }
   return std::nullopt;
 }
@@ -442,46 +442,41 @@ SyncLogic::getAuthFriendsInfo(const std::string &dst_uuid,
   /*search it in mysql*/
   MySQLRAII mysql;
 
-  //check if we got a valid RAII pointer
+  // check if we got a valid RAII pointer
   if (auto opt = mysql.get_native(); opt) {
-            return (*opt).get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
-                      interval);
+    return (*opt).get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
+                                                 interval);
   }
 
   return std::nullopt;
 }
 
 /*
-* acquire ChatThread Info by uuid and an existing thread_id(zero by default)
-* @param: cur_thread_id: get record from the index[cur_thread_id + 1]
-* @param: interval: how many records are going to be acquired [cur_thread_id + 1, cur_thread_id + 1
-* + interval)
-*/
+ * acquire ChatThread Info by uuid and an existing thread_id(zero by default)
+ * @param: cur_thread_id: get record from the index[cur_thread_id + 1]
+ * @param: interval: how many records are going to be acquired [cur_thread_id +
+ * 1, cur_thread_id + 1
+ * + interval)
+ */
 std::optional<std::vector<std::unique_ptr<chat::ChatThreadMeta>>>
-SyncLogic::getChatThreadInfo(const std::string& self_uuid, 
-                                                  const std::size_t cur_thread_id, 
-                                                  std::string& next_thread_id, 
-                                                  bool& is_EOF, 
-                                                  const std::size_t interval)
-{
-          auto uuid_op = tools::string_to_value<std::size_t>(self_uuid);
-          if (!uuid_op.has_value()) {
-                    spdlog::warn("Casting string typed key to std::size_t!");
-                    return std::nullopt;
-          }
+SyncLogic::getChatThreadInfo(const std::string &self_uuid,
+                             const std::size_t cur_thread_id,
+                             std::string &next_thread_id, bool &is_EOF,
+                             const std::size_t interval) {
+  auto uuid_op = tools::string_to_value<std::size_t>(self_uuid);
+  if (!uuid_op.has_value()) {
+    spdlog::warn("Casting string typed key to std::size_t!");
+    return std::nullopt;
+  }
 
-          /*search it in mysql*/
-          MySQLRAII mysql;
+  /*search it in mysql*/
+  MySQLRAII mysql;
 
-          //check if we got a valid RAII pointer
-          if (auto opt = mysql.get_native(); opt) {
-                    return (*opt).get()->getUserChattingThreadIdx(uuid_op.value(), 
-                              cur_thread_id, 
-                              interval,
-                              next_thread_id,
-                              is_EOF
-                    );
-          }
+  // check if we got a valid RAII pointer
+  if (auto opt = mysql.get_native(); opt) {
+    return (*opt).get()->getUserChattingThreadIdx(
+        uuid_op.value(), cur_thread_id, interval, next_thread_id, is_EOF);
+  }
 
-          return std::nullopt;
+  return std::nullopt;
 }

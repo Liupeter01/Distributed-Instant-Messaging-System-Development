@@ -99,35 +99,33 @@ struct FriendingConfirmInfo {
 };
 
 struct TextMsgInfo {
-          TextMsgInfo() = default;
+  TextMsgInfo() = default;
 
-          TextMsgInfo(const std::string& threadId,
-                    const std::string& uniqueid, const std::string& sender,
-                    const std::string& receiver, const std::string& content)
-                    :  thread_id(threadId), unique_id(uniqueid),
-                    msg_sender(sender), msg_receiver(receiver),
-                    msg_content(content) {
-          }
+  TextMsgInfo(const std::string &threadId, const std::string &uniqueid,
+              const std::string &sender, const std::string &receiver,
+              const std::string &content)
+      : thread_id(threadId), unique_id(uniqueid), msg_sender(sender),
+        msg_receiver(receiver), msg_content(content) {}
 
-          bool getMsgID(std::string& message) {
-                    if (isVerified) {
-                              message = message_id;
-                              return true;
-                    }
-                    return false;
-          }
-          void setMsgID(const std::string& value) {
-                    message_id = value;
-                    isVerified = true;
-          }
+  bool getMsgID(std::string &message) {
+    if (isVerified) {
+      message = message_id;
+      return true;
+    }
+    return false;
+  }
+  void setMsgID(const std::string &value) {
+    message_id = value;
+    isVerified = true;
+  }
 
-          bool isVerified = false;
-          std::string thread_id;
-          std::string msg_sender;
-          std::string msg_receiver;
-          std::string msg_content;
-          std::string unique_id;
-          std::string message_id;
+  bool isVerified = false;
+  std::string thread_id;
+  std::string msg_sender;
+  std::string msg_receiver;
+  std::string msg_content;
+  std::string unique_id;
+  std::string message_id;
 };
 
 } // namespace chat

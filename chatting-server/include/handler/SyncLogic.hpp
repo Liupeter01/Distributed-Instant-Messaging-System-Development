@@ -4,16 +4,16 @@
 #include <boost/json.hpp>
 #include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
-#include <network/def.hpp>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 #include <buffer/MsgNode.hpp>
+#include <memory>
+#include <network/def.hpp>
 #include <redis/RedisManager.hpp>
 #include <server/Session.hpp>
 #include <sql/MySQLConnectionPool.hpp>
+#include <unordered_map>
 #include <user/UserDef.hpp>
 #include <user/UserManager.hpp>
+#include <vector>
 
 /*declaration*/
 struct UserNameCard;
@@ -49,36 +49,37 @@ protected:
 
   /*Execute Operations*/
   void handlingLogin(ServiceType srv_type, std::shared_ptr<Session> session,
-            NodePtr recv);
+                     NodePtr recv);
   void handlingLogout(ServiceType srv_type, std::shared_ptr<Session> session,
-            NodePtr recv);
+                      NodePtr recv);
 
   void handlingUserSearch(ServiceType srv_type,
-            std::shared_ptr<Session> session, NodePtr recv);
+                          std::shared_ptr<Session> session, NodePtr recv);
 
-  //only return chat threads for user(data are not included!!!!!)
+  // only return chat threads for user(data are not included!!!!!)
   void handlingUserChatTheads(ServiceType srv_type,
-            std::shared_ptr<Session> session, NodePtr recv);
+                              std::shared_ptr<Session> session, NodePtr recv);
 
-   void handlingCreateNewPrivateChat(ServiceType srv_type,
-             std::shared_ptr<Session> session, NodePtr recv);
+  void handlingCreateNewPrivateChat(ServiceType srv_type,
+                                    std::shared_ptr<Session> session,
+                                    NodePtr recv);
 
   /*the person who init friend request*/
   void handlingFriendRequestCreator(ServiceType srv_type,
-            std::shared_ptr<Session> session,
-            NodePtr recv);
+                                    std::shared_ptr<Session> session,
+                                    NodePtr recv);
 
   /*the person who receive friend request are going to confirm it*/
   void handlingFriendRequestConfirm(ServiceType srv_type,
-            std::shared_ptr<Session> session,
-            NodePtr recv);
+                                    std::shared_ptr<Session> session,
+                                    NodePtr recv);
 
   /*Handling the user send chatting text msg to others*/
   void handlingTextChatMsg(ServiceType srv_type,
-            std::shared_ptr<Session> session, NodePtr recv);
+                           std::shared_ptr<Session> session, NodePtr recv);
 
   void handlingHeartBeat(ServiceType srv_type, std::shared_ptr<Session> session,
-            NodePtr recv);
+                         NodePtr recv);
 
 private:
   SyncLogic();
@@ -113,13 +114,13 @@ private:
   bool check_and_kick_existing_session(std::shared_ptr<Session> session);
 
   /*
- * get user's basic info(name, age, sex, ...) from redis
- * 1. we are going to search for info inside redis first, if nothing found,
- * then goto 2
- * 2. searching for user info inside mysql
- */
+   * get user's basic info(name, age, sex, ...) from redis
+   * 1. we are going to search for info inside redis first, if nothing found,
+   * then goto 2
+   * 2. searching for user info inside mysql
+   */
   [[nodiscard]] static std::optional<std::unique_ptr<user::UserNameCard>>
-            getUserBasicInfo(const std::string& key);
+  getUserBasicInfo(const std::string &key);
 
   /*
    * get friend request list from the database
@@ -127,10 +128,11 @@ private:
    * @param: interval: how many requests are going to acquire [startpos,
    * startpos + interval)
    */
-  [[nodiscard]] std::optional<std::vector<std::unique_ptr<user::UserFriendRequest>>>
-            getFriendRequestInfo(const std::string& dst_uuid,
-                      const std::size_t start_pos = 0,
-                      const std::size_t interval = 10);
+  [[nodiscard]] std::optional<
+      std::vector<std::unique_ptr<user::UserFriendRequest>>>
+  getFriendRequestInfo(const std::string &dst_uuid,
+                       const std::size_t start_pos = 0,
+                       const std::size_t interval = 10);
 
   /*
    * acquire Friend List
@@ -139,23 +141,24 @@ private:
    * @param: interval: how many friends re going to acquire [startpos, startpos
    * + interval)
    */
-  [[nodiscard]]  std::optional<std::vector<std::unique_ptr<user::UserNameCard>>>
-            getAuthFriendsInfo(const std::string& dst_uuid,
-                      const std::size_t start_pos = 0,
-                      const std::size_t interval = 10);
+  [[nodiscard]] std::optional<std::vector<std::unique_ptr<user::UserNameCard>>>
+  getAuthFriendsInfo(const std::string &dst_uuid,
+                     const std::size_t start_pos = 0,
+                     const std::size_t interval = 10);
 
   /*
- * acquire ChatThread Info by uuid and an existing thread_id(zero by default)
- * @param: cur_thread_id: get record from the index[cur_thread_id + 1]
- * @param: interval: how many records are going to be acquired [cur_thread_id + 1, cur_thread_id + 1
- * + interval)
- */
-  [[nodiscard]] std::optional < std::vector < std::unique_ptr < chat::ChatThreadMeta>>>
-            getChatThreadInfo(const std::string& self_uuid,
-                      const std::size_t cur_thread_id,
-                      std::string& next_thread_id,
-                      bool& is_EOF,
-                      const std::size_t interval = 10);
+   * acquire ChatThread Info by uuid and an existing thread_id(zero by default)
+   * @param: cur_thread_id: get record from the index[cur_thread_id + 1]
+   * @param: interval: how many records are going to be acquired [cur_thread_id
+   * + 1, cur_thread_id + 1
+   * + interval)
+   */
+  [[nodiscard]] std::optional<
+      std::vector<std::unique_ptr<chat::ChatThreadMeta>>>
+  getChatThreadInfo(const std::string &self_uuid,
+                    const std::size_t cur_thread_id,
+                    std::string &next_thread_id, bool &is_EOF,
+                    const std::size_t interval = 10);
 
 public:
   /*redis*/

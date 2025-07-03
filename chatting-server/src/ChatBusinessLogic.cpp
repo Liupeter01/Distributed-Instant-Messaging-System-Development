@@ -892,3 +892,195 @@ void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
                               *server_op);
           }
 }
+
+/*Handling the user send chatting text msg to others*/
+void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv) {
+
+          /*connection pool RAII*/
+          RedisRAII raii;
+          MySQLRAII mysql;
+
+          boost::json::object src_root; /*store json from client*/
+
+          parseJson(session, recv, src_root);
+
+          IN OUT std::vector<std::shared_ptr<chat::TextMsgInfo>> updated_msg;
+
+          // Parsing failed
+          if (!(src_root.contains("text_sender") &&
+                    src_root.contains("text_receiver") &&
+                    src_root.contains("text_msg") &&
+                    src_root.contains("thread_id"))) {
+                    generateErrorMessage("Missing required fields",
+                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          auto thread_id =
+                    boost::json::value_to<std::string>(src_root["thread_id"]);
+          auto sender_uuid =
+                    boost::json::value_to<std::string>(src_root["text_sender"]);
+          auto receiver_uuid =
+                    boost::json::value_to<std::string>(src_root["text_receiver"]);
+
+          const auto msg_array = src_root["text_msg"];
+
+          if (!tools::string_to_value<std::size_t>(sender_uuid).has_value() ||
+                    !tools::string_to_value<std::size_t>(receiver_uuid).has_value()) {
+
+                    generateErrorMessage("Invalid UUID format",
+                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          //RAII
+          {
+                    if (!src_root["text_msg"].is_array()) {
+                              generateErrorMessage("Missing required fields",
+                                        ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                                        ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+                              return;
+                    }
+
+                    auto arr = src_root["text_msg"].as_array();
+                    for (auto& item : arr) {
+                              if (!item.is_object())  continue;
+
+                              auto obj = item.as_object();
+
+                              updated_msg.push_back(std::make_shared< chat::TextMsgInfo>(thread_id,
+                                        boost::json::value_to<std::string>(obj["unique_id"]),
+                                        boost::json::value_to<std::string>(obj["msg_sender"]),
+                                        boost::json::value_to<std::string>(obj["msg_receiver"]),
+                                        boost::json::value_to<std::string>(obj["msg_content"])
+                              ));
+                    }
+          }
+
+          if (!mysql->get()->createModifyChattingHistoryRecord(updated_msg)) {
+                    generateErrorMessage("DataBase Operation Failed!",
+                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                              ServiceStatus::MYSQL_INTERNAL_ERROR, session);
+                    return;
+          }
+
+          // Query which server the receiver belongs to
+          auto server_op = raii->get()->checkValue(server_prefix + receiver_uuid);
+          if (!server_op) {
+                    generateErrorMessage(fmt::format("[{}] Cannot Find Receiver {}'s Server Info In  Redis",
+                              ServerConfig::get_instance()->GrpcServerName, receiver_uuid),
+                              ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                              ServiceStatus::REDIS_UNKOWN_ERROR, session);
+                    return;
+          }
+
+          // Inner-server
+          boost::json::array updated_arr;
+
+          //Unique_id <-> msg_id mapping relation
+          boost::json::array mapping_arr;
+
+          // Cross-server: use gRPC to forward
+          message::ChattingTextMsgRequest grpc_req;
+          grpc_req.set_src_uuid(sender_uuid);
+          grpc_req.set_dst_uuid(receiver_uuid);
+
+          for (auto& item : updated_msg) {
+
+                    if (!item->isVerified) {
+                              spdlog::error("[{} ]: UUID = {} Send Request To UUID = {} Error, Unexpected Error!",
+                                        ServerConfig::get_instance()->GrpcServerName, sender_uuid, receiver_uuid);
+                              continue;
+                    }
+
+                    boost::json::object obj;
+                    boost::json::object mapping;
+
+                    message::ChattingHistoryData* data_item = grpc_req.add_lists();
+                    data_item->set_msg_id(item->message_id);
+                    data_item->set_thread_id(item->thread_id);
+                    data_item->set_unique_id(item->unique_id);
+                    data_item->set_msg_sender(item->msg_sender);
+                    data_item->set_msg_receiver(item->msg_receiver);
+                    data_item->set_msg_content(item->msg_content);
+
+                    obj["unique_id"] = item->unique_id;
+                    obj["msg_id"] = item->message_id;
+                    obj["msg_sender"] = item->msg_sender;
+                    obj["msg_receiver"] = item->msg_receiver;
+                    obj["msg_content"] = item->msg_content;
+
+                    mapping["unique_id"] = item->unique_id;
+                    mapping["msg_id"] = item->message_id;
+
+                    updated_arr.push_back(std::move(obj));
+                    mapping_arr.push_back(std::move(mapping));
+          }
+
+          /*
+         * Response SERVICE_SUCCESS to the text msg sender
+         * Current session should receive a successful response first
+         */
+          boost::json::object result_root; // reponse status to sender
+          result_root["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
+          result_root["text_sender"] = sender_uuid;
+          result_root["text_receiver"] = receiver_uuid;
+          result_root["verified_msg"] = mapping_arr;
+
+          session->sendMessage(ServiceType::SERVICE_TEXTCHATMSGRESPONSE,
+                    boost::json::serialize(result_root), session);
+
+          /*Is target user and msg text sender on the same server*/
+          if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
+
+                    /*try to find this target user on current chatting-server*/
+                    auto receiver_session =
+                              UserManager::get_instance()->getSession(receiver_uuid);
+                    if (!receiver_session.has_value()) {
+                              generateErrorMessage("Receiver Session Not Found",
+                                        ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                                        ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
+                                        session);
+                              return;
+                    }
+
+                    /*try to do message forwarding to dst target user*/
+                    boost::json::object dst_root;
+                    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+                    dst_root["text_sender"] = sender_uuid;
+                    dst_root["text_receiver"] = receiver_uuid;
+                    dst_root["thread_id"] = thread_id;
+                    dst_root["text_msg"] = updated_arr;
+
+                    /*propagate the message to dst user*/
+                    (*receiver_session)->sendMessage(
+                              ServiceType::SERVICE_TEXTCHATMSGICOMINGREQUEST,
+                              boost::json::serialize(dst_root), *receiver_session);
+
+                    return;
+
+          }
+
+          message::ChattingTextMsgResponse response =
+                    gRPCDistributedChattingService::get_instance()->sendChattingTextMsg(
+                              *server_op, grpc_req);
+
+          if (response.error() !=
+                    static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
+                    spdlog::warn(
+                              "[gRPC {}]: Failed to forward message from {} to {} (server: {})",
+                              ServerConfig::get_instance()->GrpcServerName, sender_uuid,
+                              receiver_uuid, *server_op);
+                    return;
+          }
+
+          spdlog::info(
+                    "[gRPC {}]: Forward message from {} to {} (server: {}) Successful",
+                    ServerConfig::get_instance()->GrpcServerName, sender_uuid,
+                    receiver_uuid, *server_op);
+
+}

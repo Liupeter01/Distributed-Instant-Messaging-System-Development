@@ -594,20 +594,23 @@ void SyncLogic::handlingUserChatTheads(ServiceType srv_type,
 
           /*Start To append all thread data to json*/
           boost::json::array threads_arr;
-          auto thread_lists = *list_status;
-          for (const auto& item : thread_lists) {
+          std::size_t size = (*list_status).size();
+
+          for (size_t i = 0; i < size; ++i) {
+                    std::unique_ptr<chat::ChatThreadMeta> item = std::move((*list_status)[i]);
+
                     boost::json::object info;
                     info["thread_id"] = item->_thread_id;
-                    info["type"] =
-                              ((item->_chat_type == chat::UserChatType::GROUP) ? "GROUP" : "PRIVATE");
+                    info["type"] = (item->_chat_type == chat::UserChatType::GROUP) ? "GROUP" : "PRIVATE";
 
-                    /*It is a private chat*/
                     if (!item->isGroupChat()) {
-                              info["user1_uuid"] = *item->_user_one;
-                              info["user2_uuid"] = *item->_user_two;
+                              info["user1_uuid"] = *(item->_user_one);
+                              info["user2_uuid"] = *(item->_user_two);
                     }
+
                     threads_arr.push_back(info);
           }
+
           result_obj["is_complete"] = is_complete;
           result_obj["next_thread_id"] = next_thread_id;
           result_obj["threads"] = threads_arr;
@@ -1008,12 +1011,14 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
                     data_item->set_msg_receiver(item->msg_receiver);
                     data_item->set_msg_content(item->msg_content);
 
+                    obj["thread_id"] = thread_id;
                     obj["unique_id"] = item->unique_id;
                     obj["msg_id"] = item->message_id;
                     obj["msg_sender"] = item->msg_sender;
                     obj["msg_receiver"] = item->msg_receiver;
                     obj["msg_content"] = item->msg_content;
 
+                    mapping["thread_id"] = thread_id;
                     mapping["unique_id"] = item->unique_id;
                     mapping["msg_id"] = item->message_id;
 
@@ -1053,7 +1058,6 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
                     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
                     dst_root["text_sender"] = sender_uuid;
                     dst_root["text_receiver"] = receiver_uuid;
-                    dst_root["thread_id"] = thread_id;
                     dst_root["text_msg"] = updated_arr;
 
                     /*propagate the message to dst user*/

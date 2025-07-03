@@ -20,9 +20,9 @@ public:
 
   message::FriendResponse sendFriendRequest(const std::string &server_name,
                                             const message::FriendRequest &req);
-  message::FriendResponse
+  message::AuthoriseResponse
   confirmFriendRequest(const std::string &server_name,
-                       const message::FriendRequest &req);
+                       const message::AuthoriseRequest &req);
 
   message::ChattingTextMsgResponse
   sendChattingTextMsg(const std::string &server_name,

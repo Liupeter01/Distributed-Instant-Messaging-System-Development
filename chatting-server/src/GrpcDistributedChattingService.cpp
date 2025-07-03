@@ -144,10 +144,10 @@ message::FriendResponse gRPCDistributedChattingService::sendFriendRequest(
   return response;
 }
 
-message::FriendResponse gRPCDistributedChattingService::confirmFriendRequest(
-    const std::string &server_name, const message::FriendRequest &req) {
+message::AuthoriseResponse gRPCDistributedChattingService::confirmFriendRequest(
+    const std::string &server_name, const message::AuthoriseRequest &req) {
   grpc::ClientContext context;
-  message::FriendResponse response;
+  message::AuthoriseResponse response;
 
   response.set_error(static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS));
 

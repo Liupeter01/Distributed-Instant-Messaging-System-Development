@@ -9,6 +9,9 @@
 #include <string_view>
 #include <unordered_map>
 
+#define ALLOW_INFO_PACKS 1
+#define ALLOW_MSG_PACKS 2
+
 namespace grpc {
 class GrpcDistributedChattingImpl final
     : public message::DistributedChattingService::Service {
@@ -32,15 +35,8 @@ public:
 
   // User B agreed with user A's friend adding request
   virtual ::grpc::Status
-  ConfirmFriendRequest(::grpc::ServerContext *context,
-                       const ::message::FriendRequest *request,
-                       ::message::FriendResponse *response);
-
-  // Verify that B is still A's friend:
-  virtual ::grpc::Status
-  FriendshipVerification(::grpc::ServerContext *context,
-                         const ::message::AuthoriseRequest *request,
-                         ::message::AuthoriseResponse *response);
+  ConfirmFriendRequest(::grpc::ServerContext* context, const ::message::AuthoriseRequest* request,
+            ::message::AuthoriseResponse* response);
 
   // transfer chatting message from user A to B
   virtual ::grpc::Status

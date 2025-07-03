@@ -1,4 +1,5 @@
 #include <handler/SyncLogic.hpp>
+#include <grpc/GrpcUserService.hpp>
 #include <grpc/GrpcDistributedChattingService.hpp>
 #include <grpc/GrpcRegisterChattingService.hpp>
 
@@ -28,6 +29,24 @@ void SyncLogic::registerCallbacks() {
           m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
                     ServiceType::SERVICE_SEARCHUSERNAME,
                     std::bind(&SyncLogic::handlingUserSearch, this, std::placeholders::_1,
+                              std::placeholders::_2, std::placeholders::_3)));
+
+          /*
+           * ServiceType::SERVICE_CREATENEWPRIVATECHAT
+           * Handling User Search Username
+           */
+          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+                    ServiceType::SERVICE_CREATENEWPRIVATECHAT,
+                    std::bind(&SyncLogic::handlingCreateNewPrivateChat, this, std::placeholders::_1,
+                              std::placeholders::_2, std::placeholders::_3)));
+
+          /*
+           * ServiceType::SERVICE_CREATENEWPRIVATECHAT
+           * Handling User Search Username
+           */
+          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+                    ServiceType::SERVICE_PULLCHATTHREAD,
+                    std::bind(&SyncLogic::handlingUserChatTheads, this, std::placeholders::_1,
                               std::placeholders::_2, std::placeholders::_3)));
 
           /*
@@ -521,4 +540,355 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
           result_root["dst_uuid"] = dst_uuid;
           session->sendMessage(ServiceType::SERVICE_FRIENDSENDERRESPONSE,
                     boost::json::serialize(result_root), session);
+}
+
+void SyncLogic::handlingUserChatTheads(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv) {
+
+          MySQLRAII mysql;
+          boost::json::object src_obj;
+          boost::json::object result_obj;
+
+          parseJson(session, recv, src_obj);
+
+          // Parsing failed
+          if (!(src_obj.contains("uuid") && src_obj.contains("thread_id"))) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_PULLCHATTHREADRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          auto uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
+          auto thread_id = boost::json::value_to<std::string>(src_obj["thread_id"]);
+
+          if (!tools::string_to_value<std::size_t>(uuid).has_value() ||
+                    !tools::string_to_value<std::size_t>(thread_id).has_value()) {
+                    generateErrorMessage("Failed to cast uuid strings to size_t",
+                              ServiceType::SERVICE_PULLCHATTHREADRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          bool is_complete{};           //is thread_id list acquire finished!
+          std::string next_thread_id;   //next_thread_id order is going to be acquired!
+
+          auto list_status = mysql->get()->getUserChattingThreadIdx(
+                    std::stoi(uuid),
+                    std::stoi(thread_id),
+                    /*interval*/10,
+                    next_thread_id,
+                    is_complete
+          );
+
+          if (!list_status.has_value()) {
+                    spdlog::warn("[{}]: Failed To Acquire UUID: [{}] Thread ID Data",
+                              ServerConfig::get_instance()->GrpcServerName, uuid);
+
+                    generateErrorMessage("Failed to cast uuid strings to size_t",
+                              ServiceType::SERVICE_PULLCHATTHREADRESPONSE,
+                              ServiceStatus::CHATTHREAD_PARSE_ERROR, session);
+                    return;
+          }
+
+          /*Start To append all thread data to json*/
+          boost::json::array threads_arr;
+          auto thread_lists = *list_status;
+          for (const auto& item : thread_lists) {
+                    boost::json::object info;
+                    info["thread_id"] = item->_thread_id;
+                    info["type"] =
+                              ((item->_chat_type == chat::UserChatType::GROUP) ? "GROUP" : "PRIVATE");
+
+                    /*It is a private chat*/
+                    if (!item->isGroupChat()) {
+                              info["user1_uuid"] = *item->_user_one;
+                              info["user2_uuid"] = *item->_user_two;
+                    }
+                    threads_arr.push_back(info);
+          }
+          result_obj["is_complete"] = is_complete;
+          result_obj["next_thread_id"] = next_thread_id;
+          result_obj["threads"] = threads_arr;
+          result_obj["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+          session->sendMessage(ServiceType::SERVICE_PULLCHATTHREADRESPONSE,
+                    boost::json::serialize(result_obj), session);
+}
+
+void SyncLogic::handlingCreateNewPrivateChat(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv)
+{
+          MySQLRAII mysql;
+          boost::json::object src_root;    /*store json from client*/
+          boost::json::object result_root; /*send processing result back to src user*/
+
+          parseJson(session, recv, src_root);
+
+          // Parsing failed
+          if (!(src_root.contains("my_uuid") && src_root.contains("friend_uuid"))) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          auto my_uuid = boost::json::value_to<std::string>(src_root["my_uuid"]);
+          auto friend_uuid = boost::json::value_to<std::string>(src_root["friend_uuid"]);
+
+          if (!tools::string_to_value<std::size_t>(my_uuid).has_value() ||
+                    !tools::string_to_value<std::size_t>(friend_uuid).has_value()) {
+                    generateErrorMessage("Failed to cast uuid strings to size_t",
+                              ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          auto status = mysql->get()->createNewPrivateChat(
+                    std::stoi(my_uuid),
+                    std::stoi(friend_uuid)
+          );
+
+          if (!status.has_value()) {
+                    spdlog::warn("[{}]: Failed To Generate Private Chat Thread ID Between UUID: [{}]<->UUID:[{}]!",
+                              ServerConfig::get_instance()->GrpcServerName, my_uuid, friend_uuid);
+
+                    generateErrorMessage("Failed To Generate Private Chat Thread ID",
+                              ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE,
+                              ServiceStatus::CREATE_PRIVATE_CHAT_FAILED, session);
+                    return;
+          }
+
+          result_root["my_uuid"] = my_uuid;
+          result_root["friend_uuid"] = friend_uuid;
+          result_root["thread_id"] = *status;
+          result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+          session->sendMessage(ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE,
+                    boost::json::serialize(result_root), session);
+}
+
+/*the person who receive friend request are going to confirm it*/
+void SyncLogic::handlingFriendRequestConfirm(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv) {
+
+          auto generate_json = [](const std::string& thread_id,
+                    const std::string& friend_uuid,
+                    const boost::json::array& arr,
+                    std::unique_ptr< user::UserNameCard> card)->boost::json::object
+                    {
+                              std::unique_ptr<user::UserNameCard> namecard = std::move(card);
+                              boost::json::object json;
+                              json["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+                              json["friend_uuid"] = friend_uuid;
+                              json["friend_username"] = namecard->m_username;
+                              json["friend_nickname"] = namecard->m_nickname;
+                              json["friend_avator"] = namecard->m_avatorPath;
+                              json["friend_desc"] = namecard->m_description;
+                              json["friend_sex"] = static_cast<uint8_t>(namecard->m_sex);
+                              json["thread_id"] = thread_id;
+                              json["chat_type"] = "PRIVATE";
+                              json["hello_msg"] = arr;
+                              return json;
+                    };
+
+          /*connection pool RAII*/
+          RedisRAII raii;
+          MySQLRAII mysql;
+
+          boost::json::object src_root;    /*store json from client*/
+          boost::json::object result_root; /*send processing result back to src user*/
+
+          std::string thread_id;
+
+          parseJson(session, recv, src_root);
+
+          if (!(src_root.contains("src_uuid") &&
+                    src_root.contains("dst_uuid"))) {
+                    generateErrorMessage("Missing required keys: src_uuid or dst_uuid",
+                              ServiceType::SERVICE_SEARCHUSERNAMERESPONSE,
+                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+                    return;
+          }
+
+          auto src_uuid = boost::json::value_to<std::string>(src_root["src_uuid"]);     //target user's uuid
+          auto dst_uuid = boost::json::value_to<std::string>(src_root["dst_uuid"]);     //confimer's uuid
+          auto alternative = boost::json::value_to<std::string>(src_root["alternative_name"]);
+
+          if (!tools::string_to_value<std::size_t>(src_uuid).has_value()
+                    || !tools::string_to_value<std::size_t>(dst_uuid).has_value()) {
+
+                    generateErrorMessage("Failed to cast uuid strings to size_t",
+                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                              ServiceStatus::FRIENDING_ERROR, session);
+                    return;
+          }
+
+          auto status = mysql->get()->execFriendConfirmationTransaction(
+                    std::stoi(src_uuid),
+                    std::stoi(dst_uuid)
+          );
+
+          if (!status.has_value()) {
+                    spdlog::warn("[{}]: Something Goes Wrong Inside Transaction!",
+                              ServerConfig::get_instance()->GrpcServerName);
+
+                    generateErrorMessage("Failed to update friending status",
+                              ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                              ServiceStatus::FRIENDING_ERROR, session);
+
+                    generateErrorMessage(
+                              fmt::format("Failed to create friend relation: {} <-> {}", dst_uuid,
+                                        src_uuid),
+                              ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                              ServiceStatus::FRIENDING_ERROR, session);
+
+                    return;
+          }
+
+          /*
+         * Response SERVICE_SUCCESS to the authenticator
+         * Current session should receive a successful response first
+         */
+          result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+          session->sendMessage(ServiceType::SERVICE_FRIENDCONFIRMRESPONSE,
+                    boost::json::serialize(result_root), session);
+
+          spdlog::info("[{}]: Friend confirmed: {} -> {}",
+                    ServerConfig::get_instance()->GrpcServerName, src_uuid,
+                    dst_uuid);
+
+          spdlog::info("[{}] Bidirectional friend relations created: {} <-> {}",
+                    ServerConfig::get_instance()->GrpcServerName, src_uuid,
+                    dst_uuid);
+
+          /*We have to get src user info(src_uuid) on current server */
+          auto src_info = getUserBasicInfo(src_uuid);
+          if (!src_info) {
+                    generateErrorMessage("User profile not found (src)",
+                              ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                              ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
+                              session);
+                    return;
+          }
+
+          boost::json::array message_arr;
+          message::AuthoriseRequest grpc_request;
+          for (auto& item : *status) {
+                    boost::json::object obj;
+
+                    thread_id = item->thread_id;
+
+                    message::AuthoriseMessage* message = grpc_request.add_msg_pack();
+
+                    message->set_msg_type(static_cast<int32_t>(item->message_type));
+                    message->set_msg_id(item->message_id);
+                    message->set_msg_sender(item->message_sender);
+                    message->set_msg_receiver(item->message_receiver);
+                    message->set_hello_msg(item->message_content);
+
+                    obj["msg_id"] = item->message_id;
+                    obj["msg_sender"] = item->message_sender;
+                    obj["msg_receiver"] = item->message_receiver;
+                    obj["msg_content"] = item->message_content;
+                    obj["msg_type"] = static_cast<int32_t>(item->message_type);
+                    message_arr.push_back(std::move(obj));
+          }
+
+          // Notify current user (authenticator) with friend's profile
+          auto json = generate_json(thread_id, src_uuid, message_arr, std::move(*src_info));
+          session->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                    boost::json::serialize(json), session);
+
+          /*
+           * Search For User Belonged Server Cache in Redis
+           * find key = server_prefix + src_uuid in redis, GET
+           */
+          auto server_op = raii->get()->checkValue(server_prefix + src_uuid);
+
+          /*we cannot find it in Redis directly*/
+          if (!server_op.has_value()) {
+                    spdlog::warn("[{}] : Could Not Find Current User {} In Any Server!",
+                              ServerConfig::get_instance()->GrpcServerName, src_uuid);
+                    return;
+          }
+
+          /*We have to get dst user info(dst_uuid) on current server */
+          auto  dst_info = getUserBasicInfo(dst_uuid);
+
+          /*Is target user(src_uuid) and current user(dst_uuid) on the same server*/
+          if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
+                    /*try to find this target user on current chatting-server*/
+                    auto session_op = UserManager::get_instance()->getSession(src_uuid);
+                    if (!session_op.has_value()) {
+                              generateErrorMessage("Invalid Session",
+                                        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                                        ServiceStatus::FRIENDING_ERROR,
+                                        *session_op);
+                              return;
+                    }
+
+                    if (!dst_info.has_value()) {
+                              generateErrorMessage("User profile not found (dst)",
+                                        ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                                        ServiceStatus::FRIENDING_TARGET_USER_NOT_FOUND,
+                                        *session_op);
+                              return;
+                    }
+
+                    boost::json::object root = generate_json(thread_id, dst_uuid, message_arr, std::move(*dst_info));
+                    /*propagate the message to dst user*/
+                    (*session_op)->sendMessage(ServiceType::SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
+                              boost::json::serialize(root), *session_op);
+
+                    return;
+
+          }
+          else {
+
+                    /*
+                     * GRPC REQUEST
+                     * dst_uuid and src_uuid are not on the same server
+                     * Pass current user info to other chatting-server
+                     * by using grpc protocol
+                     */
+
+                    if (!dst_info.has_value()) {
+                              return;
+                    }
+
+                    std::unique_ptr<user::UserNameCard> namecard = std::move(*dst_info);
+
+                    message::FriendRequest* user_info = grpc_request.add_user_info();
+                    user_info->set_dst_uuid(std::stoi(dst_uuid));
+                    user_info->set_src_uuid(std::stoi(src_uuid));
+                    user_info->set_avator_path(namecard->m_avatorPath);
+                    user_info->set_description(namecard->m_description);
+                    user_info->set_nick_name(namecard->m_nickname);
+                    user_info->set_username(namecard->m_username);
+                    user_info->set_sex(static_cast<uint8_t>(namecard->m_sex));
+
+                    grpc_request.set_thread_id(thread_id);
+                    grpc_request.set_src_uuid(src_uuid);
+                    grpc_request.set_dst_uuid(dst_uuid);
+
+                    auto response =
+                              gRPCDistributedChattingService::get_instance()->confirmFriendRequest(
+                                        *server_op, grpc_request);
+
+                    if (response.error() !=
+                              static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS)) {
+                              spdlog::warn("[GRPC {} Service]: UUID = {} Send Request To GRPC {} "
+                                        "Service Failed!",
+                                        ServerConfig::get_instance()->GrpcServerName, src_uuid,
+                                        *server_op);
+                              return;
+                    }
+
+                    spdlog::info("[GRPC {} Service]: UUID = {} Send Request To GRPC {} "
+                              "Service Successful!",
+                              ServerConfig::get_instance()->GrpcServerName, src_uuid,
+                              *server_op);
+          }
 }

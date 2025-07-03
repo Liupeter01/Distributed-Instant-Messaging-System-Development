@@ -130,6 +130,10 @@ public:
                            const std::size_t interval,
                            std::string &next_thread_id, bool &is_EOF);
 
+  /*Create New entry in chatmshhistorybank, and also generate a new message_id for user!*/
+  bool createModifyChattingHistoryRecord(std::vector < std::shared_ptr<chat::TextMsgInfo>>& info);
+  bool createModifyChattingHistoryRecord(std::shared_ptr<chat::TextMsgInfo>& info);
+
   /*insert new user, call MySQLSelection::CREATE_NEW_USER*/
   bool registerNewUser(MySQLRequestStruct &&request);
   bool alterUserPassword(MySQLRequestStruct &&request);

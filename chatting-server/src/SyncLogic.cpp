@@ -4,10 +4,8 @@
 #include <grpc/GrpcUserService.hpp>
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
-#include <server/UserFriendRequest.hpp>
-#include <server/UserManager.hpp>
+#include <chat/ChattingThreadDef.hpp>
 #include <spdlog/spdlog.h>
-#include <tools/tools.hpp>
 
 /*redis*/
 std::string SyncLogic::redis_server_login = "redis_server";
@@ -89,28 +87,27 @@ void SyncLogic::registerCallbacks() {
       std::bind(&SyncLogic::handlingTextChatMsg, this, std::placeholders::_1,
                 std::placeholders::_2, std::placeholders::_3)));
 
-  /*
-   * SERVICE_VOICECHATMSGREQUEST
-   * Handling the user send chatting voice msg to others
-   */
-  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-      ServiceType::SERVICE_VOICECHATMSGREQUEST,
-      std::bind(&SyncLogic::handlingVoiceChatMsg, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3)));
-
-  /*
-   * ServiceType::SERVICE_VIDEOCHATMSGREQUEST
-   * Handling the user send chatting video msg to others
-   */
-  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-      ServiceType::SERVICE_VIDEOCHATMSGREQUEST,
-      std::bind(&SyncLogic::handlingVideoChatMsg, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3)));
-
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
       ServiceType::SERVICE_HEARTBEAT_REQUEST,
       std::bind(&SyncLogic::handlingHeartBeat, this, std::placeholders::_1,
                 std::placeholders::_2, std::placeholders::_3)));
+}
+
+void SyncLogic::handlingHeartBeat(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv) {
+          boost::json::object src_root;    /*store json from client*/
+          boost::json::object result_root; /*send processing result back to dst user*/
+
+          parseJson(session, recv, src_root);
+
+          std::string uuid = boost::json::value_to<std::string>(src_root["uuid"]);
+
+          result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+
+          /*send it back*/
+          session->sendMessage(ServiceType::SERVICE_HEARTBEAT_RESPONSE,
+                    boost::json::serialize(result_root), session);
 }
 
 void SyncLogic::commit(pair recv_node) {
@@ -473,8 +470,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
    * then goto 2
    * 2. searching for user info inside mysql
    */
-  std::optional<std::shared_ptr<UserNameCard>> info_str =
-      getUserBasicInfo(uuid);
+  auto info_str = getUserBasicInfo(uuid);
   if (!info_str.has_value()) {
 
     spdlog::warn("[{}] UUID = {} Not Located in MySQL & Redis!",
@@ -489,7 +485,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
   }
 
   /*returning info to client*/
-  std::shared_ptr<UserNameCard> info = info_str.value();
+  std::unique_ptr<user::UserNameCard> info = std::move(*info_str);
   redis_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   redis_root["uuid"] = uuid;
   redis_root["sex"] = static_cast<uint8_t>(info->m_sex);
@@ -502,28 +498,26 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
    * get friend request list from the database
    * The default startpos = 0, interval = 10
    */
-  std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
-      requestlist_op = getFriendRequestInfo(uuid);
+  auto requestlist_op = getFriendRequestInfo(uuid);
 
   if (requestlist_op.has_value()) {
     for (auto &req : requestlist_op.value()) {
       boost::json::object obj;
-      obj["src_uuid"] = req->m_uuid;
-      obj["dst_uuid"] = req->dst_uuid;
-      obj["username"] = req->m_username;
-      obj["avator"] = req->m_avatorPath;
-      obj["nickname"] = req->m_nickname;
-      obj["description"] = req->m_description;
-      obj["message"] = req->message;
-      obj["sex"] = static_cast<uint8_t>(req->m_sex);
+      obj["src_uuid"] = req->getNameCard().m_uuid;
+      obj["dst_uuid"] = req->receiver_uuid;
+      obj["username"] = req->getNameCard().m_username;
+      obj["avator"] = req->getNameCard().m_avatorPath;
+      obj["nickname"] = req->getNameCard().m_nickname;
+      obj["description"] = req->getNameCard().m_description;
+      obj["message"] = req->request_message;
+      obj["sex"] = static_cast<uint8_t>(req->getNameCard().m_sex);
       // redis_root["FriendRequestList"]
       friendreq.push_back(std::move(obj));
     }
   }
 
   /*acquire Friend List*/
-  std::optional<std::vector<std::unique_ptr<UserNameCard>>> friendlist_op =
-      getAuthFriendsInfo(uuid);
+  auto friendlist_op = getAuthFriendsInfo(uuid);
   if (friendlist_op.has_value()) {
     for (auto &req : friendlist_op.value()) {
       boost::json::object obj;
@@ -653,8 +647,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
     return;
   }
 
-  std::optional<std::unique_ptr<UserNameCard>> card_op =
-      getUserBasicInfo(std::to_string(uuid_op.value()));
+  auto card_op = getUserBasicInfo(std::to_string(uuid_op.value()));
 
   /*when user info not found!*/
   if (!card_op.has_value()) {
@@ -666,7 +659,7 @@ void SyncLogic::handlingUserSearch(ServiceType srv_type,
     return;
   }
 
-  std::unique_ptr<UserNameCard> info = std::move(card_op.value());
+  std::unique_ptr<user::UserNameCard> info = std::move(*card_op);
   dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   dst_root["uuid"] = info->m_uuid;
   dst_root["sex"] = static_cast<uint8_t>(info->m_sex);
@@ -762,8 +755,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
   }
 
   /*We have to get src_uuid info on current server */
-  std::optional<std::shared_ptr<UserNameCard>> info_str =
-      getUserBasicInfo(src_uuid);
+  auto info_str = getUserBasicInfo(src_uuid);
   if (!info_str.has_value()) {
     generateErrorMessage("Current UserProfile Load Error!",
                          ServiceType::SERVICE_FRIENDSENDERRESPONSE,
@@ -772,7 +764,7 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
     return;
   }
 
-  std::shared_ptr<UserNameCard> src_namecard = info_str.value();
+  std::unique_ptr<user::UserNameCard> src_namecard = std::move(*info_str);
 
   /*Is target user(dst_uuid) and current user(src_uuid) on the same server*/
   if (server_op.value() == ServerConfig::get_instance()->GrpcServerName) {
@@ -1213,49 +1205,11 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
                        boost::json::serialize(result_root), session);
 }
 
-/*Handling the user send chatting text msg to others*/
-void SyncLogic::handlingVoiceChatMsg(ServiceType srv_type,
-                                     std::shared_ptr<Session> session,
-                                     NodePtr recv) {
-
-  boost::json::object src_root;    /*store json from client*/
-  boost::json::object result_root; /*send processing result back to dst user*/
-
-  parseJson(session, recv, src_root);
-}
-
-/*Handling the user send chatting text msg to others*/
-void SyncLogic::handlingVideoChatMsg(ServiceType srv_type,
-                                     std::shared_ptr<Session> session,
-                                     NodePtr recv) {
-  boost::json::object src_root;    /*store json from client*/
-  boost::json::object result_root; /*send processing result back to dst user*/
-
-  parseJson(session, recv, src_root);
-}
-
-void SyncLogic::handlingHeartBeat(ServiceType srv_type,
-                                  std::shared_ptr<Session> session,
-                                  NodePtr recv) {
-  boost::json::object src_root;    /*store json from client*/
-  boost::json::object result_root; /*send processing result back to dst user*/
-
-  parseJson(session, recv, src_root);
-
-  std::string uuid = boost::json::value_to<std::string>(src_root["uuid"]);
-
-  result_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-
-  /*send it back*/
-  session->sendMessage(ServiceType::SERVICE_HEARTBEAT_RESPONSE,
-                       boost::json::serialize(result_root), session);
-}
-
 /*get user's basic info(name, age, sex, ...) from redis*/
-std::optional<std::unique_ptr<UserNameCard>>
+std::optional<std::unique_ptr<user::UserNameCard>>
 SyncLogic::getUserBasicInfo(const std::string &key) {
-  connection::ConnectionRAII<redis::RedisConnectionPool, redis::RedisContext>
-      raii;
+
+  RedisRAII raii;
 
   /*
    * Search For Info Cache in Redis
@@ -1276,13 +1230,13 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
       return std::nullopt;
     }
 
-    return std::make_unique<UserNameCard>(
+    return std::make_unique<user::UserNameCard>(
         boost::json::value_to<std::string>(root["uuid"]),
         boost::json::value_to<std::string>(root["avator"]),
         boost::json::value_to<std::string>(root["username"]),
         boost::json::value_to<std::string>(root["nickname"]),
         boost::json::value_to<std::string>(root["description"]),
-        static_cast<Sex>(root["sex"].as_int64()));
+        static_cast<user::Sex>(root["sex"].as_int64()));
 
   } else {
     boost::json::object redis_root;
@@ -1308,7 +1262,7 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
       return std::nullopt;
     }
 
-    std::unique_ptr<UserNameCard> info = std::move(profile_op.value());
+    std::unique_ptr<user::UserNameCard> info = std::move(profile_op.value());
     redis_root["uuid"] = info->m_uuid;
     redis_root["sex"] = static_cast<uint8_t>(info->m_sex);
     redis_root["avator"] = info->m_avatorPath;
@@ -1333,7 +1287,7 @@ SyncLogic::getUserBasicInfo(const std::string &key) {
  * @param: interval: how many requests are going to acquire [startpos, startpos
  * + interval)
  */
-std::optional<std::vector<std::unique_ptr<UserFriendRequest>>>
+std::optional<std::vector<std::unique_ptr<user::UserFriendRequest>>>
 SyncLogic::getFriendRequestInfo(const std::string &dst_uuid,
                                 const std::size_t start_pos,
                                 const std::size_t interval) {
@@ -1344,11 +1298,14 @@ SyncLogic::getFriendRequestInfo(const std::string &dst_uuid,
   }
 
   /*search it in mysql*/
-  connection::ConnectionRAII<mysql::MySQLConnectionPool, mysql::MySQLConnection>
-      mysql;
+  MySQLRAII mysql;
 
-  return mysql->get()->getFriendingRequestList(uuid_op.value(), start_pos,
-                                               interval);
+  //check if we got a valid RAII pointer
+  if (auto opt = mysql.get_native(); opt) {
+            return (*opt).get()->getFriendingRequestList(uuid_op.value(), start_pos,
+                      interval);
+  }
+  return std::nullopt;
 }
 
 /*
@@ -1358,7 +1315,7 @@ SyncLogic::getFriendRequestInfo(const std::string &dst_uuid,
  * @param: interval: how many friends re going to acquire [startpos, startpos +
  * interval)
  */
-std::optional<std::vector<std::unique_ptr<UserNameCard>>>
+std::optional<std::vector<std::unique_ptr<user::UserNameCard>>>
 SyncLogic::getAuthFriendsInfo(const std::string &dst_uuid,
                               const std::size_t start_pos,
                               const std::size_t interval) {
@@ -1370,6 +1327,47 @@ SyncLogic::getAuthFriendsInfo(const std::string &dst_uuid,
 
   /*search it in mysql*/
   MySQLRAII mysql;
-  return mysql->get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
-                                               interval);
+
+  //check if we got a valid RAII pointer
+  if (auto opt = mysql.get_native(); opt) {
+            return (*opt).get()->getAuthenticFriendsList(uuid_op.value(), start_pos,
+                      interval);
+  }
+
+  return std::nullopt;
+}
+
+/*
+* acquire ChatThread Info by uuid and an existing thread_id(zero by default)
+* @param: cur_thread_id: get record from the index[cur_thread_id + 1]
+* @param: interval: how many records are going to be acquired [cur_thread_id + 1, cur_thread_id + 1
+* + interval)
+*/
+std::optional<std::vector<std::unique_ptr<chat::ChatThreadMeta>>>
+SyncLogic::getChatThreadInfo(const std::string& self_uuid, 
+                                                  const std::size_t cur_thread_id, 
+                                                  std::string& next_thread_id, 
+                                                  bool& is_EOF, 
+                                                  const std::size_t interval)
+{
+          auto uuid_op = tools::string_to_value<std::size_t>(self_uuid);
+          if (!uuid_op.has_value()) {
+                    spdlog::warn("Casting string typed key to std::size_t!");
+                    return std::nullopt;
+          }
+
+          /*search it in mysql*/
+          MySQLRAII mysql;
+
+          //check if we got a valid RAII pointer
+          if (auto opt = mysql.get_native(); opt) {
+                    return (*opt).get()->getUserChattingThreadIdx(uuid_op.value(), 
+                              cur_thread_id, 
+                              interval,
+                              next_thread_id,
+                              is_EOF
+                    );
+          }
+
+          return std::nullopt;
 }

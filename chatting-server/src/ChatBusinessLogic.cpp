@@ -906,7 +906,7 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
 
   parseJson(session, recv, src_root);
 
-  IN OUT std::vector<std::shared_ptr<chat::TextMsgInfo>> updated_msg;
+ std::vector<std::shared_ptr<chat::TextMsgInfo>> updated_msg;
 
   // Parsing failed
   if (!(src_root.contains("text_sender") &&

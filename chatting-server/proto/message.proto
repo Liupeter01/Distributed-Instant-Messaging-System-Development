@@ -55,8 +55,9 @@ message PeerResponse {
 /*prepared for distributed chatting service*/
 service DistributedChattingService {
 
-//if another user has already logined on other server, then force it to quit!
-rpc ForceTerminateLoginedUser(TerminationRequest) returns(TerminationResponse) {}
+  // if another user has already logined on other server, then force it to quit!
+  rpc ForceTerminateLoginedUser(TerminationRequest)
+      returns (TerminationResponse) {}
 
   // A send friend request message to another user B
   rpc SendFriendRequest(FriendRequest) returns (FriendResponse) {}
@@ -69,15 +70,12 @@ rpc ForceTerminateLoginedUser(TerminationRequest) returns(TerminationResponse) {
       returns (ChattingTextMsgResponse) {}
 }
 
-message TerminationRequest{
-          int32 kick_uuid = 1;
-}
+message TerminationRequest { int32 kick_uuid = 1; }
 
-message TerminationResponse{
-            int32 error = 1;
-            int32 kick_uuid = 2;
+message TerminationResponse {
+  int32 error = 1;
+  int32 kick_uuid = 2;
 }
-
 
 /*
  * A send friend request message to another user B and
@@ -101,12 +99,12 @@ message FriendResponse {
 }
 
 /*Generate A system hello message if other user agreed*/
-message AuthoriseMessage{
-          int32 msg_type = 1;
-          string msg_id = 2;
-           string msg_sender = 3;
-           string msg_receiver = 4;
-          string hello_msg = 5;
+message AuthoriseMessage {
+  int32 msg_type = 1;
+  string msg_id = 2;
+  string msg_sender = 3;
+  string msg_receiver = 4;
+  string hello_msg = 5;
 }
 
 /*
@@ -119,11 +117,11 @@ message AuthoriseMessage{
  * we still need src/dst_uuid to verify sender's' and receiver's' identiy
  */
 message AuthoriseRequest {
-  string src_uuid = 1; // request from who
-  string dst_uuid = 2; // target
-  string thread_id = 3; //thread_id
+  string src_uuid = 1;  // request from who
+  string dst_uuid = 2;  // target
+  string thread_id = 3; // thread_id
   repeated FriendRequest user_info = 4;
-  repeated AuthoriseMessage msg_pack  = 5; // send message array
+  repeated AuthoriseMessage msg_pack = 5; // send message array
 }
 
 message AuthoriseResponse {
@@ -136,15 +134,15 @@ message ChattingHistoryData {
   string msg_sender = 1;
   string msg_receiver = 2;
   string msg_id = 3;
-             string thread_id = 4;
-          string unique_id = 5;
+  string thread_id = 4;
+  string unique_id = 5;
   string msg_content = 6;
 }
 
 /*we still need src/dst_uuid to verify sender's' and receiver's' identiy*/
 message ChattingTextMsgRequest {
-  string src_uuid = 1;                     // request from who
-  string dst_uuid = 2;                     // target
+  string src_uuid = 1;                    // request from who
+  string dst_uuid = 2;                    // target
   repeated ChattingHistoryData lists = 3; // send message array
 }
 

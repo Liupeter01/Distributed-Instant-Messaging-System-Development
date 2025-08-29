@@ -495,7 +495,7 @@ mysql::MySQLConnection::createNewPrivateChat(const std::size_t user1_uuid,
 }
 
 bool mysql::MySQLConnection::createModifyChattingHistoryRecord(
-    std::vector<std::shared_ptr<chat::TextMsgInfo>> &info) {
+    std::vector<std::shared_ptr<chat::MsgInfo>> &info) {
 
   bool status = true;
   for (auto &item : info)
@@ -504,7 +504,7 @@ bool mysql::MySQLConnection::createModifyChattingHistoryRecord(
 }
 
 bool mysql::MySQLConnection::createModifyChattingHistoryRecord(
-    std::shared_ptr<chat::TextMsgInfo> &info) {
+    std::shared_ptr<chat::MsgInfo> &info) {
 
   auto is_rows_afftected = [](const boost::mysql::results &flag) {
     return flag.rows().begin() != flag.rows().end();
@@ -560,6 +560,61 @@ bool mysql::MySQLConnection::createModifyChattingHistoryRecord(
 
     return false;
   }
+}
+
+std::optional<std::vector<std::unique_ptr<chat::MsgInfo>>>
+mysql::MySQLConnection::getChattingHistoryRecord(const std::size_t thread_id, 
+          const std::size_t msg_id, 
+          const std::size_t interval, 
+          std::string& next_msg_id, 
+          bool& is_EOF)
+{
+          try {
+                    is_EOF = true;
+                    next_msg_id = msg_id;
+
+                    std::vector<std::unique_ptr<chat::MsgInfo>> result;
+
+                    auto flags = executeCommandOrThrow(MySQLSelection::GET_USER_CHAT_RECORDS, 
+                              thread_id, msg_id, interval + 1);
+
+                    if (!flags.affected_rows())   return std::nullopt;
+                    if (flags.rows().empty())   return std::nullopt;
+
+                    for (const auto& tuple : flags.rows()) {
+                              auto messag_id = tuple.at(0).as_string();                //message_id
+                              auto status =  tuple.at(1).as_int64();                 //message_status
+                              auto sender = tuple.at(2).as_string();                //message_sender
+                              auto receiver =  tuple.at(3).as_string();                //message_receiver
+                              [[maybe_unused]] auto timestamp = tuple.at(4).as_string();
+                              auto content = tuple.at(5).as_string();                //message_content
+
+                              result.push_back(std::make_unique<chat::TextMsgInfo>(
+                                        std::to_string(thread_id), sender, receiver, content, status, timestamp));
+                    }
+
+                    // if current list size is more than interval(interval + 1)
+                    // it means, there are some other items to be retrieved
+                    // it is not the end
+                    if (result.size() > interval) {
+                              is_EOF = false;
+                              result.pop_back(); // we ignore the last one, because its just for EOF test!
+                    }
+
+                    if (!result.empty()) {
+                              next_msg_id = result.back()->message_id;
+                    }
+
+                    return result;
+          }
+          catch (const boost::mysql::error_with_diagnostics& err) {
+                    spdlog::error("createPrivateChat failed: {0}:{1} Operation failed with "
+                              "error code: {2} Server diagnostics: {3}",
+                              __FILE__, __LINE__, std::to_string(err.code().value()),
+                              err.get_diagnostics().server_message().data());
+
+                    return std::nullopt;
+          }
 }
 
 /*

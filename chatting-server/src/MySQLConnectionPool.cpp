@@ -212,6 +212,23 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
                             std::string("chatting.GroupMember")  // {10}
                             )));
 
+  m_sql.insert(
+            std::pair(MySQLSelection::GET_USER_CHAT_RECORDS,
+                      fmt::format("SELECT {2}, {3}, {4}, {5}, {6}, {7} "
+                                "FROM {0} "
+                                " WHERE {1} = ? AND {2} > ? "
+                                " ORDER BY {2}  ASC "
+                                "LIMIT ? ;",
+                                std::string("chatting.ChatMsgHistoryBank"),
+                                std::string("thread_id"),
+                                std::string("message_id"),            //2
+                                std::string("message_status"),
+                                std::string("message_sender"),
+                                std::string("message_receiver"),
+                                std::string("created_at"),
+                                std::string("message_content")
+                      )));
+
   m_sql.insert(std::pair(MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK,
                          fmt::format("SELECT {0} FROM {1} "
                                      "WHERE ({2} = ? AND {3} = ?) "

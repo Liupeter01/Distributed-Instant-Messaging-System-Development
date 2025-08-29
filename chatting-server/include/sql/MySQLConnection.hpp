@@ -119,11 +119,13 @@ public:
                           const std::size_t start_pos,
                           const std::size_t interval);
 
+  [[nodiscard]]
   std::optional<std::vector<std::unique_ptr<user::UserNameCard>>>
   getAuthenticFriendsList(const std::size_t self_uuid,
                           const std::size_t start_pos,
                           const std::size_t interval);
 
+  [[nodiscard]]
   std::optional<std::vector<std::unique_ptr<chat::ChatThreadMeta>>>
   getUserChattingThreadIdx(const std::size_t self_uuid,
                            const std::size_t cur_thread_id,
@@ -131,8 +133,16 @@ public:
                            std::string &next_thread_id, bool &is_EOF);
 
   /*Create New entry in chatmshhistorybank, and also generate a new message_id for user!*/
-  bool createModifyChattingHistoryRecord(std::vector < std::shared_ptr<chat::TextMsgInfo>>& info);
-  bool createModifyChattingHistoryRecord(std::shared_ptr<chat::TextMsgInfo>& info);
+  bool createModifyChattingHistoryRecord(std::vector < std::shared_ptr<chat::MsgInfo>>& info);
+  bool createModifyChattingHistoryRecord(std::shared_ptr<chat::MsgInfo>& info);
+
+  [[nodiscard]]
+  std::optional<std::vector<std::unique_ptr<chat::MsgInfo>>>
+            getChattingHistoryRecord(const std::size_t thread_id,
+            const std::size_t msg_id,
+            const std::size_t interval,
+                      std::string& next_msg_id,
+            bool& is_EOF);
 
   /*insert new user, call MySQLSelection::CREATE_NEW_USER*/
   bool registerNewUser(MySQLRequestStruct &&request);

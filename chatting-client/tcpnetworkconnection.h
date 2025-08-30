@@ -2,7 +2,6 @@
 #define TCPNETWORKCONNECTION_H
 
 #include "def.hpp"
-#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
 #include <QJsonObject>
 #include <QObject> //connect
@@ -13,10 +12,10 @@
 #include <functional>
 #include <optional>
 #include <singleton.hpp>
+#include <ChattingThreadDef.hpp>
 
 struct UserNameCard;
 struct UserFriendRequest;
-struct ChattingTextMsg;
 struct ChatThreadPageResult;
 enum class MsgType;
 
@@ -33,6 +32,8 @@ class TCPNetworkConnection
   using Callbackfunction = std::function<void(QJsonObject &&)>;
   using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
   using RecvNodeType = RecvNode<QByteArray, ByteOrderConverter>;
+
+  using ChattingBaseType = ChattingRecordBase;
 
   struct RecvInfo {
     uint16_t _id = 0;
@@ -52,7 +53,11 @@ public:
    * implementing a queue mechanism and ensuring thread safety.
    */
   void send_sequential_data_f(std::shared_ptr<SendNodeType> data,
-                              TargetServer tar = TargetServer::CHATTINGSERVER);
+                              TargetServer tar = TargetServer::CHATTINGSERVER) {
+      emit signal_send_message(data, tar);
+  }
+
+    static void send_buffer(ServiceType type, QJsonObject &&obj);
 
 private:
   TCPNetworkConnection();
@@ -143,25 +148,49 @@ signals:
   void signal_init_auth_friend_list();
 
   /*
-   * target user confirm to add this person as a friend
-   * Server will response a message to both user to add this friend
+   * emit a signal to add this person as a friend
    */
-  void signal_add_authenticate_friend(
-      std::optional<std::shared_ptr<UserNameCard>>);
+  void signal_add_auth_friend_to_contact_list(std::shared_ptr<UserNameCard>);
+
+  /*
+   * emit a signal to attach auth-friend messages to chatting history
+   * This is the first offical chatting record,
+   * so during this phase, "thread_id" will be dstributed to this chatting thread!
+   */
+  void signal_add_auth_friend_init_chatting_thread(
+      const UserChatType type,
+      const QString& thread_id,
+      std::shared_ptr<UserNameCard>,
+      std::vector<std::shared_ptr<FriendingConfirmInfo>> list);
 
   /*
    * sender sends chat msg to receiver
    * sender could be a user who is not in the chathistorywidget list
    * so we have to create a new widget for him
    */
-  void signal_incoming_text_msg(
-      MsgType type, std::optional<std::shared_ptr<ChattingTextMsg>> chat);
+  void signal_incoming_msg(
+      MsgType type, std::shared_ptr<ChattingBaseType> msg);
 
   /*
    * This function is mainly for the main interface
-   * to update it's chatting history UI widget
+   * to update it's Chat Thread
    */
   void signal_update_chat_thread(std::shared_ptr<ChatThreadPageResult> package);
+
+  /*
+   * This function is mainly for the main interface
+   * to update it's Chat Msg Related to a thread_id
+   */
+  void signal_update_chat_msg(std::shared_ptr<ChatMsgPageResult> package);
+
+  /*
+   * This function is mainly for create private chat UI widget
+   * Server has already confirmed the behaviour
+   * and returns a thread_id for this friend_uuid
+   */
+  void signal_create_private_chat(const QString&my_uuid,
+                                  const QString&friend_uuid,
+                                  const QString&thread_id);
 
 private:
   /*establish tcp socket with server*/

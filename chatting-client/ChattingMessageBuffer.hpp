@@ -93,7 +93,7 @@ private:
     if (!opt.has_value())
       return false;
 
-    qint64 msgid = opt->toLongLong(&ok);
+    qint64 msgid = (*opt).toLongLong(&ok);
     if (!ok) {
       qDebug() << "Invalid msg_id! It should be an integer!";
       return false;

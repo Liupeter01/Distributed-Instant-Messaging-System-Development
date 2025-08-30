@@ -222,14 +222,15 @@ void ChattingStackPage::on_send_message_clicked() {
   QJsonObject obj;
   QJsonArray array;
 
-  QString send_name =
-      UserAccountManager::get_instance()->getCurUserInfo()->m_nickname;
-  QString send_icon =
-      UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath;
-  QString my_uuid =
-      UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
+  std::optional<QString> opt = UserAccountManager::get_instance()->getThreadIdByUUID(m_curFriendIdentity->m_uuid);
+  if(!opt.has_value()){
+      qDebug() << "Friend Info Not Found! No Related UUID Found!";
+      return;
+  }
 
   const QVector<MsgInfo> &list = ui->user_input->getMsgList();
+
+  auto thread_id = opt.value();
 
   for (std::size_t index = 0; index < list.size(); ++index) {
     /*currently, we are the msssage sender*/
@@ -244,7 +245,7 @@ void ChattingStackPage::on_send_message_clicked() {
     // item_sender->setupIconPixmap(QPixmap(send_icon));
 
     /*msg sender and msg receiver identity*/
-    obj["msg_sender"] = my_uuid;
+    obj["msg_sender"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
     obj["msg_receiver"] = m_curFriendIdentity->m_uuid;
 
     if (info.type == MsgType::TEXT) {
@@ -254,6 +255,7 @@ void ChattingStackPage::on_send_message_clicked() {
 
       if (m_text_msg_counter + info.content.length() > TXT_MSG_BUFFER_SIZE) {
         QJsonObject text_obj;
+        text_obj["thread_id"] = thread_id;
         text_obj["text_sender"] = obj["msg_sender"];
         text_obj["text_receiver"] = obj["msg_receiver"];
         text_obj["text_msg"] = array;
@@ -299,12 +301,13 @@ void ChattingStackPage::on_send_message_clicked() {
      * chattingstackpage, the message will not be recorded in the
      * UserAccountManager locally!
      */
-    emit signal_append_chat_data_on_local(info.type, my_uuid,
+    emit signal_append_chat_data_on_local(info.type, thread_id,  UserAccountManager::get_instance()->getCurUserInfo()->m_uuid,
                                           m_curFriendIdentity->m_uuid, obj);
   }
 
   /*if there is less data to send*/
   QJsonObject text_obj;
+  text_obj["thread_id"] = thread_id;
   text_obj["text_sender"] = obj["msg_sender"];
   text_obj["text_receiver"] = obj["msg_receiver"];
   text_obj["text_msg"] = array;

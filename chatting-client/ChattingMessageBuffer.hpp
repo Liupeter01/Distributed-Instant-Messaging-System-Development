@@ -88,24 +88,35 @@ private:
   }
 
   bool insertVerified(std::shared_ptr<T> value) {
-    bool ok{};
+      if (!value) {
+          qDebug() << "Null value!";
+          return false;
+      }
+
     auto opt = value->getMsgID();
     if (!opt.has_value())
       return false;
 
-    qint64 msgid = (*opt).toLongLong(&ok);
-    if (!ok) {
-      qDebug() << "Invalid msg_id! It should be an integer!";
-      return false;
+    const QString idStr = opt->trimmed();
+    if (idStr.isEmpty()) {
+        qDebug() << "Empty msg_id!";
+        return false;
     }
 
-    if (m_verifyMessage.count(msgid)) {
-      qDebug() << "Msg ID already exists in verified messages!";
-      return false;
+    bool converted = false;
+    const qint64 msgid = idStr.toLongLong(&converted, 10);
+    if (!converted || msgid <= 0) {
+        qDebug() << "Invalid msg_id! It should be a positive integer!";
+        return false;
     }
 
-    m_verifyMessage[msgid] = value;
-    m_lastFetchedMsgId = *opt;
+    auto [it, inserted] = m_verifyMessage.try_emplace(msgid, std::move(value));
+    if (!inserted) {
+        qDebug() << "Msg ID already exists in verified messages!";
+        return false;
+    }
+
+    m_lastFetchedMsgId = opt.value();
     return true;
   }
 

@@ -9,6 +9,7 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <list>
 
 struct ChattingThreadDesc;
 class UserChatThread;
@@ -53,11 +54,12 @@ public:
   void addItem2List(std::shared_ptr<UserNameCard> info);
 
   // create mapping relation of uuid<->thread_id
+  // and relation between thread_id <-> ChattingThreadDesc
   void addItem2List(const QString &friend_uuid,
                     std::shared_ptr<ChattingThreadDesc> info);
 
-  void addItem2List(const QString &thread_id,
-                    std::shared_ptr<UserChatThread> info);
+  // Create all above(EXCEPT friend request list)
+  void addItem2List(std::shared_ptr<UserChatThread> info);
 
   std::optional<std::shared_ptr<UserChatThread>>
   getChattingThreadData(const QString &thread_id);
@@ -91,9 +93,17 @@ public:
     // m_last_thread_id = id;
   }
 
+  std::optional<std::shared_ptr<UserChatThread>>
+  getCurThreadSession();
+
+  std::optional< std::shared_ptr<UserChatThread>>
+  getNextThreadSession();
+
 protected:
   void appendAuthFriendList(const QJsonArray &array);
   void appendFriendRequestList(const QJsonArray &array);
+  std::optional< std::shared_ptr<UserChatThread>>
+  _loadSession(const std::size_t pos);
 
 private:
   UserAccountManager();
@@ -133,7 +143,6 @@ private:
   /*relation between user uuid <-> thread_id*/
   std::unordered_map<
       /*uuid*/ QString,
-      /*thread_id list*/ // std::vector<QString>
       /*thread_id*/ QString>
       m_friendOnThreadsLists;
 
@@ -142,9 +151,17 @@ private:
    * relation between thread_id <-> std::shared_ptr<UserChatThread>
    */
   std::unordered_map<
-      /*thread_id or temp_id */ QString,
+      /*thread_id */ QString,
       /*thread_data*/ std::shared_ptr<UserChatThread>>
       m_ThreadData;
+
+  /*
+   * store a sequence of QString(thread_id), for storing chatting sessions
+   * we could find ChattingThreadDesc by using thread_id,
+   * then we could load chat history data!
+   */
+  std::vector</*thread_id*/QString> m_allChattingSessions;
+  std::size_t m_currSessionLoadingSeq = 0;
 };
 
 #endif // USERACCOUNTMANAGER_H

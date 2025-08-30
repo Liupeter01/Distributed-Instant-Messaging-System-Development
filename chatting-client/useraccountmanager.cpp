@@ -38,29 +38,59 @@ void UserAccountManager::addItem2List(std::shared_ptr<UserFriendRequest> info) {
   m_friend_request_list.push_back(info);
 }
 
+// add friend usernamecard to auth friend list
 void UserAccountManager::addItem2List(std::shared_ptr<UserNameCard> info) {
   if (!m_auth_friend_list.count(info->m_uuid))
     m_auth_friend_list[info->m_uuid] = info;
 }
 
+// create mapping relation of uuid<->thread_id
+// and relation between thread_id <-> ChattingThreadDesc
 void UserAccountManager::addItem2List(
     const QString &friend_uuid, std::shared_ptr<ChattingThreadDesc> info) {
 
   QString thread_id = QString::fromStdString(info->getThreadId());
 
-  // relation between thread_id <-> ChattingThreadDesc
-  m_threadDescLists[thread_id] = info;
+  if(!m_threadDescLists.count(thread_id) &&
+      !m_friendOnThreadsLists.count(friend_uuid) ){
 
-  // relation between user uuid <-> thread_id
-  if (!m_friendOnThreadsLists.count(friend_uuid)) {
-    m_friendOnThreadsLists[friend_uuid] = {}; // init to prevent UB
+        // relation between thread_id <-> ChattingThreadDesc
+        m_threadDescLists[thread_id] = info;
+
+          // relation between user uuid <-> thread_id
+        m_friendOnThreadsLists[friend_uuid] = thread_id;
+
+        //add to session overall list!
+        m_allChattingSessions.push_back(thread_id);
   }
 
-  m_friendOnThreadsLists[friend_uuid].push_back(thread_id);
 }
 
-void UserAccountManager::addItem2List(const QString &thread_id,
-                                      std::shared_ptr<UserChatThread> info) {
+void UserAccountManager::addItem2List(std::shared_ptr<UserChatThread> info) {
+
+    auto thread_id = info->getCurChattingThreadId();
+    auto friend_uuid = info->getUserNameCard()->m_uuid;
+    auto type = info->getUserChatType();
+
+    //add auth friend
+    addItem2List(info->getUserNameCard());
+
+    // create mapping relation of uuid<->thread_id
+    // and relation between thread_id <-> ChattingThreadDesc
+    if(type == UserChatType::GROUP){
+         addItem2List(friend_uuid, std::make_shared<ChattingThreadDesc>(
+                                      ChattingThreadDesc::createGroupChat(thread_id.toStdString())));
+
+    }
+    else{
+        addItem2List(friend_uuid, std::make_shared<ChattingThreadDesc>(
+            ChattingThreadDesc::createPrivateChat(
+                thread_id.toStdString(),
+                m_userInfo->m_uuid.toStdString(),
+                friend_uuid.toStdString())
+        ));
+    }
+
   if (!m_ThreadData.count(thread_id)) {
     m_ThreadData[thread_id] = info;
   }
@@ -214,4 +244,32 @@ void UserAccountManager::ChattingServerInfo::clear() {
   host.clear();
   port.clear();
   token.clear();
+}
+
+std::optional<std::shared_ptr<UserChatThread> >
+UserAccountManager::_loadSession(const std::size_t pos)
+{
+          if (pos >= m_allChattingSessions.size()) {
+                    return std::nullopt;
+          }
+          auto thread_id = m_allChattingSessions[pos];
+
+          auto it = m_ThreadData.find(thread_id);
+
+          //Not Found!
+          if (it == m_ThreadData.end()) {
+                    return std::nullopt;
+          }
+          return it->second;
+}
+
+std::optional<std::shared_ptr<UserChatThread>>
+UserAccountManager::getCurThreadSession() {
+    return _loadSession(m_currSessionLoadingSeq);
+}
+
+std::optional<std::shared_ptr<UserChatThread> >
+UserAccountManager::getNextThreadSession(){
+    ++m_currSessionLoadingSeq;
+    return _loadSession(m_currSessionLoadingSeq);
 }

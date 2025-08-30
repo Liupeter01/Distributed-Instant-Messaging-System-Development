@@ -14,12 +14,10 @@ ChattingHistoryWidget::~ChattingHistoryWidget() { delete ui; }
 void ChattingHistoryWidget::setUserInfo(std::shared_ptr<UserNameCard> info) {
   /*store the friendchattinghistory obj*/
   m_userinfo = info;
-
-  updateLastMsg();
 }
 
-void ChattingHistoryWidget::updateLastMsg() {
-  // setLastMessage<ChattingTextMsg>();
+void ChattingHistoryWidget::setLastMessage(const QString &msg){
+    ui->last_message->setText(msg);
 }
 
 void ChattingHistoryWidget::setItemDisplay() {

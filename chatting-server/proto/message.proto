@@ -131,12 +131,14 @@ message AuthoriseResponse {
 }
 
 message ChattingHistoryData {
-  string msg_sender = 1;
-  string msg_receiver = 2;
-  string msg_id = 3;
-  string thread_id = 4;
-  string unique_id = 5;
-  string msg_content = 6;
+          int32 msg_type = 1;
+          int32 msg_status = 2;
+  string msg_sender = 3;
+  string msg_receiver = 4;
+  string msg_id = 5;
+  string thread_id = 6;
+  string unique_id = 7;
+  string msg_content = 8;
 }
 
 /*we still need src/dst_uuid to verify sender's' and receiver's' identiy*/

@@ -6,10 +6,10 @@
 #include <ChattingThreadDef.hpp>
 #include <QString>
 #include <UserDef.hpp>
+#include <list>
 #include <optional>
 #include <unordered_map>
 #include <vector>
-#include <list>
 
 struct ChattingThreadDesc;
 class UserChatThread;
@@ -93,16 +93,14 @@ public:
     // m_last_thread_id = id;
   }
 
-  std::optional<std::shared_ptr<UserChatThread>>
-  getCurThreadSession();
+  std::optional<std::shared_ptr<UserChatThread>> getCurThreadSession();
 
-  std::optional< std::shared_ptr<UserChatThread>>
-  getNextThreadSession();
+  std::optional<std::shared_ptr<UserChatThread>> getNextThreadSession();
 
 protected:
   void appendAuthFriendList(const QJsonArray &array);
   void appendFriendRequestList(const QJsonArray &array);
-  std::optional< std::shared_ptr<UserChatThread>>
+  std::optional<std::shared_ptr<UserChatThread>>
   _loadSession(const std::size_t pos);
 
 private:
@@ -160,7 +158,7 @@ private:
    * we could find ChattingThreadDesc by using thread_id,
    * then we could load chat history data!
    */
-  std::vector</*thread_id*/QString> m_allChattingSessions;
+  std::vector</*thread_id*/ QString> m_allChattingSessions;
   std::size_t m_currSessionLoadingSeq = 0;
 };
 

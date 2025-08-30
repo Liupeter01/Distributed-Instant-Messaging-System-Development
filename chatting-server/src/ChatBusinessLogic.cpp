@@ -51,13 +51,14 @@ void SyncLogic::registerCallbacks() {
                 std::placeholders::_2, std::placeholders::_3)));
 
   /*
- * ServiceType:: ServiceType::SERVICE_PULLCHATRECORD
- * Handling User Pull Chat Message By Thread_id and messsage_id
- */
+   * ServiceType:: ServiceType::SERVICE_PULLCHATRECORD
+   * Handling User Pull Chat Message By Thread_id and messsage_id
+   */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_PULLCHATRECORD,
-            std::bind(&SyncLogic::handlingUserChatMessage, this, std::placeholders::_1,
-                      std::placeholders::_2, std::placeholders::_3)));
+      ServiceType::SERVICE_PULLCHATRECORD,
+      std::bind(&SyncLogic::handlingUserChatMessage, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
   /*
    * ServiceType::FRIENDREQUEST_SRC
@@ -625,72 +626,67 @@ void SyncLogic::handlingUserChatTheads(ServiceType srv_type,
                        boost::json::serialize(result_obj), session);
 }
 
-void SyncLogic::handlingUserChatMessage(ServiceType srv_type, 
-                                                                      std::shared_ptr<Session> session, 
-                                                                      NodePtr recv)
-{
-          MySQLRAII mysql;
-          boost::json::object src_root;    /*store json from client*/
+void SyncLogic::handlingUserChatMessage(ServiceType srv_type,
+                                        std::shared_ptr<Session> session,
+                                        NodePtr recv) {
+  MySQLRAII mysql;
+  boost::json::object src_root; /*store json from client*/
 
-          boost::json::array result_arr;
-          boost::json::object result_root; /*send processing result back to src user*/
-          parseJson(session, recv, src_root);
+  boost::json::array result_arr;
+  boost::json::object result_root; /*send processing result back to src user*/
+  parseJson(session, recv, src_root);
 
-          // Parsing failed
-          if (!(src_root.contains("thread_id") && src_root.contains("msg_id"))) {
-                    generateErrorMessage("Failed to parse json data",
-                              ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  // Parsing failed
+  if (!(src_root.contains("thread_id") && src_root.contains("msg_id"))) {
+    generateErrorMessage("Failed to parse json data",
+                         ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          auto thread_id = boost::json::value_to<std::string>(src_root["thread_id"]);
-          auto msg_id = boost::json::value_to<std::string>(src_root["msg_id"]);
+  auto thread_id = boost::json::value_to<std::string>(src_root["thread_id"]);
+  auto msg_id = boost::json::value_to<std::string>(src_root["msg_id"]);
 
-          if (!tools::string_to_value<std::size_t>(thread_id).has_value() ||
-                    !tools::string_to_value<std::size_t>(msg_id).has_value()) {
-                    generateErrorMessage("Failed to cast uuid strings to size_t",
-                              ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
-                              ServiceStatus::JSONPARSE_ERROR, session);
-                    return;
-          }
+  if (!tools::string_to_value<std::size_t>(thread_id).has_value() ||
+      !tools::string_to_value<std::size_t>(msg_id).has_value()) {
+    generateErrorMessage("Failed to cast uuid strings to size_t",
+                         ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
+  }
 
-          std::string next_msg_id;
-          bool is_complete{};
-          auto list = mysql->get()->getChattingHistoryRecord(
-                    std::stoi(thread_id),
-                    std::stoi(msg_id),
-                    /*interval*/10,
-                    next_msg_id,
-                    is_complete
-          );
+  std::string next_msg_id;
+  bool is_complete{};
+  auto list = mysql->get()->getChattingHistoryRecord(
+      std::stoi(thread_id), std::stoi(msg_id),
+      /*interval*/ 10, next_msg_id, is_complete);
 
-          if (!list.has_value()) {
-                    generateErrorMessage("Failed to cast uuid strings to size_t",
-                              ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
-                              ServiceStatus::CHATRECORD_NOT_EXIST, session);
-                              return;
-          }
+  if (!list.has_value()) {
+    generateErrorMessage("Failed to cast uuid strings to size_t",
+                         ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
+                         ServiceStatus::CHATRECORD_NOT_EXIST, session);
+    return;
+  }
 
-          for (auto& item : list.value()) {
-                    boost::json::object obj;
-                    obj["msg_sender"] = item->msg_sender;
-                    obj["msg_receiver"] = item->msg_receiver;
-                    obj["msg_type"] = static_cast<uint32_t>(item->msg_type);
-                    obj["thread_id"] = thread_id;
-                    obj["status"] = static_cast<uint32_t>(item->status);
-                    obj["msg_id"] = item->message_id;
-                    obj["msg_content"] = item->msg_content;
-                    obj["timestamp"] = item->timestamp;
-                    result_arr.push_back(std::move(obj));
-          }
+  for (auto &item : list.value()) {
+    boost::json::object obj;
+    obj["msg_sender"] = item->msg_sender;
+    obj["msg_receiver"] = item->msg_receiver;
+    obj["msg_type"] = static_cast<uint32_t>(item->msg_type);
+    obj["thread_id"] = thread_id;
+    obj["status"] = static_cast<uint32_t>(item->status);
+    obj["msg_id"] = item->message_id;
+    obj["msg_content"] = item->msg_content;
+    obj["timestamp"] = item->timestamp;
+    result_arr.push_back(std::move(obj));
+  }
 
-          result_root["thread_id"] = thread_id;
-          result_root["is_complete"] = is_complete;
-          result_root["next_msg_id"] = next_msg_id;
-          result_root["chat_messages"] = result_arr;
-          session->sendMessage(ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
-                    boost::json::serialize(result_root), session);
+  result_root["thread_id"] = thread_id;
+  result_root["is_complete"] = is_complete;
+  result_root["next_msg_id"] = next_msg_id;
+  result_root["chat_messages"] = result_arr;
+  session->sendMessage(ServiceType::SERVICE_PULLCHATRECORDRESPONSE,
+                       boost::json::serialize(result_root), session);
 }
 
 void SyncLogic::handlingCreateNewPrivateChat(ServiceType srv_type,
@@ -983,7 +979,7 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
 
   parseJson(session, recv, src_root);
 
- std::vector<std::shared_ptr<chat::MsgInfo>> updated_msg;
+  std::vector<std::shared_ptr<chat::MsgInfo>> updated_msg;
 
   // Parsing failed
   if (!(src_root.contains("text_sender") &&

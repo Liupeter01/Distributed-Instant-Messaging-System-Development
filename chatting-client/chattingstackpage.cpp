@@ -222,10 +222,12 @@ void ChattingStackPage::on_send_message_clicked() {
   QJsonObject obj;
   QJsonArray array;
 
-  std::optional<QString> opt = UserAccountManager::get_instance()->getThreadIdByUUID(m_curFriendIdentity->m_uuid);
-  if(!opt.has_value()){
-      qDebug() << "Friend Info Not Found! No Related UUID Found!";
-      return;
+  std::optional<QString> opt =
+      UserAccountManager::get_instance()->getThreadIdByUUID(
+          m_curFriendIdentity->m_uuid);
+  if (!opt.has_value()) {
+    qDebug() << "Friend Info Not Found! No Related UUID Found!";
+    return;
   }
 
   const QVector<MsgInfo> &list = ui->user_input->getMsgList();
@@ -245,7 +247,8 @@ void ChattingStackPage::on_send_message_clicked() {
     // item_sender->setupIconPixmap(QPixmap(send_icon));
 
     /*msg sender and msg receiver identity*/
-    obj["msg_sender"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
+    obj["msg_sender"] =
+        UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
     obj["msg_receiver"] = m_curFriendIdentity->m_uuid;
 
     if (info.type == MsgType::TEXT) {
@@ -301,8 +304,10 @@ void ChattingStackPage::on_send_message_clicked() {
      * chattingstackpage, the message will not be recorded in the
      * UserAccountManager locally!
      */
-    emit signal_append_chat_data_on_local(info.type, thread_id,  UserAccountManager::get_instance()->getCurUserInfo()->m_uuid,
-                                          m_curFriendIdentity->m_uuid, obj);
+    emit signal_append_chat_data_on_local(
+        info.type, thread_id,
+        UserAccountManager::get_instance()->getCurUserInfo()->m_uuid,
+        m_curFriendIdentity->m_uuid, obj);
   }
 
   /*if there is less data to send*/

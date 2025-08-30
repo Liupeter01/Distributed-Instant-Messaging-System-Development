@@ -2,6 +2,7 @@
 #define TCPNETWORKCONNECTION_H
 
 #include "def.hpp"
+#include <ChattingThreadDef.hpp>
 #include <MsgNode.hpp>
 #include <QJsonObject>
 #include <QObject> //connect
@@ -12,7 +13,6 @@
 #include <functional>
 #include <optional>
 #include <singleton.hpp>
-#include <ChattingThreadDef.hpp>
 
 struct UserNameCard;
 struct UserFriendRequest;
@@ -54,10 +54,10 @@ public:
    */
   void send_sequential_data_f(std::shared_ptr<SendNodeType> data,
                               TargetServer tar = TargetServer::CHATTINGSERVER) {
-      emit signal_send_message(data, tar);
+    emit signal_send_message(data, tar);
   }
 
-    static void send_buffer(ServiceType type, QJsonObject &&obj);
+  static void send_buffer(ServiceType type, QJsonObject &&obj);
 
 private:
   TCPNetworkConnection();
@@ -155,11 +155,11 @@ signals:
   /*
    * emit a signal to attach auth-friend messages to chatting history
    * This is the first offical chatting record,
-   * so during this phase, "thread_id" will be dstributed to this chatting thread!
+   * so during this phase, "thread_id" will be dstributed to this chatting
+   * thread!
    */
   void signal_add_auth_friend_init_chatting_thread(
-      const UserChatType type,
-      const QString& thread_id,
+      const UserChatType type, const QString &thread_id,
       std::shared_ptr<UserNameCard>,
       std::vector<std::shared_ptr<FriendingConfirmInfo>> list);
 
@@ -168,8 +168,7 @@ signals:
    * sender could be a user who is not in the chathistorywidget list
    * so we have to create a new widget for him
    */
-  void signal_incoming_msg(
-      MsgType type, std::shared_ptr<ChattingBaseType> msg);
+  void signal_incoming_msg(MsgType type, std::shared_ptr<ChattingBaseType> msg);
 
   /*
    * This function is mainly for the main interface
@@ -188,9 +187,9 @@ signals:
    * Server has already confirmed the behaviour
    * and returns a thread_id for this friend_uuid
    */
-  void signal_create_private_chat(const QString&my_uuid,
-                                  const QString&friend_uuid,
-                                  const QString&thread_id);
+  void signal_create_private_chat(const QString &my_uuid,
+                                  const QString &friend_uuid,
+                                  const QString &thread_id);
 
 private:
   /*establish tcp socket with server*/

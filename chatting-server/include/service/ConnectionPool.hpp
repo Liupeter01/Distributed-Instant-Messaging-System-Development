@@ -12,11 +12,11 @@
 
 /*forward*/
 namespace mysql {
-          class MySQLConnectionPool;
+class MySQLConnectionPool;
 }
 
 namespace redis {
-          class RedisConnectionPool;
+class RedisConnectionPool;
 }
 
 namespace connection {
@@ -88,8 +88,8 @@ protected:
 
 template <typename WhichPool, typename _Type> struct ConnectionRAII {
 
-          friend class mysql::MySQLConnectionPool;
-          friend class redis::RedisConnectionPool;
+  friend class mysql::MySQLConnectionPool;
+  friend class redis::RedisConnectionPool;
 
   using wrapper = tools::ResourcesWrapper<_Type>;
   ConnectionRAII(const ConnectionRAII &) = delete;
@@ -138,8 +138,8 @@ protected:
   }
 
 private:
-          // Raii no longer needs to put this resources back to container!
-          void invalidate() { status = false; }
+  // Raii no longer needs to put this resources back to container!
+  void invalidate() { status = false; }
 
 private:
   bool status; // load stub success flag

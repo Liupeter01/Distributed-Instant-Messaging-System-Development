@@ -99,57 +99,56 @@ struct FriendingConfirmInfo {
 };
 
 struct MsgInfo {
-          MsgInfo() = default;
-          MsgInfo(const std::string& threadId, const std::string& uniqueid,
-                    const std::string& sender, const std::string& receiver,
-                    const std::string& content, const std::size_t _status = 0, 
-                    const std::string& time = "", const MsgType type = MsgType::DEFAULT)
-                    : thread_id(threadId), unique_id(uniqueid), msg_sender(sender),
-                    msg_receiver(receiver), msg_content(content) , msg_type(type), status(_status) , timestamp(time)
-          {}
+  MsgInfo() = default;
+  MsgInfo(const std::string &threadId, const std::string &uniqueid,
+          const std::string &sender, const std::string &receiver,
+          const std::string &content, const std::size_t _status = 0,
+          const std::string &time = "", const MsgType type = MsgType::DEFAULT)
+      : thread_id(threadId), unique_id(uniqueid), msg_sender(sender),
+        msg_receiver(receiver), msg_content(content), msg_type(type),
+        status(_status), timestamp(time) {}
 
-          bool getMsgID(std::string& message) {
-                    if (isVerified) {
-                              message = message_id;
-                              return true;
-                    }
-                    return false;
-          }
-          void setMsgID(const std::string& value) {
-                    message_id = value;
-                    isVerified = true;
-          }
+  bool getMsgID(std::string &message) {
+    if (isVerified) {
+      message = message_id;
+      return true;
+    }
+    return false;
+  }
+  void setMsgID(const std::string &value) {
+    message_id = value;
+    isVerified = true;
+  }
 
-          bool isVerified = false;
+  bool isVerified = false;
 
-          std::size_t status = 0;
-          MsgType msg_type = MsgType::DEFAULT;
-          std::string thread_id;
-          std::string msg_sender;
-          std::string msg_receiver;
-          std::string msg_content;
-          std::string unique_id;
-          std::string message_id;
-          std::string timestamp;
+  std::size_t status = 0;
+  MsgType msg_type = MsgType::DEFAULT;
+  std::string thread_id;
+  std::string msg_sender;
+  std::string msg_receiver;
+  std::string msg_content;
+  std::string unique_id;
+  std::string message_id;
+  std::string timestamp;
 };
 
-struct TextMsgInfo:MsgInfo {
-          TextMsgInfo() : MsgInfo() {}
+struct TextMsgInfo : MsgInfo {
+  TextMsgInfo() : MsgInfo() {}
 
-          TextMsgInfo(const std::string& threadId, const std::string& uniqueid,
-                    const std::string& sender, const std::string& receiver,
-                    const std::string& content)
+  TextMsgInfo(const std::string &threadId, const std::string &uniqueid,
+              const std::string &sender, const std::string &receiver,
+              const std::string &content)
 
-                    : MsgInfo(threadId, uniqueid, sender, receiver, content, 0, "", MsgType::TEXT)
-          {}
+      : MsgInfo(threadId, uniqueid, sender, receiver, content, 0, "",
+                MsgType::TEXT) {}
 
-          TextMsgInfo(const std::string& threadId, 
-                    const std::string& sender, const std::string& receiver,
-                    const std::string& content, const std::size_t _status, const std::string&timestamp = "")
+  TextMsgInfo(const std::string &threadId, const std::string &sender,
+              const std::string &receiver, const std::string &content,
+              const std::size_t _status, const std::string &timestamp = "")
 
-                    : MsgInfo(threadId, "", sender, receiver, content, _status, timestamp, MsgType::TEXT)
-          {
-          }
+      : MsgInfo(threadId, "", sender, receiver, content, _status, timestamp,
+                MsgType::TEXT) {}
 };
 
 } // namespace chat

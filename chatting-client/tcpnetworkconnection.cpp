@@ -1,15 +1,15 @@
 #include "tcpnetworkconnection.h"
-#include <UserDef.hpp>
 #include "useraccountmanager.hpp"
 #include <QDataStream>
 #include <QDebug>
 #include <QJsonDocument>
+#include <UserDef.hpp>
 #include <logicmethod.h>
+#include <magic_enum.hpp>
 #include <msgtextedit.h>
 #include <qjsonarray.h>
 #include <resourcestoragemanager.h>
 #include <tools.h>
-#include <magic_enum.hpp>
 
 TCPNetworkConnection::TCPNetworkConnection()
     : m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
@@ -478,10 +478,10 @@ void TCPNetworkConnection::registerCallback() {
 
         } else {
 
-            if(!json["hello_msg"].isArray()){
-                qDebug() << "Try to parse hello_msg failed!";
-                return;
-            }
+          if (!json["hello_msg"].isArray()) {
+            qDebug() << "Try to parse hello_msg failed!";
+            return;
+          }
 
           auto uuid = json["friend_uuid"].toString();
           auto username = json["friend_username"].toString();
@@ -493,29 +493,26 @@ void TCPNetworkConnection::registerCallback() {
           auto thread_id = json["thread_id"].toString();
           auto hello_msg_arr = json["hello_msg"].toArray();
 
-          auto chat_type = (json["chat_type"].toString() == "PRIVATE"? UserChatType::PRIVATE :UserChatType::GROUP );
+          auto chat_type =
+              (json["chat_type"].toString() == "PRIVATE" ? UserChatType::PRIVATE
+                                                         : UserChatType::GROUP);
 
           std::vector<std::shared_ptr<FriendingConfirmInfo>> list;
-          for(const auto &item : hello_msg_arr){
-              if(!item.isObject()){
-                  continue;
-              }
+          for (const auto &item : hello_msg_arr) {
+            if (!item.isObject()) {
+              continue;
+            }
 
-              auto obj = item.toObject();
-              auto msg_id = obj["msg_id"].toString();
-              auto message_sender =  obj["msg_sender"].toString();
-              auto message_receiver = obj["msg_receiver"].toString();
-              auto msg_content = obj["msg_content"].toString();
-              auto msg_type = static_cast<MsgType>(obj["msg_type"].toInt());
+            auto obj = item.toObject();
+            auto msg_id = obj["msg_id"].toString();
+            auto message_sender = obj["msg_sender"].toString();
+            auto message_receiver = obj["msg_receiver"].toString();
+            auto msg_content = obj["msg_content"].toString();
+            auto msg_type = static_cast<MsgType>(obj["msg_type"].toInt());
 
-              list.push_back(std::make_shared<FriendingConfirmInfo>(
-                  msg_type,
-                  thread_id,
-                  msg_id,
-                   message_sender,
-                  message_receiver,
-                  msg_content
-               ));
+            list.push_back(std::make_shared<FriendingConfirmInfo>(
+                msg_type, thread_id, msg_id, message_sender, message_receiver,
+                msg_content));
           }
 
           qDebug() << "Retrieve Data From Server of uuid = " << uuid << ":"
@@ -530,9 +527,11 @@ void TCPNetworkConnection::registerCallback() {
           /*
            * emit a signal to attach auth-friend messages to chatting history
            * This is the first offical chatting record,
-           * so during this phase, "thread_id" will be dstributed to this chatting thread!
+           * so during this phase, "thread_id" will be dstributed to this
+           * chatting thread!
            */
-          emit signal_add_auth_friend_init_chatting_thread(chat_type, thread_id, namecard, list);
+          emit signal_add_auth_friend_init_chatting_thread(chat_type, thread_id,
+                                                           namecard, list);
         }
       }));
 
@@ -570,34 +569,35 @@ void TCPNetworkConnection::registerCallback() {
           return;
 
         } else {
-            if(!json["text_msg"].isArray()){
-                 qDebug() << "SERVICE_TEXTCHATMSGICOMINGREQUEST Json Parse Error!";
-                return;
-            }
+          if (!json["text_msg"].isArray()) {
+            qDebug() << "SERVICE_TEXTCHATMSGICOMINGREQUEST Json Parse Error!";
+            return;
+          }
 
           auto text_sender = json["text_sender"].toString();
           auto text_receiver = json["text_receiver"].toString();
           auto msg_arr = json["text_msg"].toArray();
 
-          for(const auto& item: msg_arr){
+          for (const auto &item : msg_arr) {
 
-              if(!item.isObject()){
-                  continue;
-              }
+            if (!item.isObject()) {
+              continue;
+            }
 
-              auto obj = item.toObject();
+            auto obj = item.toObject();
 
-              [[maybe_unused]]auto msg_sender = obj["msg_sender"].toString();
-              [[maybe_unused]]auto msg_receiver = obj["msg_receiver"].toString();
+            [[maybe_unused]] auto msg_sender = obj["msg_sender"].toString();
+            [[maybe_unused]] auto msg_receiver = obj["msg_receiver"].toString();
             auto thread_id = obj["thread_id"].toString();
-              auto unique_id = obj["unique_id"].toString();
-              auto msg_id = obj["msg_id"].toString();
-              auto msg_content = obj["msg_content"].toString();
+            auto unique_id = obj["unique_id"].toString();
+            auto msg_id = obj["msg_id"].toString();
+            auto msg_content = obj["msg_content"].toString();
 
-              auto data = std::make_shared<ChattingTextMsg>(text_sender, text_receiver, unique_id, msg_content);
-              data->setMsgID(msg_id);
+            auto data = std::make_shared<ChattingTextMsg>(
+                text_sender, text_receiver, unique_id, msg_content);
+            data->setMsgID(msg_id);
 
-              emit signal_incoming_msg(MsgType::TEXT, data);
+            emit signal_incoming_msg(MsgType::TEXT, data);
           }
         }
       }));
@@ -616,140 +616,136 @@ void TCPNetworkConnection::registerCallback() {
         }
       }));
 
-
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
       ServiceType::SERVICE_PULLCHATTHREADRESPONSE, [this](QJsonObject &&json) {
-          /*error occured!*/
-          if (!json.contains("error")) {
-              qDebug() << "Json Parse Error!";
-              return;
-          }
-          if (json["error"].toInt() !=
-              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-              qDebug() << "Pull Chatting Threads Return Error!";
-              return;
-          }
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Pull Chatting Threads Return Error!";
+          return;
+        }
 
-          if(!json["threads"].isArray()){
-              qDebug() << "Threads Array Error!";
-              return;
-          }
+        if (!json["threads"].isArray()) {
+          qDebug() << "Threads Array Error!";
+          return;
+        }
 
-          //any more data?
-          [[maybe_unused]] auto status = json["is_complete"].toBool();
+        // any more data?
+        [[maybe_unused]] auto status = json["is_complete"].toBool();
 
-          //if so, whats the next thread_id we are going to use in next round query!
-          [[maybe_unused]] auto next_thread_id = json["next_thread_id"].toString();
+        // if so, whats the next thread_id we are going to use in next round
+        // query!
+        [[maybe_unused]] auto next_thread_id =
+            json["next_thread_id"].toString();
 
-          auto thread_info = std::move(json["threads"].toArray());
+        auto thread_info = std::move(json["threads"].toArray());
 
-          std::vector<std::unique_ptr<ChatThreadMeta>> lists;
-          for(const auto& item : thread_info){
-              if(!item.isObject()){
-                  continue;
-              }
-
-              auto info = item.toObject();
-
-              auto type = info["type"].toString();
-
-              if(type == "GROUP"){
-                  auto group_item = std::make_unique<ChatThreadMeta>(
-                      info["thread_id"].toString().toStdString(),
-                       UserChatType::GROUP
-                  );
-
-                  lists.push_back(std::move(group_item));
-              }
-              else if(type == "PRIVATE"){
-                  auto private_item = std::make_unique<ChatThreadMeta>(
-                       info["thread_id"].toString().toStdString(),
-                      UserChatType::PRIVATE,
-                      info["user1_uuid"].toString().toStdString(),
-                     info["user2_uuid"].toString().toStdString()
-                  );
-
-                lists.push_back(std::move(private_item));
-              }
+        std::vector<std::unique_ptr<ChatThreadMeta>> lists;
+        for (const auto &item : thread_info) {
+          if (!item.isObject()) {
+            continue;
           }
 
-          emit signal_update_chat_thread(std::make_shared<ChatThreadPageResult>(
-              status,
-              next_thread_id,
-              std::move(lists)));
+          auto info = item.toObject();
+
+          auto type = info["type"].toString();
+
+          if (type == "GROUP") {
+            auto group_item = std::make_unique<ChatThreadMeta>(
+                info["thread_id"].toString().toStdString(),
+                UserChatType::GROUP);
+
+            lists.push_back(std::move(group_item));
+          } else if (type == "PRIVATE") {
+            auto private_item = std::make_unique<ChatThreadMeta>(
+                info["thread_id"].toString().toStdString(),
+                UserChatType::PRIVATE,
+                info["user1_uuid"].toString().toStdString(),
+                info["user2_uuid"].toString().toStdString());
+
+            lists.push_back(std::move(private_item));
+          }
+        }
+
+        emit signal_update_chat_thread(std::make_shared<ChatThreadPageResult>(
+            status, next_thread_id, std::move(lists)));
       }));
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
       ServiceType::SERVICE_PULLCHATRECORDRESPONSE, [this](QJsonObject &&json) {
-          /*error occured!*/
-          if (!json.contains("error")) {
-              qDebug() << "Json Parse Error!";
-              return;
-          }
-          if (json["error"].toInt() !=
-              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-              qDebug() << "Pull Chatting Threads Return Error!";
-              return;
-          }
-          if(!json["chat_messages"].isArray()){
-              qDebug() << "Threads Array Error!";
-              return;
-          }
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Pull Chatting Threads Return Error!";
+          return;
+        }
+        if (!json["chat_messages"].isArray()) {
+          qDebug() << "Threads Array Error!";
+          return;
+        }
 
-          auto thread_id = json["thread_id"].toString();
-          auto next_msg_id = json["next_msg_id"].toString();
-          bool is_complete = json["is_complete"].toBool();
-          auto msg_arr = std::move(json["chat_messages"].toArray());
-          std::vector<std::shared_ptr<ChattingRecordBase>> lists;
-          for(const auto& item : msg_arr ){
-              if(!item.isObject()){
-                  continue;
-              }
-
-              auto obj = item.toObject();
-
-              [[maybe_unused]]auto msg_sender = obj["msg_sender"].toString();
-              [[maybe_unused]]auto msg_receiver = obj["msg_receiver"].toString();
-              auto msg_type = static_cast<MsgType>(obj["msg_type"].toInt());
-              [[maybe_unused]]auto thread_id = obj["thread_id"].toString();
-              [[maybe_unused]] auto status = obj["status"].toInt();
-              auto msg_id = obj["msg_id"].toString();
-              auto msg_content = obj["msg_content"].toString();
-              //auto timestamp = obj["timestamp"].toString();
-              if(msg_type == MsgType::TEXT){
-                  auto ptr = std::make_shared<ChattingTextMsg>(
-                      msg_sender, msg_receiver,msg_content);
-
-                  ptr->setMsgID(msg_id);
-
-                  lists.push_back(ptr);
-              }
-              else if(msg_type ==  MsgType::IMAGE){}
+        auto thread_id = json["thread_id"].toString();
+        auto next_msg_id = json["next_msg_id"].toString();
+        bool is_complete = json["is_complete"].toBool();
+        auto msg_arr = std::move(json["chat_messages"].toArray());
+        std::vector<std::shared_ptr<ChattingRecordBase>> lists;
+        for (const auto &item : msg_arr) {
+          if (!item.isObject()) {
+            continue;
           }
 
-          emit signal_update_chat_msg(std::make_shared<ChatMsgPageResult>(
-              is_complete, thread_id, next_msg_id, std::move(lists)
-              ));
-   }));
+          auto obj = item.toObject();
+
+          [[maybe_unused]] auto msg_sender = obj["msg_sender"].toString();
+          [[maybe_unused]] auto msg_receiver = obj["msg_receiver"].toString();
+          auto msg_type = static_cast<MsgType>(obj["msg_type"].toInt());
+          [[maybe_unused]] auto thread_id = obj["thread_id"].toString();
+          [[maybe_unused]] auto status = obj["status"].toInt();
+          auto msg_id = obj["msg_id"].toString();
+          auto msg_content = obj["msg_content"].toString();
+          // auto timestamp = obj["timestamp"].toString();
+          if (msg_type == MsgType::TEXT) {
+            auto ptr = std::make_shared<ChattingTextMsg>(
+                msg_sender, msg_receiver, msg_content);
+
+            ptr->setMsgID(msg_id);
+
+            lists.push_back(ptr);
+          } else if (msg_type == MsgType::IMAGE) {
+          }
+        }
+
+        emit signal_update_chat_msg(std::make_shared<ChatMsgPageResult>(
+            is_complete, thread_id, next_msg_id, std::move(lists)));
+      }));
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
-      ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE, [this](QJsonObject &&json) {
-          /*error occured!*/
-          if (!json.contains("error")) {
-              qDebug() << "Json Parse Error!";
-              return;
-          }
-          if (json["error"].toInt() !=
-              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-              qDebug() << "Create New Private Chat Return Error!";
-              return;
-          }
+      ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE,
+      [this](QJsonObject &&json) {
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Create New Private Chat Return Error!";
+          return;
+        }
 
-          [[maybe_unused]] auto my_uuid = json["my_uuid"].toString();
-          [[maybe_unused]] auto friend_uuid = json["friend_uuid"].toString();
-          [[maybe_unused]] auto thread_id = json["thread_id"].toString();
+        [[maybe_unused]] auto my_uuid = json["my_uuid"].toString();
+        [[maybe_unused]] auto friend_uuid = json["friend_uuid"].toString();
+        [[maybe_unused]] auto thread_id = json["thread_id"].toString();
 
-          emit signal_create_private_chat(my_uuid, friend_uuid, thread_id);
+        emit signal_create_private_chat(my_uuid, friend_uuid, thread_id);
       }));
 }
 
@@ -819,8 +815,8 @@ void TCPNetworkConnection::terminate_chatting_server() {
 
 void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
                                              TargetServer tar) {
-    // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-    // No flush, it might causing buffer full!!!!!!!!!
+  // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+  // No flush, it might causing buffer full!!!!!!!!!
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data->get_buffer());
   } else if (tar == TargetServer::RESOURCESSERVER) {
@@ -830,8 +826,8 @@ void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
 
 void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
 
-    // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-    // No flush, it might causing buffer full!!!!!!!!!
+  // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+  // No flush, it might causing buffer full!!!!!!!!!
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data.get_buffer());
   } else if (tar == TargetServer::RESOURCESSERVER) {
@@ -839,17 +835,16 @@ void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
   }
 }
 
-void TCPNetworkConnection::send_buffer(ServiceType type, QJsonObject &&obj){
+void TCPNetworkConnection::send_buffer(ServiceType type, QJsonObject &&obj) {
 
-    QJsonDocument doc(std::move(obj));
-    auto byte = doc.toJson(QJsonDocument::Compact);
+  QJsonDocument doc(std::move(obj));
+  auto byte = doc.toJson(QJsonDocument::Compact);
 
-    /*it should be store as a temporary object, because send_buffer will modify
-     * it!*/
-    auto buffer = std::make_shared<SendNodeType>(static_cast<uint16_t>(type),
-                                                 byte,
-                                                 ByteOrderConverterReverse{});
+  /*it should be store as a temporary object, because send_buffer will modify
+   * it!*/
+  auto buffer = std::make_shared<SendNodeType>(
+      static_cast<uint16_t>(type), byte, ByteOrderConverterReverse{});
 
-    /*after connection to server, send TCP request*/
-    emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
+  /*after connection to server, send TCP request*/
+  emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
 }

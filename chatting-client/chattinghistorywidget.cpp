@@ -16,8 +16,8 @@ void ChattingHistoryWidget::setUserInfo(std::shared_ptr<UserNameCard> info) {
   m_userinfo = info;
 }
 
-void ChattingHistoryWidget::setLastMessage(const QString &msg){
-    ui->last_message->setText(msg);
+void ChattingHistoryWidget::setLastMessage(const QString &msg) {
+  ui->last_message->setText(msg);
 }
 
 void ChattingHistoryWidget::setItemDisplay() {

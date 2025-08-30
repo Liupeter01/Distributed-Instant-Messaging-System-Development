@@ -132,17 +132,17 @@ public:
                            const std::size_t interval,
                            std::string &next_thread_id, bool &is_EOF);
 
-  /*Create New entry in chatmshhistorybank, and also generate a new message_id for user!*/
-  bool createModifyChattingHistoryRecord(std::vector < std::shared_ptr<chat::MsgInfo>>& info);
-  bool createModifyChattingHistoryRecord(std::shared_ptr<chat::MsgInfo>& info);
+  /*Create New entry in chatmshhistorybank, and also generate a new message_id
+   * for user!*/
+  bool createModifyChattingHistoryRecord(
+      std::vector<std::shared_ptr<chat::MsgInfo>> &info);
+  bool createModifyChattingHistoryRecord(std::shared_ptr<chat::MsgInfo> &info);
 
   [[nodiscard]]
   std::optional<std::vector<std::unique_ptr<chat::MsgInfo>>>
-            getChattingHistoryRecord(const std::size_t thread_id,
-            const std::size_t msg_id,
-            const std::size_t interval,
-                      std::string& next_msg_id,
-            bool& is_EOF);
+  getChattingHistoryRecord(const std::size_t thread_id,
+                           const std::size_t msg_id, const std::size_t interval,
+                           std::string &next_msg_id, bool &is_EOF);
 
   /*insert new user, call MySQLSelection::CREATE_NEW_USER*/
   bool registerNewUser(MySQLRequestStruct &&request);

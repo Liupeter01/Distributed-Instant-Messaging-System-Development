@@ -61,7 +61,7 @@ protected:
                               std::shared_ptr<Session> session, NodePtr recv);
 
   void handlingUserChatMessage(ServiceType srv_type,
-            std::shared_ptr<Session> session, NodePtr recv);
+                               std::shared_ptr<Session> session, NodePtr recv);
 
   void handlingCreateNewPrivateChat(ServiceType srv_type,
                                     std::shared_ptr<Session> session,

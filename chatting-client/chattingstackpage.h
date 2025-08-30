@@ -64,7 +64,7 @@ signals:
    * chatting data could be added to the chattingthread
    */
   void signal_append_chat_data_on_local(MsgType msg_type,
-                                           const QString & thread_id,
+                                        const QString &thread_id,
                                         const QString &my_uuid,
                                         const QString &friend_uuid,
                                         const QJsonObject &obj);

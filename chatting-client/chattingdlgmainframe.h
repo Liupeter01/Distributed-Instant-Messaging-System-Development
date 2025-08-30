@@ -1,6 +1,7 @@
 #ifndef CHATTINGDLGMAINFRAME_H
 #define CHATTINGDLGMAINFRAME_H
 
+#include <ChattingThreadDef.hpp>
 #include <MsgNode.hpp>
 #include <QDialog>
 #include <QIcon>
@@ -8,10 +9,9 @@
 #include <QTimer>
 #include <QVector>
 #include <atomic>
-#include <memory>
 #include <def.hpp>
+#include <memory>
 #include <unordered_map>
-#include <ChattingThreadDef.hpp>
 
 class SideBarWidget;
 class QMouseEvent;
@@ -90,8 +90,8 @@ protected:
    * add QListWidgetItem to the list chattingThreadToUIWidget
    * and register current thread_id to m_chattingThreadToUIWidgetList
    */
-  QListWidgetItem* addListWidgetItemToList(const QString& thread_id,
-                          std::shared_ptr<UserNameCard> info);
+  QListWidgetItem *addListWidgetItemToList(const QString &thread_id,
+                                           std::shared_ptr<UserNameCard> info);
 
   /*load more chatting record*/
   void loadMoreChattingHistory();
@@ -112,7 +112,7 @@ private:
                            const QString &clicked_pic_path);
 
 private slots:
-  void slot_connection_status(bool status){  enable_heartBeart = status; }
+  void slot_connection_status(bool status) { enable_heartBeart = status; }
 
   /*logout from server*/
   void slot_logout_status(bool status) { m_timer->stop(); }
@@ -122,9 +122,7 @@ private slots:
    * status = true: activate
    * status = false: deactivate
    */
-  void slot_waiting_for_data(bool status) {
-      waitForDataFromRemote(status);
-  }
+  void slot_waiting_for_data(bool status) { waitForDataFromRemote(status); }
 
   /*search text changed*/
   void slot_search_text_changed();
@@ -173,11 +171,11 @@ private slots:
   /*
    * emit a signal to attach auth-friend messages to chatting history
    * This is the first offical chatting record,
-   * so during this phase, "thread_id" will be dstributed to this chatting thread!
+   * so during this phase, "thread_id" will be dstributed to this chatting
+   * thread!
    */
   void slot_add_auth_friend_init_chatting_thread(
-      const UserChatType type,
-      const QString& thread_id,
+      const UserChatType type, const QString &thread_id,
       std::shared_ptr<UserNameCard> namecard,
       std::vector<std::shared_ptr<FriendingConfirmInfo>> list);
 
@@ -187,10 +185,10 @@ private slots:
    * stored by UserAccountManager
    */
   void slot_append_chat_data_on_local(MsgType msg_type,
-                            const QString& thread_id,
-                             const QString& my_uuid,
-                             const QString& friend_uuid,
-                             const QJsonObject& obj);
+                                      const QString &thread_id,
+                                      const QString &my_uuid,
+                                      const QString &friend_uuid,
+                                      const QJsonObject &obj);
 
   /*
    * sender sends chat msg to receiver
@@ -206,7 +204,6 @@ private slots:
    */
   void slot_update_chat_thread(std::shared_ptr<ChatThreadPageResult> package);
 
-
   /*
    * This function is mainly for the main interface
    * to update it's Chat Msg Related to a thread_id
@@ -218,9 +215,9 @@ private slots:
    * Server has already confirmed the behaviour
    * and returns a thread_id for this friend_uuid
    */
-  void slot_create_private_chat(const QString&my_uuid,
-                                  const QString&friend_uuid,
-                                  const QString&thread_id);
+  void slot_create_private_chat(const QString &my_uuid,
+                                const QString &friend_uuid,
+                                const QString &thread_id);
 
 private:
   static bool enable_heartBeart;
@@ -245,10 +242,11 @@ private:
   /*
    * we use this to store all chatting thread
    * made by current user
-   * std::unordered_map<QString, QListWidgetItem *> m_chatHistoryWidList; has been deprecated!
+   * std::unordered_map<QString, QListWidgetItem *> m_chatHistoryWidList; has
+   * been deprecated!
    */
   std::unordered_map</*thread_id*/ QString,
-                     /*widget item*/QListWidgetItem *>
+                     /*widget item*/ QListWidgetItem *>
       m_chattingThreadToUIWidget;
 
   /*cur qlabel*/

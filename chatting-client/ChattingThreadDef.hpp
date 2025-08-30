@@ -49,22 +49,6 @@ struct ChatThreadMeta {
   std::optional<std::string> _user_two = std::nullopt;
 };
 
-struct ChatThreadPageResult {
-  ChatThreadPageResult() = default;
-  ChatThreadPageResult(const bool load_more, const QString &next_id,
-                       std::vector<std::unique_ptr<ChatThreadMeta>> &&lists)
-      : m_load_more(load_more), m_next_thread_id(next_id),
-        m_lists(std::move(lists)) {}
-
-  // any more data?
-  bool m_load_more = false;
-
-  // if so, whats the next thread_id we are going to use in next round query!
-  QString m_next_thread_id;
-
-  std::vector<std::unique_ptr<ChatThreadMeta>> m_lists;
-};
-
 struct ChattingThreadDesc {
 
   ChattingThreadDesc() = default;
@@ -298,6 +282,40 @@ static constexpr bool allowed_types =
     std::is_same_v<ChattingTextMsg, _Ty> ||
     std::is_same_v<ChattingVoice, _Ty> || std::is_same_v<ChattingVideo, _Ty>;
 
+struct ChatThreadPageResult {
+    ChatThreadPageResult() = default;
+    ChatThreadPageResult(const bool load_more, const QString &next_id,
+                         std::vector<std::unique_ptr<ChatThreadMeta>> &&lists)
+        : m_load_more(load_more), m_next_thread_id(next_id),
+        m_lists(std::move(lists)) {}
+
+    // any more data?
+    bool m_load_more = false;
+
+    // if so, whats the next thread_id we are going to use in next round query!
+    QString m_next_thread_id;
+
+    std::vector<std::unique_ptr<ChatThreadMeta>> m_lists;
+};
+
+struct ChatMsgPageResult {
+    ChatMsgPageResult () = default;
+    ChatMsgPageResult (const bool load_more, const QString &thread_id,
+                      const QString &next_msg_id, std::vector<std::shared_ptr<ChattingRecordBase>> && lists)
+        : m_load_more(load_more), m_thread_id(thread_id), m_next_message_id(next_msg_id),m_list(std::move(lists))
+    {}
+
+          // any more data?
+    bool m_load_more = false;
+
+    QString m_thread_id;
+
+    // if so, whats the next thread_id we are going to use in next round query!
+    QString m_next_message_id;
+
+    std::vector<std::shared_ptr<ChattingRecordBase>> m_list;
+};
+
 /*store the friend's identity and the historical info sent before*/
 class UserChatThread {
 public:
@@ -315,12 +333,20 @@ public:
   }
 
   const QString &getCurChattingThreadId() const { return m_threadId; }
+  void setLastMessageId(const QString& id){ m_lastFetchedMsgId = id;}
+   const QString &getLastMessageId() const { return m_lastFetchedMsgId; }
 
   std::shared_ptr<UserNameCard> getUserNameCard() { return m_peerCard; }
 
   const UserChatType getUserChatType() const { return m_userChatType; }
 
+  std::shared_ptr<ChatType> getLastMsg() {return m_lastMessage;}
+
   bool insertMessage(std::shared_ptr<ChatType> msg) {
+      if(!msg->isOnLocal()){
+          m_lastFetchedMsgId = msg->unsafe_getMsgID();
+      }
+      m_lastMessage = msg;
     return m_recordStorge.insertMessage(msg);
   }
 

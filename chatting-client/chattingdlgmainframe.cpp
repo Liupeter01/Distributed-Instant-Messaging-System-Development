@@ -257,15 +257,13 @@ void ChattingDlgMainFrame::registerSignal() {
    * expose chatting history data to main page
    * developers could update friend's request by using this signal
    */
-  connect(ui->chattingpage,
-          &ChattingStackPage::signal_append_chat_message, this,
-          &ChattingDlgMainFrame::slot_append_chat_message);
-
+  connect(ui->chattingpage, &ChattingStackPage::signal_append_chat_message,
+          this, &ChattingDlgMainFrame::slot_append_chat_message);
 
   /**
-   * Connecting signal<->slot between TCPNetworkConnection and chattingdlgmainframe
-   * emit a signal to ChattingDlgMainFrame class to update local msg status
-   * which returns an allocated msg_id to replace local uuid
+   * Connecting signal<->slot between TCPNetworkConnection and
+   * chattingdlgmainframe emit a signal to ChattingDlgMainFrame class to update
+   * local msg status which returns an allocated msg_id to replace local uuid
    */
   connect(TCPNetworkConnection::get_instance().get(),
           &TCPNetworkConnection::signal_update_local2verification_status, this,
@@ -747,15 +745,18 @@ void ChattingDlgMainFrame::slot_add_auth_friend_init_chatting_thread(
 
 /*
  * chat data could be insert to the inner data structure by using this slot
- * no matter the data is on local or certified by the server(remote and has a msg_id)
+ * no matter the data is on local or certified by the server(remote and has a
+ * msg_id)
  *
  */
-void ChattingDlgMainFrame::slot_append_chat_message(const QString& thread_id,
-                                                    std::shared_ptr<ChattingRecordBase> data) {
+void ChattingDlgMainFrame::slot_append_chat_message(
+    const QString &thread_id, std::shared_ptr<ChattingRecordBase> data) {
 
-  if (!data) return;
+  if (!data)
+    return;
 
-  auto thread_opt = UserAccountManager::get_instance()->getChattingThreadData(thread_id);
+  auto thread_opt =
+      UserAccountManager::get_instance()->getChattingThreadData(thread_id);
   if (!thread_opt.has_value()) {
     qDebug() << "No Chatting Thread Data Found!";
     return;
@@ -765,7 +766,8 @@ void ChattingDlgMainFrame::slot_append_chat_message(const QString& thread_id,
   // Insert New Data
   thread->insertMessage(data);
 
-  /*If the user does not need switch to another thread, then update it directly!*/
+  /*If the user does not need switch to another thread, then update it
+   * directly!*/
   if (!ui->chattingpage->isThreadSwitchingNeeded(data->receiver_uuid)) {
     ui->chattingpage->updateChattingUI(thread);
     return;
@@ -773,27 +775,26 @@ void ChattingDlgMainFrame::slot_append_chat_message(const QString& thread_id,
 }
 
 /**
-   * @brief signal_update_local2verification_status
-   * emit a signal to ChattingDlgMainFrame class to update local msg status
-   * which returns an allocated msg_id to replace local uuid
-   * @param thread_id
-   * @param uuid
-   * @param msg_id
-   */
-void ChattingDlgMainFrame::slot_update_local2verification_status(const QString& thread_id,
-                                                                 const QString &uuid,
-                                                                 const QString &msg_id)
-{
-    auto thread_opt = UserAccountManager::get_instance()->getChattingThreadData(thread_id);
-    if (!thread_opt.has_value()) {
-        qDebug() << "No Chatting Thread Data Found!";
-        return;
-    }
-    auto thread = thread_opt.value();
+ * @brief signal_update_local2verification_status
+ * emit a signal to ChattingDlgMainFrame class to update local msg status
+ * which returns an allocated msg_id to replace local uuid
+ * @param thread_id
+ * @param uuid
+ * @param msg_id
+ */
+void ChattingDlgMainFrame::slot_update_local2verification_status(
+    const QString &thread_id, const QString &uuid, const QString &msg_id) {
+  auto thread_opt =
+      UserAccountManager::get_instance()->getChattingThreadData(thread_id);
+  if (!thread_opt.has_value()) {
+    qDebug() << "No Chatting Thread Data Found!";
+    return;
+  }
+  auto thread = thread_opt.value();
 
-    if(!thread->promoteLocalToVerified(uuid, msg_id)){
-        qDebug() << "promoteLocalToVerified Failed!\n";
-    }
+  if (!thread->promoteLocalToVerified(uuid, msg_id)) {
+    qDebug() << "promoteLocalToVerified Failed!\n";
+  }
 }
 
 /*
@@ -805,7 +806,8 @@ void ChattingDlgMainFrame::slot_incoming_msg(
     MsgType msg_type, std::shared_ptr<ChattingBaseType> msg) {
 
   /*is the chatting history being updated?*/
-  if (!msg) return;
+  if (!msg)
+    return;
 
   QString sender = msg->sender_uuid;
 
@@ -813,7 +815,8 @@ void ChattingDlgMainFrame::slot_incoming_msg(
    * because this is a incoming msg, so using sender uuid as friend uuid
    * Find This User's "thread_id", and try to locate history info
    */
-  std::optional<QString> thread_id = UserAccountManager::get_instance()->getThreadIdByUUID(sender);
+  std::optional<QString> thread_id =
+      UserAccountManager::get_instance()->getThreadIdByUUID(sender);
 
   // not found at all
   if (!thread_id.has_value()) {
@@ -821,23 +824,27 @@ void ChattingDlgMainFrame::slot_incoming_msg(
     return;
   }
 
-  auto thread_opt = UserAccountManager::get_instance()->getChattingThreadData(thread_id.value());
+  auto thread_opt = UserAccountManager::get_instance()->getChattingThreadData(
+      thread_id.value());
   if (!thread_opt.has_value()) {
-      qDebug() << "No Chatting Thread Data Found!";
-      return;
+    qDebug() << "No Chatting Thread Data Found!";
+    return;
   }
   auto thread = thread_opt.value();
 
-  std::shared_ptr<ChattingRecordBase> data = UserChatThread::generatePackage(msg_type, msg);
-  if(!data) return;
+  std::shared_ptr<ChattingRecordBase> data =
+      UserChatThread::generatePackage(msg_type, msg);
+  if (!data)
+    return;
 
   // Insert New Data
   thread->insertMessage(data);
 
-  /*If the user does not need switch to another thread, then update it directly!*/
+  /*If the user does not need switch to another thread, then update it
+   * directly!*/
   if (!ui->chattingpage->isThreadSwitchingNeeded(data->sender_uuid)) {
-      ui->chattingpage->updateChattingUI(thread);
-      return;
+    ui->chattingpage->updateChattingUI(thread);
+    return;
   }
 }
 
@@ -845,7 +852,8 @@ void ChattingDlgMainFrame::slot_incoming_msg(
 void ChattingDlgMainFrame::loadMoreChattingHistory() {
 
   auto session = UserAccountManager::get_instance()->getCurThreadSession();
-  if (!session.has_value()) return;
+  if (!session.has_value())
+    return;
 
   QJsonObject obj;
   obj["thread_id"] = (*session)->getCurChattingThreadId();

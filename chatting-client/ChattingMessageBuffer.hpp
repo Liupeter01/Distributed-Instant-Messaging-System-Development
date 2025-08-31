@@ -105,7 +105,7 @@ private:
 
     bool converted = false;
     const qint64 msgid = idStr.toLongLong(&converted, 10);
-    if (!converted || msgid <= 0) {
+    if (!converted || msgid < 0) {
         qDebug() << "Invalid msg_id! It should be a positive integer!";
         return false;
     }

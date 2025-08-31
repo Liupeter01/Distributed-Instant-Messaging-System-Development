@@ -128,7 +128,7 @@ struct ChattingRecordBase {
   virtual const QString &getMsgContent() = 0;
   const MsgType getMsgType() const { return type; }
   const QString &getUniqueId() const { return m_uniqueId; }
-  bool isOnLocal() const { return m_status; }
+  bool isOnLocal() const { return !m_status; }
 
 protected:
   void setVerified(bool status) { m_status = status; }
@@ -157,6 +157,7 @@ struct ChattingTextMsg : public ChattingRecordBase {
                   const QString &unique_id, const QString &_msg_content)
       : ChattingRecordBase(sender, receiver, unique_id, MsgType::TEXT),
         m_data(std::make_unique<UserChatTextRecord>("", _msg_content)) {}
+
   std::optional<QString> getMsgID() override {
     if (isOnLocal()) {
       return std::nullopt;
@@ -164,6 +165,7 @@ struct ChattingTextMsg : public ChattingRecordBase {
     return m_data->m_msg_id;
   }
   const QString &getMsgContent() override { return m_data->m_msg_content; }
+
   void setMsgID(const QString &value) override {
     m_data->m_msg_id.clear();
     m_data->m_msg_id = value;
@@ -401,6 +403,28 @@ public:
     return res;
   }
 
+  [[nodiscard]]
+  static std::shared_ptr<ChatType> generatePackage(const MsgType type,
+                  std::shared_ptr<ChattingRecordBase> msg) {
+
+      std::shared_ptr<ChatType> res;
+
+      if (type == MsgType::TEXT) {
+          if(msg->isOnLocal())
+              res = std::make_shared<ChattingTextMsg>(msg->sender_uuid, msg->receiver_uuid, msg->m_uniqueId,
+                                                      msg->getMsgContent());
+
+          else
+              res =std::make_shared<ChattingTextMsg>(msg->sender_uuid, msg->receiver_uuid, msg->unsafe_getMsgID(),
+                                                      msg->getMsgContent());
+
+      } else if (type == MsgType::AUDIO) {
+      } else if (type == MsgType::IMAGE) {
+      }
+
+      return res;
+  }
+
 private:
   /*thread_id*/
   QString m_threadId;
@@ -421,7 +445,6 @@ private:
   std::shared_ptr<UserNameCard> m_peerCard;
 
   // GROUP CHAT ONLY
-  //???
 
   // Message storge structure
   MessageBuffer<ChatType> m_recordStorge;

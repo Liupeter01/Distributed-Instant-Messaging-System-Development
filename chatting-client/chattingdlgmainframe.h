@@ -184,11 +184,21 @@ private slots:
    * the message will not be recorded by the in the chattinghistory which is
    * stored by UserAccountManager
    */
-  void slot_append_chat_data_on_local(MsgType msg_type,
-                                      const QString &thread_id,
-                                      const QString &my_uuid,
-                                      const QString &friend_uuid,
-                                      const QJsonObject &obj);
+  void slot_append_chat_message(const QString& thread_id,
+                                std::shared_ptr<ChattingRecordBase> data);
+
+
+  /**
+   * @brief signal_update_local2verification_status
+   * emit a signal to ChattingDlgMainFrame class to update local msg status
+   * which returns an allocated msg_id to replace local uuid
+   * @param thread_id
+   * @param uuid
+   * @param msg_id
+   */
+  void slot_update_local2verification_status( const QString& thread_id,
+                                            const QString& uuid,
+                                             const QString& msg_id);
 
   /*
    * sender sends chat msg to receiver

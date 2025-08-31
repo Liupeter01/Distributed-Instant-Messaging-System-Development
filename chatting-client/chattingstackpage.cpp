@@ -116,6 +116,10 @@ void ChattingStackPage::switchChattingThread(
   }
 }
 
+void ChattingStackPage::updateChattingUI(std::shared_ptr<UserChatThread> data){
+    setChattingThreadData(data);
+}
+
 bool ChattingStackPage::isChatValid(const MsgType type) {
   return type == MsgType::DEFAULT ? false : true;
 }
@@ -236,15 +240,8 @@ void ChattingStackPage::on_send_message_clicked() {
 
   for (std::size_t index = 0; index < list.size(); ++index) {
     /*currently, we are the msssage sender*/
-    // QWidget *bubble_send{nullptr};
-
-    /*create this for send*/
-    // ChattingMsgItem *item_sender = new ChattingMsgItem(ChattingRole::Sender);
 
     MsgInfo info = list[index];
-
-    // item_sender->setupUserName(send_name);
-    // item_sender->setupIconPixmap(QPixmap(send_icon));
 
     /*msg sender and msg receiver identity*/
     obj["msg_sender"] =
@@ -294,23 +291,16 @@ void ChattingStackPage::on_send_message_clicked() {
     } else if (info.type == MsgType::FILE) {
     }
 
-    // if (bubble_send != nullptr) {
-    //   item_sender->setupBubbleWidget(bubble_send);
-    //   ui->chatting_record->pushBackItem(item_sender);
-    // }
-
     /*
      * although the messages which are sent will appear on the
-     * chattingstackpage, the message will not be recorded in the
-     * UserAccountManager locally!
+     * chattingstackpage, the message will be marked as local data
      */
-    emit signal_append_chat_data_on_local(
-        info.type, thread_id,
-        UserAccountManager::get_instance()->getCurUserInfo()->m_uuid,
-        m_curFriendIdentity->m_uuid, obj);
+
+    std::shared_ptr<ChattingRecordBase> data = UserChatThread::generatePackage(info.type, obj);
+    emit signal_append_chat_message(thread_id, data);
   }
 
-  /*if there is less data to send*/
+  /* Ensure all data are sended! */
   QJsonObject text_obj;
   text_obj["thread_id"] = thread_id;
   text_obj["text_sender"] = obj["msg_sender"];

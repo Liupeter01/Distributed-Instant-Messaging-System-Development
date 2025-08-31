@@ -40,6 +40,7 @@ public:
    */
   bool isThreadSwitchingNeeded(const QString &target_uuid) const;
   void switchChattingThread(std::shared_ptr<UserChatThread> user_thread);
+  void updateChattingUI(std::shared_ptr<UserChatThread> data);
 
 protected:
   /*flush history and replace them with new one*/
@@ -63,11 +64,8 @@ signals:
    * expose specific chatting data to mainchattingdlg
    * chatting data could be added to the chattingthread
    */
-  void signal_append_chat_data_on_local(MsgType msg_type,
-                                        const QString &thread_id,
-                                        const QString &my_uuid,
-                                        const QString &friend_uuid,
-                                        const QJsonObject &obj);
+  void signal_append_chat_message(const QString& thread_id,
+                                std::shared_ptr<ChattingRecordBase> data);
 
 private slots:
   void on_send_message_clicked();

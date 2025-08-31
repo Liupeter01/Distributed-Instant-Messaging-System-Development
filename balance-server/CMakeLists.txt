@@ -53,5 +53,4 @@ target_compile_definitions(
 if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
   target_sources(LoadBalanceServer PUBLIC ${BACKWARD_ENABLE})
-  add_backward(LoadBalanceServer)
 endif()

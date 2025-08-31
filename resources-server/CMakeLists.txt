@@ -50,8 +50,7 @@ target_link_libraries(ResourcesServer PUBLIC boost_resources grpc++ inicpp
 target_compile_definitions(
   ResourcesServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 
-  if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
-    target_sources( ResourcesServer PUBLIC ${BACKWARD_ENABLE})
-       add_backward(ResourcesServer)
+  target_sources(ResourcesServer PUBLIC ${BACKWARD_ENABLE})
 endif()

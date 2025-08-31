@@ -20,7 +20,7 @@ endif()
 
 if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
-  add_subdirectory(external/backward-cpp)
+  # add_subdirectory(external/backward-cpp)
 endif()
 
 if(NOT MSVC)

@@ -544,9 +544,32 @@ void TCPNetworkConnection::registerCallback() {
 
         } else if (json["error"].toInt() !=
                    static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-          qDebug() << "Send Text Chat Msg failed! Because Of Error Code = "
+          qDebug() << "TEXTCHATMSGRESPONSE failed! Because Of Error Code = "
                    << json["error"].toInt() << '\n';
           return;
+        }
+
+        if (!json["verified_msg"].isArray()) {
+            qDebug() << "SERVICE_TEXTCHATMSGRESPONSE Json Parse Error!";
+            return;
+        }
+
+        auto text_sender = json["text_sender"].toString();
+        auto text_receiver = json["text_receiver"].toString();
+        auto msg_arr = json["verified_msg"].toArray();
+
+        for (const auto &item : msg_arr) {
+
+            if (!item.isObject()) {
+              continue;
+            }
+
+            auto obj = item.toObject();
+            auto thread_id = obj["thread_id"].toString();
+            auto unique_id = obj["unique_id"].toString();
+            auto msg_id = obj["msg_id"].toString();
+
+            emit signal_update_local2verification_status(thread_id, unique_id, msg_id);
         }
       }));
 
@@ -785,18 +808,7 @@ void TCPNetworkConnection::slot_terminate_chatting_server(
   json_obj["uuid"] = uuid;
   json_obj["token"] = token;
 
-  QJsonDocument json_doc(json_obj);
-
-  /*it should be store as a temporary object, because send_buffer will modify
-   * it!*/
-  auto json_data = json_doc.toJson(QJsonDocument::Compact);
-
-  SendNodeType send_buffer(
-      static_cast<uint16_t>(ServiceType::SERVICE_LOGOUTSERVER), json_data,
-      ByteOrderConverterReverse{});
-
-  /*after connection to server, send TCP request*/
-  TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+  emit send_buffer(ServiceType::SERVICE_LOGOUTSERVER, std::move(json_obj));
 }
 
 void TCPNetworkConnection::slot_terminate_resources_server() {

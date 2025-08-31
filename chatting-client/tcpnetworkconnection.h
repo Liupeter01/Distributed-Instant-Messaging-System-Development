@@ -163,6 +163,18 @@ signals:
       std::shared_ptr<UserNameCard>,
       std::vector<std::shared_ptr<FriendingConfirmInfo>> list);
 
+  /**
+   * @brief signal_update_local2verification_status
+   * emit a signal to ChattingDlgMainFrame class to update local msg status
+   * which returns an allocated msg_id to replace local uuid
+   * @param thread_id
+   * @param uuid
+   * @param msg_id
+   */
+  void signal_update_local2verification_status(const QString& thread_id,
+                                                const QString &uuid,
+                                               const QString &msg_id);
+
   /*
    * sender sends chat msg to receiver
    * sender could be a user who is not in the chathistorywidget list

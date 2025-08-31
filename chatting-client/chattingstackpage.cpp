@@ -116,8 +116,8 @@ void ChattingStackPage::switchChattingThread(
   }
 }
 
-void ChattingStackPage::updateChattingUI(std::shared_ptr<UserChatThread> data){
-    setChattingThreadData(data);
+void ChattingStackPage::updateChattingUI(std::shared_ptr<UserChatThread> data) {
+  setChattingThreadData(data);
 }
 
 bool ChattingStackPage::isChatValid(const MsgType type) {
@@ -296,7 +296,8 @@ void ChattingStackPage::on_send_message_clicked() {
      * chattingstackpage, the message will be marked as local data
      */
 
-    std::shared_ptr<ChattingRecordBase> data = UserChatThread::generatePackage(info.type, obj);
+    std::shared_ptr<ChattingRecordBase> data =
+        UserChatThread::generatePackage(info.type, obj);
     emit signal_append_chat_message(thread_id, data);
   }
 

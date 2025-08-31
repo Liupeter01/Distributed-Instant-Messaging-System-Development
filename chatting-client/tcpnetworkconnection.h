@@ -171,8 +171,8 @@ signals:
    * @param uuid
    * @param msg_id
    */
-  void signal_update_local2verification_status(const QString& thread_id,
-                                                const QString &uuid,
+  void signal_update_local2verification_status(const QString &thread_id,
+                                               const QString &uuid,
                                                const QString &msg_id);
 
   /*

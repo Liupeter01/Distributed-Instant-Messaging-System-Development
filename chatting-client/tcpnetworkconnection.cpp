@@ -550,8 +550,8 @@ void TCPNetworkConnection::registerCallback() {
         }
 
         if (!json["verified_msg"].isArray()) {
-            qDebug() << "SERVICE_TEXTCHATMSGRESPONSE Json Parse Error!";
-            return;
+          qDebug() << "SERVICE_TEXTCHATMSGRESPONSE Json Parse Error!";
+          return;
         }
 
         auto text_sender = json["text_sender"].toString();
@@ -560,16 +560,17 @@ void TCPNetworkConnection::registerCallback() {
 
         for (const auto &item : msg_arr) {
 
-            if (!item.isObject()) {
-              continue;
-            }
+          if (!item.isObject()) {
+            continue;
+          }
 
-            auto obj = item.toObject();
-            auto thread_id = obj["thread_id"].toString();
-            auto unique_id = obj["unique_id"].toString();
-            auto msg_id = obj["msg_id"].toString();
+          auto obj = item.toObject();
+          auto thread_id = obj["thread_id"].toString();
+          auto unique_id = obj["unique_id"].toString();
+          auto msg_id = obj["msg_id"].toString();
 
-            emit signal_update_local2verification_status(thread_id, unique_id, msg_id);
+          emit signal_update_local2verification_status(thread_id, unique_id,
+                                                       msg_id);
         }
       }));
 

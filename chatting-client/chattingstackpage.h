@@ -64,8 +64,8 @@ signals:
    * expose specific chatting data to mainchattingdlg
    * chatting data could be added to the chattingthread
    */
-  void signal_append_chat_message(const QString& thread_id,
-                                std::shared_ptr<ChattingRecordBase> data);
+  void signal_append_chat_message(const QString &thread_id,
+                                  std::shared_ptr<ChattingRecordBase> data);
 
 private slots:
   void on_send_message_clicked();

@@ -404,25 +404,27 @@ public:
   }
 
   [[nodiscard]]
-  static std::shared_ptr<ChatType> generatePackage(const MsgType type,
-                  std::shared_ptr<ChattingRecordBase> msg) {
+  static std::shared_ptr<ChatType>
+  generatePackage(const MsgType type, std::shared_ptr<ChattingRecordBase> msg) {
 
-      std::shared_ptr<ChatType> res;
+    std::shared_ptr<ChatType> res;
 
-      if (type == MsgType::TEXT) {
-          if(msg->isOnLocal())
-              res = std::make_shared<ChattingTextMsg>(msg->sender_uuid, msg->receiver_uuid, msg->m_uniqueId,
-                                                      msg->getMsgContent());
+    if (type == MsgType::TEXT) {
+      if (msg->isOnLocal())
+        res = std::make_shared<ChattingTextMsg>(
+            msg->sender_uuid, msg->receiver_uuid, msg->m_uniqueId,
+            msg->getMsgContent());
 
-          else
-              res =std::make_shared<ChattingTextMsg>(msg->sender_uuid, msg->receiver_uuid, msg->unsafe_getMsgID(),
-                                                      msg->getMsgContent());
+      else
+        res = std::make_shared<ChattingTextMsg>(
+            msg->sender_uuid, msg->receiver_uuid, msg->unsafe_getMsgID(),
+            msg->getMsgContent());
 
-      } else if (type == MsgType::AUDIO) {
-      } else if (type == MsgType::IMAGE) {
-      }
+    } else if (type == MsgType::AUDIO) {
+    } else if (type == MsgType::IMAGE) {
+    }
 
-      return res;
+    return res;
   }
 
 private:

@@ -22,28 +22,28 @@ public:
 
 public:
   // if another user has already logined on other server, then force it to quit!
-  virtual ::grpc::Status
+  ::grpc::Status
   ForceTerminateLoginedUser(::grpc::ServerContext *context,
                             const ::message::TerminationRequest *request,
-                            ::message::TerminationResponse *response);
+                            ::message::TerminationResponse *response)  override;
 
   // A send friend request message to another user B
-  virtual ::grpc::Status
+  ::grpc::Status
   SendFriendRequest(::grpc::ServerContext *context,
                     const ::message::FriendRequest *request,
-                    ::message::FriendResponse *response);
+                    ::message::FriendResponse *response)  override;
 
   // User B agreed with user A's friend adding request
-  virtual ::grpc::Status
+   ::grpc::Status
   ConfirmFriendRequest(::grpc::ServerContext *context,
                        const ::message::AuthoriseRequest *request,
-                       ::message::AuthoriseResponse *response);
+                       ::message::AuthoriseResponse *response) override;
 
   // transfer chatting message from user A to B
-  virtual ::grpc::Status
-  SendChattingTextMsg(::grpc::ClientContext *context,
-                      const ::message::ChattingTextMsgRequest *request,
-                      ::message::ChattingTextMsgResponse *response);
+   ::grpc::Status
+            SendChattingTextMsg(::grpc::ServerContext* context, 
+                      const ::message::ChattingTextMsgRequest* request, 
+                      ::message::ChattingTextMsgResponse* response)  override;
 
 private:
 };

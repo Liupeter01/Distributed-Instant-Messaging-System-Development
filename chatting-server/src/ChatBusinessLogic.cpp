@@ -1051,7 +1051,7 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
     return;
   }
 
-  // Inner-server
+  // Inter-server
   boost::json::array updated_arr;
 
   // Unique_id <-> msg_id mapping relation
@@ -1076,22 +1076,22 @@ void SyncLogic::handlingTextChatMsg(ServiceType srv_type,
     boost::json::object mapping;
 
     message::ChattingHistoryData *data_item = grpc_req.add_lists();
-    data_item->set_msg_status(item->status);
     data_item->set_msg_type(static_cast<uint32_t>(item->msg_type));
+    data_item->set_msg_status(item->status);
+    data_item->set_msg_sender(item->msg_sender);
+    data_item->set_msg_receiver(item->msg_receiver);
     data_item->set_msg_id(item->message_id);
     data_item->set_thread_id(item->thread_id);
     data_item->set_unique_id(item->unique_id);
-    data_item->set_msg_sender(item->msg_sender);
-    data_item->set_msg_receiver(item->msg_receiver);
     data_item->set_msg_content(item->msg_content);
 
     obj["msg_type"] = static_cast<uint32_t>(item->msg_type);
     obj["msg_status"] = static_cast<uint32_t>(item->msg_type);
-    obj["thread_id"] = thread_id;
-    obj["unique_id"] = item->unique_id;
-    obj["msg_id"] = item->message_id;
     obj["msg_sender"] = item->msg_sender;
     obj["msg_receiver"] = item->msg_receiver;
+    obj["msg_id"] = item->message_id;
+    obj["thread_id"] = thread_id;
+    obj["unique_id"] = item->unique_id;
     obj["msg_content"] = item->msg_content;
 
     mapping["thread_id"] = thread_id;

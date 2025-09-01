@@ -212,10 +212,10 @@ gRPCDistributedChattingService::sendChattingTextMsg(
 
   // connection stub not found
   if (!stub_op.has_value()) {
-            spdlog::warn("[GRPC {} Service]: Connection Stub Parse Error!",
-                      ServerConfig::get_instance()->GrpcServerName);
-            response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
-            return response;
+    spdlog::warn("[GRPC {} Service]: Connection Stub Parse Error!",
+                 ServerConfig::get_instance()->GrpcServerName);
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+    return response;
   }
 
   grpc::Status status =

@@ -25,25 +25,25 @@ public:
   ::grpc::Status
   ForceTerminateLoginedUser(::grpc::ServerContext *context,
                             const ::message::TerminationRequest *request,
-                            ::message::TerminationResponse *response)  override;
+                            ::message::TerminationResponse *response) override;
 
   // A send friend request message to another user B
   ::grpc::Status
   SendFriendRequest(::grpc::ServerContext *context,
                     const ::message::FriendRequest *request,
-                    ::message::FriendResponse *response)  override;
+                    ::message::FriendResponse *response) override;
 
   // User B agreed with user A's friend adding request
-   ::grpc::Status
+  ::grpc::Status
   ConfirmFriendRequest(::grpc::ServerContext *context,
                        const ::message::AuthoriseRequest *request,
                        ::message::AuthoriseResponse *response) override;
 
   // transfer chatting message from user A to B
-   ::grpc::Status
-            SendChattingTextMsg(::grpc::ServerContext* context, 
-                      const ::message::ChattingTextMsgRequest* request, 
-                      ::message::ChattingTextMsgResponse* response)  override;
+  ::grpc::Status
+  SendChattingTextMsg(::grpc::ServerContext *context,
+                      const ::message::ChattingTextMsgRequest *request,
+                      ::message::ChattingTextMsgResponse *response) override;
 
 private:
 };

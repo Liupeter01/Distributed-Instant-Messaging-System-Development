@@ -168,7 +168,9 @@ grpc::GrpcDistributedChattingImpl::~GrpcDistributedChattingImpl() {}
 
 // transfer chatting message from user A to B
 ::grpc::Status grpc::GrpcDistributedChattingImpl::SendChattingTextMsg(
-          ::grpc::ServerContext* context, const ::message::ChattingTextMsgRequest* request, ::message::ChattingTextMsgResponse* response){
+    ::grpc::ServerContext *context,
+    const ::message::ChattingTextMsgRequest *request,
+    ::message::ChattingTextMsgResponse *response) {
 
   /*
    * try to locate target user id in this server's user management mapping ds

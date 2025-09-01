@@ -2,7 +2,6 @@
 #ifndef _SESSION_HPP_
 #define _SESSION_HPP_
 #include <boost/asio.hpp>
-#include <buffer/ByteOrderConverter.hpp>
 #include <buffer/MsgNode.hpp>
 #include <memory>
 #include <network/def.hpp>

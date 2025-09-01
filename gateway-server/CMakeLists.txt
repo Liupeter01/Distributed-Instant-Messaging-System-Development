@@ -50,8 +50,7 @@ target_link_libraries(GatewayServer PUBLIC boost_gateway grpc++ spdlog inicpp
 target_compile_definitions(
   GatewayServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 
-  if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
-     target_sources(GatewayServer PUBLIC ${BACKWARD_ENABLE})
-          add_backward(GatewayServer)
+  target_sources(GatewayServer PUBLIC ${BACKWARD_ENABLE})
 endif()

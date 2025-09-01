@@ -358,11 +358,6 @@ public:
     return m_recordStorge.dumpAllChatData();
   }
 
-  [[nodiscard]]
-  std::vector<std::shared_ptr<ChatType>> getLocalMessages() const {
-    return m_recordStorge.getLocalMessages();
-  }
-
   bool promoteLocalToVerified(const QString &unique_id, const QString &msg_id) {
     return m_recordStorge.updateVerificationStatus(unique_id, msg_id);
   }

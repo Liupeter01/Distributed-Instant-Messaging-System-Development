@@ -3,11 +3,11 @@ project(DIMSystem_test LANGUAGES CXX C)
 
 include(FetchContent)
 
-if (NOT LIBHPC_BUILD_TESTING)
-    return()
+if(NOT LIBHPC_BUILD_TESTING)
+  return()
 endif()
 
-  FetchContent_Declare(
+FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
 )

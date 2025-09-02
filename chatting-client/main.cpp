@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QString>
+#include "tcpnetworkthread.h"
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
@@ -18,6 +19,9 @@ int main(int argc, char *argv[]) {
   }
 
   MainWindow w;
+
+  //seperated network thread
+  TCPNetworkThread network_th;
   w.show();
   return a.exec();
 }

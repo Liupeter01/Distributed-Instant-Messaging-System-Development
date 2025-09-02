@@ -1,5 +1,6 @@
 #pragma once
 #ifndef _DEF_HPP_
+#include <QObject>
 #include <stdint.h>
 
 enum class ServiceType : uint8_t {
@@ -135,6 +136,9 @@ enum class ServiceStatus : uint8_t {
   FILE_OPEN_ERROR,
   FILE_WRITE_ERROR
 };
+
+Q_DECLARE_METATYPE(ServiceType)
+Q_DECLARE_METATYPE(ServiceStatus)
 
 #define _DEF_HPP_
 #endif

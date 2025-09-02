@@ -16,11 +16,14 @@ if("${CMAKE_BUILD_TYPE}" MATCHES "[Rr]elease")
   set(DIMS_BUILD_TESTING
       OFF
       CACHE BOOL "Disable tests generation" FORCE)
-endif()
-
-if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+else()
   message(STATUS "This is a Debug build.")
-  # add_subdirectory(external/backward-cpp)
+    set(DIMS_BUILD_TESTING
+      ON
+      CACHE BOOL "Disable tests generation" FORCE)
+  enable_testing()
+  add_subdirectory(tests)
+
 endif()
 
 if(NOT MSVC)
@@ -30,6 +33,13 @@ if(NOT MSVC)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
   endif()
+else()
+# Enable MSVC exceptions (as above)
+  message(STATUS "MSVC detected, enabling /EHsc")
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} /EHsc"
+      CACHE STRING "MSVC exception flag" FORCE)
+  add_compile_options(/EHsc)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -73,15 +83,6 @@ set(BOOST_INCLUDE_LIBRARIES
     url
     json)
 
-# Enable MSVC exceptions (as above)
-if(MSVC)
-  message(STATUS "MSVC detected, enabling /EHsc")
-  set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} /EHsc"
-      CACHE STRING "MSVC exception flag" FORCE)
-  add_compile_options(/EHsc)
-endif()
-
 # -----------------------------
 # External Dependencies (FetchContent)
 # -----------------------------
@@ -101,11 +102,6 @@ FetchContent_MakeAvailable(boost gRPC)
 
 set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
-
-if(DIMS_BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(tests)
-endif()
 
 add_library(boost_common INTERFACE)
 target_link_libraries(boost_common INTERFACE Boost::asio Boost::system

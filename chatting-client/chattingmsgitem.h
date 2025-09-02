@@ -9,7 +9,8 @@
 #include <QWidget>
 
 enum class MessageStatus {
-  UNREAD,
+  UNSENT,
+  SENT,
   READ,
   FAILED // message sent error
 };

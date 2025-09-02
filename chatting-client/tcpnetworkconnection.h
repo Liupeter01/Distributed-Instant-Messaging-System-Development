@@ -66,6 +66,7 @@ private:
   void registerSocketSignal();
   void registerCallback();
   void registerErrorHandling();
+  void registerMetaType();
 
 protected:
   void setupChattingDataRetrieveEvent(QTcpSocket &socket, RecvInfo &received,

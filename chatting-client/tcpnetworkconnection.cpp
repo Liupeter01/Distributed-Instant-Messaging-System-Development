@@ -16,6 +16,9 @@ TCPNetworkConnection::TCPNetworkConnection()
       m_resources_buffer(std::make_unique<RecvNodeType>(
           ByteOrderConverter{}, MsgNodeType::MSGNODE_FILE_TRANSFER)) {
 
+  /*register meta type, it should be done BEFORE connect*/
+  registerMetaType();
+
   /*callbacks should be registered at first(before signal)*/
   registerCallback();
 
@@ -61,30 +64,31 @@ void TCPNetworkConnection::registerNetworkEvent() {
 
 void TCPNetworkConnection::registerSocketSignal() {
   /*connected to server successfully*/
-  connect(&m_chatting_server_socket, &QTcpSocket::connected, [this]() {
+  connect(&m_chatting_server_socket, &QTcpSocket::connected, this, [this]() {
     qDebug() << "connected to chatting server successfully";
     emit signal_connection_status(true);
   });
 
-  connect(&m_resources_server_socket, &QTcpSocket::connected, [this]() {
+  connect(&m_resources_server_socket, &QTcpSocket::connected, this, [this]() {
     qDebug() << "connected to resources server successfully";
     emit signal_connection_status(true);
   });
 
   /*server disconnected*/
-  connect(&m_chatting_server_socket, &QTcpSocket::disconnected, [this]() {
+  connect(&m_chatting_server_socket, &QTcpSocket::disconnected, this, [this]() {
     qDebug() << "server chatting disconnected";
 
     emit signal_logout_status(true);
     emit signal_connection_status(false);
   });
 
-  connect(&m_resources_server_socket, &QTcpSocket::disconnected, [this]() {
-    qDebug() << "server resources disconnected";
-    emit signal_connection_status(false);
-  });
+  connect(&m_resources_server_socket, &QTcpSocket::disconnected, this,
+          [this]() {
+            qDebug() << "server resources disconnected";
+            emit signal_connection_status(false);
+          });
 
-  connect(&m_resources_server_socket, &QTcpSocket::bytesWritten,
+  connect(&m_resources_server_socket, &QTcpSocket::bytesWritten, this,
           [this](qint64 bytes) { emit signal_block_send(bytes); });
 
   /*receive data from server*/
@@ -98,7 +102,7 @@ void TCPNetworkConnection::registerErrorHandling() {
   connect(
       &m_chatting_server_socket,
       QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
-      [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
+      this, [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
         qDebug() << "Connection To chatting server Tcp error: "
                  << m_chatting_server_socket.errorString();
         emit signal_connection_status(false);
@@ -108,17 +112,44 @@ void TCPNetworkConnection::registerErrorHandling() {
   connect(
       &m_resources_server_socket,
       QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
-      [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
+      this, [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
         qDebug() << "Connection To resources server Tcp error: "
                  << m_resources_server_socket.errorString();
         emit signal_connection_status(false);
       });
 }
 
+void TCPNetworkConnection::registerMetaType() {
+  qRegisterMetaType<MsgType>("MsgType");
+  qRegisterMetaType<ServiceType>("ServiceType");
+  qRegisterMetaType<ServiceStatus>("ServiceStatus");
+  qRegisterMetaType<UserChatType>("UserChatType");
+  qRegisterMetaType<TargetServer>("TargetServer");
+  qRegisterMetaType<SendNodeType>("SendNodeType");
+  qRegisterMetaType<UserNameCard>("UserNameCard");
+
+  qRegisterMetaType<std::shared_ptr<UserNameCard>>(
+      "std::shared_ptr<UserNameCard>");
+  qRegisterMetaType<std::shared_ptr<ChatMsgPageResult>>(
+      "std::shared_ptr<ChatMsgPageResult>");
+  qRegisterMetaType<std::shared_ptr<ChatThreadPageResult>>(
+      "std::shared_ptr<ChatThreadPageResult>");
+  qRegisterMetaType<std::shared_ptr<ChattingBaseType>>(
+      "std::shared_ptr<ChattingBaseType>");
+  qRegisterMetaType<std::vector<std::shared_ptr<FriendingConfirmInfo>>>(
+      "std::vector<std::shared_ptr<FriendingConfirmInfo>>");
+  qRegisterMetaType<std::optional<std::shared_ptr<UserFriendRequest>>>(
+      "std::optional<std::shared_ptr<UserFriendRequest>>");
+  qRegisterMetaType<std::optional<std::shared_ptr<UserNameCard>>>(
+      "std::optional<std::shared_ptr<UserNameCard>>");
+  qRegisterMetaType<std::shared_ptr<SendNodeType>>(
+      "std::shared_ptr<SendNodeType>");
+}
+
 void TCPNetworkConnection::setupChattingDataRetrieveEvent(
     QTcpSocket &socket, RecvInfo &received, RecvNodeType &buffer) {
 
-  connect(&socket, &QTcpSocket::readyRead,
+  connect(&socket, &QTcpSocket::readyRead, this,
           [&socket, &received, &buffer, this]() {
             while (socket.bytesAvailable() > 0) {
               QByteArray array = socket.readAll(); // Read all available data
@@ -205,85 +236,86 @@ void TCPNetworkConnection::setupChattingDataRetrieveEvent(
 
 void TCPNetworkConnection::setupResourcesDataRetrieveEvent(
     QTcpSocket &socket, RecvInfo &received, RecvNodeType &buffer) {
-  connect(
-      &socket, &QTcpSocket::readyRead, [&socket, &received, &buffer, this]() {
-        while (socket.bytesAvailable() > 0) {
-          QByteArray array = socket.readAll(); // Read all available data
-
-          /*
-           * Ensure the received data is large enough to include the header
-           * if no enough data, then continue waiting
-           */
-          while (array.size() >= buffer.get_header_length()) {
-
-            // Check if we are still receiving the header
-            if (buffer.check_header_remaining()) {
+  connect(&socket, &QTcpSocket::readyRead, this,
+          [&socket, &received, &buffer, this]() {
+            while (socket.bytesAvailable() > 0) {
+              QByteArray array = socket.readAll(); // Read all available data
 
               /*
-               * Take the necessary portion from the array for the header
-               * Insert the header data into the buffer
+               * Ensure the received data is large enough to include the header
+               * if no enough data, then continue waiting
                */
-              buffer._buffer = array.left(buffer.get_header_length());
-              buffer.update_pointer_pos(buffer.get_header_length());
+              while (array.size() >= buffer.get_header_length()) {
 
-              received._id = buffer.get_id().value();
-              received._length = buffer.get_length().value();
+                // Check if we are still receiving the header
+                if (buffer.check_header_remaining()) {
 
-              // Clear the header part from the array
-              array.remove(0, buffer.get_header_length());
+                  /*
+                   * Take the necessary portion from the array for the header
+                   * Insert the header data into the buffer
+                   */
+                  buffer._buffer = array.left(buffer.get_header_length());
+                  buffer.update_pointer_pos(buffer.get_header_length());
+
+                  received._id = buffer.get_id().value();
+                  received._length = buffer.get_length().value();
+
+                  // Clear the header part from the array
+                  array.remove(0, buffer.get_header_length());
+                }
+
+                if (array.size() < received._length) {
+                  return;
+                }
+
+                // If we have remaining data in array, treat it as body
+                if (buffer.check_body_remaining()) {
+
+                  std::memcpy(buffer.get_body_base(), array.data(),
+                              received._length);
+
+                  buffer.update_pointer_pos(received._length);
+
+                  /*
+                   * Clear the body part from the array
+                   * Maybe there are some other data inside
+                   */
+                  array.remove(0, received._length);
+                }
+              }
+
+              // Now, both the header and body are fully received
+              received._msg = buffer.get_msg_body().value();
+
+              // Debug output to show the received message
+              // qDebug() << "msg_id = " << received._id << "\n"
+              //          << "msg_length = " << received._length << "\n"
+              //          << "msg_data = " << received._msg << "\n";
+
+              // Clear the buffer for the next message
+              buffer.clear();
+
+              /*parse it as json*/
+              QJsonDocument json_obj = QJsonDocument::fromJson(received._msg);
+              if (json_obj.isNull()) { // converting failed
+                // journal log system
+                qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
+                emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
+                return;
+              }
+
+              if (!json_obj.isObject()) {
+                // journal log system
+                qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
+                emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
+                return;
+              }
+
+              /*forward resources server's message to a standlone logic thread*/
+              emit signal_resources_logic_handler(received._id,
+                                                  json_obj.object());
             }
-
-            if (array.size() < received._length) {
-              return;
-            }
-
-            // If we have remaining data in array, treat it as body
-            if (buffer.check_body_remaining()) {
-
-              std::memcpy(buffer.get_body_base(), array.data(),
-                          received._length);
-
-              buffer.update_pointer_pos(received._length);
-
-              /*
-               * Clear the body part from the array
-               * Maybe there are some other data inside
-               */
-              array.remove(0, received._length);
-            }
-          }
-
-          // Now, both the header and body are fully received
-          received._msg = buffer.get_msg_body().value();
-
-          // Debug output to show the received message
-          // qDebug() << "msg_id = " << received._id << "\n"
-          //          << "msg_length = " << received._length << "\n"
-          //          << "msg_data = " << received._msg << "\n";
-
-          // Clear the buffer for the next message
-          buffer.clear();
-
-          /*parse it as json*/
-          QJsonDocument json_obj = QJsonDocument::fromJson(received._msg);
-          if (json_obj.isNull()) { // converting failed
-            // journal log system
-            qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
-            emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
-            return;
-          }
-
-          if (!json_obj.isObject()) {
-            // journal log system
-            qDebug() << __FILE__ << "[FATAL ERROR]: json object is null!\n";
-            emit signal_login_failed(ServiceStatus::JSONPARSE_ERROR);
-            return;
-          }
-
-          /*forward resources server's message to a standlone logic thread*/
-          emit signal_resources_logic_handler(received._id, json_obj.object());
-        }
-      });
+          });
 }
 
 void TCPNetworkConnection::registerCallback() {
@@ -809,7 +841,7 @@ void TCPNetworkConnection::slot_terminate_chatting_server(
   json_obj["uuid"] = uuid;
   json_obj["token"] = token;
 
-  emit send_buffer(ServiceType::SERVICE_LOGOUTSERVER, std::move(json_obj));
+  send_buffer(ServiceType::SERVICE_LOGOUTSERVER, std::move(json_obj));
 }
 
 void TCPNetworkConnection::slot_terminate_resources_server() {
@@ -834,17 +866,6 @@ void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
     m_chatting_server_socket.write(data->get_buffer());
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data->get_buffer());
-  }
-}
-
-void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
-
-  // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-  // No flush, it might causing buffer full!!!!!!!!!
-  if (tar == TargetServer::CHATTINGSERVER) {
-    m_chatting_server_socket.write(data.get_buffer());
-  } else if (tar == TargetServer::RESOURCESSERVER) {
-    m_resources_server_socket.write(data.get_buffer());
   }
 }
 

@@ -1,15 +1,15 @@
 #include "tcpnetworkconnection.h"
-#include "UserFriendRequest.hpp"
-#include "UserNameCard.h"
 #include "useraccountmanager.hpp"
-#include <ChattingHistory.hpp>
 #include <QDataStream>
 #include <QDebug>
 #include <QJsonDocument>
+#include <UserDef.hpp>
 #include <logicmethod.h>
+#include <magic_enum.hpp>
 #include <msgtextedit.h>
 #include <qjsonarray.h>
 #include <resourcestoragemanager.h>
+#include <tools.h>
 
 TCPNetworkConnection::TCPNetworkConnection()
     : m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
@@ -467,7 +467,6 @@ void TCPNetworkConnection::registerCallback() {
         /*error occured!*/
         if (!json.contains("error")) {
           qDebug() << "Json Parse Error!";
-          emit signal_add_authenticate_friend(std::nullopt);
           return;
 
         } else if (json["error"].toInt() !=
@@ -475,10 +474,15 @@ void TCPNetworkConnection::registerCallback() {
           qDebug()
               << "Friending On biddirectional failed! Because Of Error Code = "
               << json["error"].toInt() << '\n';
-          emit signal_add_authenticate_friend(std::nullopt);
           return;
 
         } else {
+
+          if (!json["hello_msg"].isArray()) {
+            qDebug() << "Try to parse hello_msg failed!";
+            return;
+          }
+
           auto uuid = json["friend_uuid"].toString();
           auto username = json["friend_username"].toString();
           auto nickname = json["friend_nickname"].toString();
@@ -486,18 +490,48 @@ void TCPNetworkConnection::registerCallback() {
           auto description = json["friend_desc"].toString();
           auto sex = static_cast<Sex>(json["friend_sex"].toInt());
 
+          auto thread_id = json["thread_id"].toString();
+          auto hello_msg_arr = json["hello_msg"].toArray();
+
+          auto chat_type =
+              (json["chat_type"].toString() == "PRIVATE" ? UserChatType::PRIVATE
+                                                         : UserChatType::GROUP);
+
+          std::vector<std::shared_ptr<FriendingConfirmInfo>> list;
+          for (const auto &item : hello_msg_arr) {
+            if (!item.isObject()) {
+              continue;
+            }
+
+            auto obj = item.toObject();
+            auto msg_id = obj["msg_id"].toString();
+            auto message_sender = obj["msg_sender"].toString();
+            auto message_receiver = obj["msg_receiver"].toString();
+            auto msg_content = obj["msg_content"].toString();
+            auto msg_type = static_cast<MsgType>(obj["msg_type"].toInt());
+
+            list.push_back(std::make_shared<FriendingConfirmInfo>(
+                msg_type, thread_id, msg_id, message_sender, message_receiver,
+                msg_content));
+          }
+
           qDebug() << "Retrieve Data From Server of uuid = " << uuid << ":"
                    << "username = " << username << '\n'
                    << "nickname = " << nickname << '\n'
                    << "avator = " << avator << '\n'
                    << "description = " << description << '\n';
 
-          auto card = std::make_shared<UserNameCard>(
+          auto namecard = std::make_shared<UserNameCard>(
               uuid, avator, username, nickname, description, sex);
 
-          /*add it to list in advance for user identity validation*/
-          UserAccountManager::get_instance()->addItem2List(card);
-          emit signal_add_authenticate_friend(card);
+          /*
+           * emit a signal to attach auth-friend messages to chatting history
+           * This is the first offical chatting record,
+           * so during this phase, "thread_id" will be dstributed to this
+           * chatting thread!
+           */
+          emit signal_add_auth_friend_init_chatting_thread(chat_type, thread_id,
+                                                           namecard, list);
         }
       }));
 
@@ -510,9 +544,33 @@ void TCPNetworkConnection::registerCallback() {
 
         } else if (json["error"].toInt() !=
                    static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-          qDebug() << "Send Text Chat Msg failed! Because Of Error Code = "
+          qDebug() << "TEXTCHATMSGRESPONSE failed! Because Of Error Code = "
                    << json["error"].toInt() << '\n';
           return;
+        }
+
+        if (!json["verified_msg"].isArray()) {
+          qDebug() << "SERVICE_TEXTCHATMSGRESPONSE Json Parse Error!";
+          return;
+        }
+
+        auto text_sender = json["text_sender"].toString();
+        auto text_receiver = json["text_receiver"].toString();
+        auto msg_arr = json["verified_msg"].toArray();
+
+        for (const auto &item : msg_arr) {
+
+          if (!item.isObject()) {
+            continue;
+          }
+
+          auto obj = item.toObject();
+          auto thread_id = obj["thread_id"].toString();
+          auto unique_id = obj["unique_id"].toString();
+          auto msg_id = obj["msg_id"].toString();
+
+          emit signal_update_local2verification_status(thread_id, unique_id,
+                                                       msg_id);
         }
       }));
 
@@ -521,33 +579,50 @@ void TCPNetworkConnection::registerCallback() {
       [this](QJsonObject &&json) {
         /*error occured!*/
         if (!json.contains("error")) {
-          qDebug() << "Json Parse Error!";
+          qDebug() << "SERVICE_TEXTCHATMSGICOMINGREQUEST Json Parse Error!";
 
-          emit signal_incoming_text_msg(MsgType::TEXT, std::nullopt);
           return;
 
         } else if (json["error"].toInt() !=
                    static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-          qDebug() << "Receive Incoming Text Chat Msg failed! Because Of Error "
+          qDebug() << "SERVICE_TEXTCHATMSGICOMINGREQUEST"
+                      "Receive Incoming Text Chat Msg failed! Because Of Error "
                       "Code = "
                    << json["error"].toInt() << '\n';
 
-          emit signal_incoming_text_msg(MsgType::TEXT, std::nullopt);
           return;
 
         } else {
+          if (!json["text_msg"].isArray()) {
+            qDebug() << "SERVICE_TEXTCHATMSGICOMINGREQUEST Json Parse Error!";
+            return;
+          }
+
           auto text_sender = json["text_sender"].toString();
           auto text_receiver = json["text_receiver"].toString();
-          auto text_msg = json["text_msg"].toArray();
+          auto msg_arr = json["text_msg"].toArray();
 
-          qDebug() << "Retrieve Text Msg Data From Server of: "
-                   << "src_uuid = " << text_sender << '\n'
-                   << "dst_uuid = " << text_receiver << '\n'
-                   << "text_msg = " << text_msg;
+          for (const auto &item : msg_arr) {
 
-          emit signal_incoming_text_msg(
-              MsgType::TEXT, std::make_shared<ChattingTextMsg>(
-                                 text_sender, text_receiver, text_msg));
+            if (!item.isObject()) {
+              continue;
+            }
+
+            auto obj = item.toObject();
+
+            [[maybe_unused]] auto msg_sender = obj["msg_sender"].toString();
+            [[maybe_unused]] auto msg_receiver = obj["msg_receiver"].toString();
+            auto thread_id = obj["thread_id"].toString();
+            auto unique_id = obj["unique_id"].toString();
+            auto msg_id = obj["msg_id"].toString();
+            auto msg_content = obj["msg_content"].toString();
+
+            auto data = std::make_shared<ChattingTextMsg>(
+                text_sender, text_receiver, unique_id, msg_content);
+            data->setMsgID(msg_id);
+
+            emit signal_incoming_msg(MsgType::TEXT, data);
+          }
         }
       }));
 
@@ -563,6 +638,138 @@ void TCPNetworkConnection::registerCallback() {
           qDebug() << "HeartBeat Return value Error!";
           return;
         }
+      }));
+
+  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
+      ServiceType::SERVICE_PULLCHATTHREADRESPONSE, [this](QJsonObject &&json) {
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Pull Chatting Threads Return Error!";
+          return;
+        }
+
+        if (!json["threads"].isArray()) {
+          qDebug() << "Threads Array Error!";
+          return;
+        }
+
+        // any more data?
+        [[maybe_unused]] auto status = json["is_complete"].toBool();
+
+        // if so, whats the next thread_id we are going to use in next round
+        // query!
+        [[maybe_unused]] auto next_thread_id =
+            json["next_thread_id"].toString();
+
+        auto thread_info = std::move(json["threads"].toArray());
+
+        std::vector<std::unique_ptr<ChatThreadMeta>> lists;
+        for (const auto &item : thread_info) {
+          if (!item.isObject()) {
+            continue;
+          }
+
+          auto info = item.toObject();
+
+          auto type = info["type"].toString();
+
+          if (type == "GROUP") {
+            auto group_item = std::make_unique<ChatThreadMeta>(
+                info["thread_id"].toString().toStdString(),
+                UserChatType::GROUP);
+
+            lists.push_back(std::move(group_item));
+          } else if (type == "PRIVATE") {
+            auto private_item = std::make_unique<ChatThreadMeta>(
+                info["thread_id"].toString().toStdString(),
+                UserChatType::PRIVATE,
+                info["user1_uuid"].toString().toStdString(),
+                info["user2_uuid"].toString().toStdString());
+
+            lists.push_back(std::move(private_item));
+          }
+        }
+
+        emit signal_update_chat_thread(std::make_shared<ChatThreadPageResult>(
+            status, next_thread_id, std::move(lists)));
+      }));
+
+  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
+      ServiceType::SERVICE_PULLCHATRECORDRESPONSE, [this](QJsonObject &&json) {
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Pull Chatting Threads Return Error!";
+          return;
+        }
+        if (!json["chat_messages"].isArray()) {
+          qDebug() << "Threads Array Error!";
+          return;
+        }
+
+        auto thread_id = json["thread_id"].toString();
+        auto next_msg_id = json["next_msg_id"].toString();
+        bool is_complete = json["is_complete"].toBool();
+        auto msg_arr = std::move(json["chat_messages"].toArray());
+        std::vector<std::shared_ptr<ChattingRecordBase>> lists;
+        for (const auto &item : msg_arr) {
+          if (!item.isObject()) {
+            continue;
+          }
+
+          auto obj = item.toObject();
+
+          [[maybe_unused]] auto msg_sender = obj["msg_sender"].toString();
+          [[maybe_unused]] auto msg_receiver = obj["msg_receiver"].toString();
+          auto msg_type = static_cast<MsgType>(obj["msg_type"].toInt());
+          [[maybe_unused]] auto thread_id = obj["thread_id"].toString();
+          [[maybe_unused]] auto status = obj["status"].toInt();
+          auto msg_id = obj["msg_id"].toString();
+          auto msg_content = obj["msg_content"].toString();
+          // auto timestamp = obj["timestamp"].toString();
+          if (msg_type == MsgType::TEXT) {
+            auto ptr = std::make_shared<ChattingTextMsg>(
+                msg_sender, msg_receiver, msg_content);
+
+            ptr->setMsgID(msg_id);
+
+            lists.push_back(ptr);
+          } else if (msg_type == MsgType::IMAGE) {
+          }
+        }
+
+        emit signal_update_chat_msg(std::make_shared<ChatMsgPageResult>(
+            is_complete, thread_id, next_msg_id, std::move(lists)));
+      }));
+
+  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
+      ServiceType::SERVICE_CREATENEWPRIVATECHAT_RESPONSE,
+      [this](QJsonObject &&json) {
+        /*error occured!*/
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "Create New Private Chat Return Error!";
+          return;
+        }
+
+        [[maybe_unused]] auto my_uuid = json["my_uuid"].toString();
+        [[maybe_unused]] auto friend_uuid = json["friend_uuid"].toString();
+        [[maybe_unused]] auto thread_id = json["thread_id"].toString();
+
+        emit signal_create_private_chat(my_uuid, friend_uuid, thread_id);
       }));
 }
 
@@ -602,18 +809,7 @@ void TCPNetworkConnection::slot_terminate_chatting_server(
   json_obj["uuid"] = uuid;
   json_obj["token"] = token;
 
-  QJsonDocument json_doc(json_obj);
-
-  /*it should be store as a temporary object, because send_buffer will modify
-   * it!*/
-  auto json_data = json_doc.toJson(QJsonDocument::Compact);
-
-  SendNodeType send_buffer(
-      static_cast<uint16_t>(ServiceType::SERVICE_LOGOUTSERVER), json_data,
-      ByteOrderConverterReverse{});
-
-  /*after connection to server, send TCP request*/
-  TCPNetworkConnection::get_instance()->send_data(std::move(send_buffer));
+  emit send_buffer(ServiceType::SERVICE_LOGOUTSERVER, std::move(json_obj));
 }
 
 void TCPNetworkConnection::slot_terminate_resources_server() {
@@ -632,44 +828,36 @@ void TCPNetworkConnection::terminate_chatting_server() {
 
 void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
                                              TargetServer tar) {
+  // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+  // No flush, it might causing buffer full!!!!!!!!!
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data->get_buffer());
-    // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-    // No flush, it might causing buffer full!!!!!!!!!
-    // m_resources_server_socket.flush();
-
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data->get_buffer());
-    // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-    // No flush, it might causing buffer full!!!!!!!!!
-    // m_resources_server_socket.flush();
-
-    /*return file transmission status*/
-    // emit signal_block_send(data->get_buffer().size());
   }
 }
 
 void TCPNetworkConnection::send_data(SendNodeType &&data, TargetServer tar) {
 
+  // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
+  // No flush, it might causing buffer full!!!!!!!!!
   if (tar == TargetServer::CHATTINGSERVER) {
     m_chatting_server_socket.write(data.get_buffer());
-
-    // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-    // No flush, it might causing buffer full!!!!!!!!!
-    // m_resources_server_socket.flush();
   } else if (tar == TargetServer::RESOURCESSERVER) {
     m_resources_server_socket.write(data.get_buffer());
-
-    // Oh, No!!!!!!!!!!!!!!!!!!!!!!!
-    // No flush, it might causing buffer full!!!!!!!!!
-    // m_resources_server_socket.flush();
   }
 }
 
-/*Send signals to a unified slot function for processing,
- * implementing a queue mechanism and ensuring thread safety.
- */
-void TCPNetworkConnection::send_sequential_data_f(
-    std::shared_ptr<SendNodeType> data, TargetServer tar) {
-  emit signal_send_message(data, tar);
+void TCPNetworkConnection::send_buffer(ServiceType type, QJsonObject &&obj) {
+
+  QJsonDocument doc(std::move(obj));
+  auto byte = doc.toJson(QJsonDocument::Compact);
+
+  /*it should be store as a temporary object, because send_buffer will modify
+   * it!*/
+  auto buffer = std::make_shared<SendNodeType>(
+      static_cast<uint16_t>(type), byte, ByteOrderConverterReverse{});
+
+  /*after connection to server, send TCP request*/
+  emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
 }

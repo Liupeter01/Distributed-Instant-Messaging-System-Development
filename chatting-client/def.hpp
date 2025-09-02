@@ -20,6 +20,17 @@ enum class ServiceType : uint8_t {
   SERVICE_SEARCHUSERNAME,         // client search another user's username
   SERVICE_SEARCHUSERNAMERESPONSE, //
 
+  SERVICE_PULLCHATTHREAD, // pull chat threads, which are the index of chat
+                          // record
+  SERVICE_PULLCHATTHREADRESPONSE,
+
+  SERVICE_PULLCHATRECORD,         // user use uuid to pull chat record
+  SERVICE_PULLCHATRECORDRESPONSE, //
+
+  SERVICE_CREATENEWPRIVATECHAT, // when user start init chat with others, the
+                                // data with sync to the server
+  SERVICE_CREATENEWPRIVATECHAT_RESPONSE, // allocate a thread_id
+
   /*
    * User A init a friending request to User B
    * However this message will only be received by Server Directly
@@ -41,11 +52,11 @@ enum class ServiceType : uint8_t {
   SERVICE_FRIENDREQUESTCONFIRM,
 
   /*If the forwarding successful, then send SERVICE_FRIENDSENDERRESPONSE to User
-   B*/
+ B*/
   SERVICE_FRIENDCONFIRMRESPONSE,
 
   /*if the friending process success, then both src_uuid and dst_uuid could
-   receive this*/
+ receive this*/
   SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
 
   /*User send text chat msg request*/
@@ -99,7 +110,22 @@ enum class ServiceStatus : uint8_t {
   LOGOUT_UNSUCCESSFUL,      // common logout uncessfully reason, due to internel
   // error
   SEARCHING_USERNAME_NOT_FOUND, // client search another user's username not
-  // found
+
+  CHATTHREAD_NOT_EXIST, // chat thread
+  CHATTHREAD_PARSE_ERROR,
+
+  CHATRECORD_NOT_EXIST, // chat record not exist
+  CHATRECORD_PARSE_ERROR,
+
+  CREATE_PRIVATE_CHAT_FAILED,
+  CREATE_PRIVATE_CHAT_USER_NOT_EXIST,
+  CREATE_PRIVATE_CHAT_INVALID_USER_UUID,
+  CREATE_PRIVATE_CHAT_ID_GENERATE_FAILED,
+
+  CREATE_GROUP_CHAT_FAILED,
+  CREATE_GROUP_CHAT_USER_NOT_EXIST,
+  CREATE_GROUP_CHAT_INVALID_ID,
+
   FRIENDING_YOURSELF,              // user should not friending itself
   FRIENDING_ERROR,                 // friending error
   FRIENDING_TARGET_USER_NOT_FOUND, // target user not found

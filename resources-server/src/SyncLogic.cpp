@@ -66,7 +66,7 @@ void SyncLogic::generateErrorMessage(const std::string &log, ServiceType type,
   boost::json::object obj;
   obj["error"] = static_cast<uint8_t>(status);
   spdlog::error(log);
-  conn->sendMessage(type, boost::json::serialize(obj));
+  conn->sendMessage(type, boost::json::serialize(obj), conn);
 }
 
 void SyncLogic::processing() {
@@ -182,7 +182,7 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
 
   /*send it back*/
   session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                       boost::json::serialize(result));
+                       boost::json::serialize(result), session);
 }
 
 void SyncLogic::handlingLogout(ServiceType srv_type,
@@ -361,7 +361,7 @@ void SyncLogic::handlingFileUploading(ServiceType srv_type,
   /*End Of File*/
   dst_root["EOF"] = isEOF ? true : false;
   session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                       boost::json::serialize(dst_root));
+                       boost::json::serialize(dst_root), session);
 }
 
 /*

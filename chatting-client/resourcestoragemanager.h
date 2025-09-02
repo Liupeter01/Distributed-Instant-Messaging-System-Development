@@ -2,7 +2,7 @@
 #define RESOURCESTORAGEMANAGER_H
 #include "singleton.hpp"
 #include <QString>
-#include <UserNameCard.h>
+#include <UserDef.hpp>
 
 class ResourceStorageManager : public Singleton<ResourceStorageManager> {
   friend class Singleton<ResourceStorageManager>;

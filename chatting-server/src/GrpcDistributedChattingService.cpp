@@ -144,10 +144,10 @@ message::FriendResponse gRPCDistributedChattingService::sendFriendRequest(
   return response;
 }
 
-message::FriendResponse gRPCDistributedChattingService::confirmFriendRequest(
-    const std::string &server_name, const message::FriendRequest &req) {
+message::AuthoriseResponse gRPCDistributedChattingService::confirmFriendRequest(
+    const std::string &server_name, const message::AuthoriseRequest &req) {
   grpc::ClientContext context;
-  message::FriendResponse response;
+  message::AuthoriseResponse response;
 
   response.set_error(static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS));
 
@@ -209,6 +209,14 @@ gRPCDistributedChattingService::sendChattingTextMsg(
 
   /*get one connection stub from connection pool*/
   auto stub_op = server_op.value()->acquire_stub();
+
+  // connection stub not found
+  if (!stub_op.has_value()) {
+    spdlog::warn("[GRPC {} Service]: Connection Stub Parse Error!",
+                 ServerConfig::get_instance()->GrpcServerName);
+    response.set_error(static_cast<int32_t>(ServiceStatus::GRPC_ERROR));
+    return response;
+  }
 
   grpc::Status status =
       stub_op.value().get()->SendChattingTextMsg(&context, req, &response);

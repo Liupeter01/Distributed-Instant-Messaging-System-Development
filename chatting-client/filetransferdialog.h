@@ -1,7 +1,6 @@
 #ifndef FILETRANSFERDIALOG_H
 #define FILETRANSFERDIALOG_H
 
-#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
 #include <QByteArray>
 #include <QDialog>

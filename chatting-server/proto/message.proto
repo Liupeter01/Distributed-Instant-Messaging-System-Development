@@ -55,32 +55,27 @@ message PeerResponse {
 /*prepared for distributed chatting service*/
 service DistributedChattingService {
 
-//if another user has already logined on other server, then force it to quit!
-rpc ForceTerminateLoginedUser(TerminationRequest) returns(TerminationResponse) {}
+  // if another user has already logined on other server, then force it to quit!
+  rpc ForceTerminateLoginedUser(TerminationRequest)
+      returns (TerminationResponse) {}
 
   // A send friend request message to another user B
   rpc SendFriendRequest(FriendRequest) returns (FriendResponse) {}
 
   // User B agreed with user A's friend adding request
-  rpc ConfirmFriendRequest(FriendRequest) returns (FriendResponse) {}
-
-  // Verify that B is still A's friend:
-  rpc FriendshipVerification(AuthoriseRequest) returns (AuthoriseResponse) {}
+  rpc ConfirmFriendRequest(AuthoriseRequest) returns (AuthoriseResponse) {}
 
   // transfer chatting message from user A to B
   rpc SendChattingTextMsg(ChattingTextMsgRequest)
       returns (ChattingTextMsgResponse) {}
 }
 
-message TerminationRequest{
-          int32 kick_uuid = 1;
-}
+message TerminationRequest { int32 kick_uuid = 1; }
 
-message TerminationResponse{
-            int32 error = 1;
-            int32 kick_uuid = 2;
+message TerminationResponse {
+  int32 error = 1;
+  int32 kick_uuid = 2;
 }
-
 
 /*
  * A send friend request message to another user B and
@@ -103,6 +98,15 @@ message FriendResponse {
   int32 dst_uuid = 3; // target
 }
 
+/*Generate A system hello message if other user agreed*/
+message AuthoriseMessage {
+  int32 msg_type = 1;
+  string msg_id = 2;
+  string msg_sender = 3;
+  string msg_receiver = 4;
+  string hello_msg = 5;
+}
+
 /*
  * 1. User B agreed with user A's friend adding request:
  *         when another user B agreed, then send an Authorise message back
@@ -113,32 +117,39 @@ message FriendResponse {
  * we still need src/dst_uuid to verify sender's' and receiver's' identiy
  */
 message AuthoriseRequest {
-  int32 src_uuid = 1; // request from who
-  int32 dst_uuid = 2; // target
+  string src_uuid = 1;  // request from who
+  string dst_uuid = 2;  // target
+  string thread_id = 3; // thread_id
+  repeated FriendRequest user_info = 4;
+  repeated AuthoriseMessage msg_pack = 5; // send message array
 }
 
 message AuthoriseResponse {
   int32 error = 1;
-  int32 src_uuid = 2; // request from who
-  int32 dst_uuid = 3; // target
+  string src_uuid = 2; // request from who
+  string dst_uuid = 3; // target
 }
 
 message ChattingHistoryData {
-  string msg_sender = 1;
-  string msg_receiver = 2;
-  string msg_id = 3;
-  string msg_content = 4;
+          int32 msg_type = 1;
+          int32 msg_status = 2;
+  string msg_sender = 3;
+  string msg_receiver = 4;
+  string msg_id = 5;
+  string thread_id = 6;
+  string unique_id = 7;
+  string msg_content = 8;
 }
 
 /*we still need src/dst_uuid to verify sender's' and receiver's' identiy*/
 message ChattingTextMsgRequest {
-  int32 src_uuid = 1;                     // request from who
-  int32 dst_uuid = 2;                     // target
+  string src_uuid = 1;                    // request from who
+  string dst_uuid = 2;                    // target
   repeated ChattingHistoryData lists = 3; // send message array
 }
 
 message ChattingTextMsgResponse {
   int32 error = 1;
-  int32 src_uuid = 2; // request from who
-  int32 dst_uuid = 3; // target
+  string src_uuid = 2; // request from who
+  string dst_uuid = 3; // target
 }

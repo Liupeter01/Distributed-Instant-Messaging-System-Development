@@ -15,11 +15,21 @@ public:
 
 public:
   void startAccept();
+  void startTimer();
+  void stopTimer();
+  void shutdown();
 
-private:
+protected:
+          // waiting to be closed
+          void moveUserToTerminationZone(const std::string& user_uuid);
   void terminateConnection(const std::string &user_uuid);
+  void terminateConnection(const std::string& user_uuid,
+            const std::string& expected_session_id);
   void handleAccept(std::shared_ptr<Session> session,
                     boost::system::error_code ec);
+
+private:
+          void heartBeatEvent(const boost::system::error_code& ec);
 
 private:
   /*boost io_context*/
@@ -27,6 +37,9 @@ private:
 
   /*create a server acceptor to accept connection*/
   boost::asio::ip::tcp::acceptor m_acceptor;
+
+  /*timer & clock*/
+  boost::asio::steady_timer m_timer;
 };
 
 #endif

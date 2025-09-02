@@ -45,13 +45,6 @@ private slots:
   /*server be able to send authenticate friend list to this client*/
   void slot_init_auth_friend_list();
 
-  /*
-   * another user send friend request to this user
-   * and this user is about to confirm/deny the request
-   */
-  void slot_add_authenticate_friend(
-      std::optional<std::shared_ptr<UserNameCard>> info);
-
 private:
   /*define how many contact are going to show up on contact list*/
   static std::size_t CONTACT_PER_PAGE;

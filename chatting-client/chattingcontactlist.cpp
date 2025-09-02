@@ -45,17 +45,6 @@ void ChattingContactList::registerSignal() {
   connect(TCPNetworkConnection::get_instance().get(),
           &TCPNetworkConnection::signal_init_auth_friend_list, this,
           &ChattingContactList::slot_init_auth_friend_list);
-
-  /*
-   * Create a signal<->slot for processing authenticate friend namecard info
-   * 1.recieve authenticate friend list from server, then create multiple
-   * chatting history widgets 1.recieve signal authenticate friend, then create
-   * a chatting history widget
-   * TCPNetworkConnection::signal_add_authenticate_friend
-   */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_add_authenticate_friend, this,
-          &ChattingContactList::slot_add_authenticate_friend);
 }
 
 void ChattingContactList::addAddUserWidget() {
@@ -167,30 +156,4 @@ void ChattingContactList::loadLimitedContactsList() {
 void ChattingContactList::slot_init_auth_friend_list() {
 
   loadLimitedContactsList();
-}
-
-/*
- * another user send friend request to this user
- * and this user is about to confirm/deny the request
- */
-void ChattingContactList::slot_add_authenticate_friend(
-    std::optional<std::shared_ptr<UserNameCard>> info) {
-  if (info.has_value()) {
-    auto auth_user = info.value();
-    /*check is this uuid exist in auth friend list*/
-    if (!UserAccountManager::get_instance()->alreadyExistInAuthList(
-            auth_user->m_uuid)) {
-      qDebug() << auth_user->m_uuid
-               << " already been added to the auth friend list";
-      return;
-    }
-
-    /*add it to user account manager*/
-    UserAccountManager::get_instance()->addItem2List(auth_user);
-  }
-
-  /*if there is nothing loaded perviously!!*/
-  if (!m_curr_contact_person_loaded) {
-    loadLimitedContactsList();
-  }
 }

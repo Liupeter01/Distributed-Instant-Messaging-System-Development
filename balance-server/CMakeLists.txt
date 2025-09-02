@@ -50,8 +50,7 @@ target_link_libraries(LoadBalanceServer PUBLIC boost_balance grpc++ inicpp
 target_compile_definitions(
   LoadBalanceServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 
-  if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
-    target_sources(LoadBalanceServer  PUBLIC ${BACKWARD_ENABLE})
-    add_backward(LoadBalanceServer)
+  target_sources(LoadBalanceServer PUBLIC ${BACKWARD_ENABLE})
 endif()

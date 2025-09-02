@@ -7,11 +7,10 @@
 #include <memory>
 #include <vector>
 /*store user info*/
-#include "UserNameCard.h"
 #include "onceclickableqlabel.h"
 #include "usertagwidget.h"
-#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
+#include <UserDef.hpp>
 
 namespace Ui {
 class AuthenticateNewFriendRequestDialog;

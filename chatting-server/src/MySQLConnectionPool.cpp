@@ -21,21 +21,28 @@ mysql::MySQLConnectionPool::MySQLConnectionPool(
     const std::string &host, const std::string &port) noexcept
     : m_timeout(timeOut), m_username(username), m_password(password),
       m_database(database), m_host(host), m_port(port) {
+
   registerSQLStatement();
 
   for (std::size_t i = 0; i < m_queue_size; ++i) {
-    m_stub_queue.push(std::move(std::make_unique<mysql::MySQLConnection>(
-        username, password, database, host, port, this)));
+    [[maybe_unused]] bool res =
+        connector(username, password, database, host, port);
   }
 
   m_RRThread = std::thread([this]() {
-    while (!m_stop) {
-      spdlog::info("[HeartBeat Check]: Timeout Setting {}s", m_timeout);
+    thread_local std::size_t counter{0};
+    spdlog::info("[HeartBeat Check]: Timeout Setting {}s", m_timeout);
 
-      roundRobinChecking();
+    while (m_stop) {
+
+      if (counter == m_timeout) {
+        roundRobinChecking();
+        counter = 0; // reset
+      }
 
       /*suspend this thread by timeout setting*/
-      std::this_thread::sleep_for(std::chrono::seconds(m_timeout));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      counter++;
     }
   });
   m_RRThread.detach();
@@ -45,6 +52,15 @@ mysql::MySQLConnectionPool::~MySQLConnectionPool() {}
 
 void mysql::MySQLConnectionPool::registerSQLStatement() {
   m_sql.insert(std::pair(MySQLSelection::HEART_BEAT, fmt::format("SELECT 1")));
+
+  /*Transaction Control*/
+  m_sql.insert(std::pair(MySQLSelection::START_TRANSACTION,
+                         fmt::format("START TRANSACTION")));
+  m_sql.insert(
+      std::pair(MySQLSelection::COMMIT_TRANSACTION, fmt::format("COMMIT")));
+  m_sql.insert(
+      std::pair(MySQLSelection::ROLLBACK_TRANSACTION, fmt::format("ROLLBACK")));
+
   m_sql.insert(std::pair(
       MySQLSelection::FIND_EXISTING_USER,
       fmt::format("SELECT * FROM Authentication WHERE {} = ? AND {} = ?",
@@ -121,6 +137,15 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
           std::string("FriendRequest.id"), std::string("FriendRequest.id"))));
 
   m_sql.insert(std::pair(
+      MySQLSelection::CHECK_FRIEND_REQUEST_LIST_WITH_LOCK,
+      fmt::format("SELECT {}, {}, {} FROM {} "
+                  "WHERE {} = ? AND {} = ? "
+                  "FOR UPDATE",
+                  std::string("id"), std::string("nickname"),
+                  std::string("message"), std::string("FriendRequest"),
+                  std::string("src_uuid "), std::string("dst_uuid"))));
+
+  m_sql.insert(std::pair(
       MySQLSelection::GET_AUTH_FRIEND_LIST,
       fmt::format("SELECT {}, {}, {}, {}, {}, {}"
                   " FROM AuthFriend AS AF "
@@ -160,29 +185,177 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
                                      std::string("friend_uuid"),
                                      std::string("self_uuid"),
                                      std::string("alternative_name"))));
+
+  m_sql.insert(
+      std::pair(MySQLSelection::GET_USER_CHAT_THREADS,
+                fmt::format("WITH all_threads AS ("
+                            "SELECT {0}, {1}, {2}, {6} AS {3} "
+                            "FROM {8} "
+                            "WHERE ({1} = ? OR {2} = ?) AND {8}.{0} > ? "
+                            "UNION ALL "
+                            "SELECT {0}, {9} AS {1}, {9} AS {2}, {7} AS {3} "
+                            "FROM {10} "
+                            "WHERE {4} = ? AND {10}.{0} > ?"
+                            ") "
+                            "SELECT * FROM all_threads ORDER BY {0}"
+                            "  LIMIT ?;",
+                            std::string("thread_id"),            // {0}
+                            std::string("user1_uuid"),           // {1}
+                            std::string("user2_uuid"),           // {2}
+                            std::string("type"),                 // {3}
+                            std::string("user_uuid"),            // {4}
+                            std::string("unused"),               // {5}
+                            std::string("'PRIVATE'"),            // {6}
+                            std::string("'GROUP'"),              // {7}
+                            std::string("chatting.PrivateChat"), // {8}
+                            std::string("NULL"),                 // {9}
+                            std::string("chatting.GroupMember")  // {10}
+                            )));
+
+  m_sql.insert(std::pair(
+      MySQLSelection::GET_USER_CHAT_RECORDS,
+      fmt::format("SELECT {2}, {3}, {4}, {5}, {6}, {7} "
+                  "FROM {0} "
+                  " WHERE {1} = ? AND {2} > ? "
+                  " ORDER BY {2}  ASC "
+                  "LIMIT ? ;",
+                  std::string("chatting.ChatMsgHistoryBank"),
+                  std::string("thread_id"),
+                  std::string("message_id"), // 2
+                  std::string("message_status"), std::string("message_sender"),
+                  std::string("message_receiver"), std::string("created_at"),
+                  std::string("message_content"))));
+
+  m_sql.insert(std::pair(MySQLSelection::CHECK_PRIVATE_CHAT_WITH_LOCK,
+                         fmt::format("SELECT {0} FROM {1} "
+                                     "WHERE ({2} = ? AND {3} = ?) "
+                                     "FOR UPDATE;",
+                                     std::string("thread_id"),   // {0}
+                                     std::string("PrivateChat"), // {1}
+                                     std::string("user1_uuid"),  // {2}
+                                     std::string("user2_uuid")   // {3}
+                                     )));
+
+  m_sql.insert(std::pair(MySQLSelection::CREATE_PRIVATE_CHAT_BY_USER_PAIR,
+                         fmt::format("INSERT INTO {0} ({1}, {2}, {3}, {4}) "
+                                     "VALUES (?, ?, ?, NOW());",
+                                     std::string("PrivateChat"), // {0}
+                                     std::string("thread_id"),   // {1}
+                                     std::string("user1_uuid"),  // {2}
+                                     std::string("user2_uuid"),  // {3}
+                                     std::string("created_at")   // {4}
+                                     )));
+
+  m_sql.insert(std::pair(
+      MySQLSelection::CREATE_MSG_HISTORY_BANK_TUPLE,
+      fmt::format("INSERT INTO {} ({}, {}, {}, {}, {}, {}, {}) "
+                  " VALUES (?, ?, ?, ?, NOW(), NOW(), ?);",
+                  std::string("ChatMsgHistoryBank"), std::string("thread_id"),
+                  std::string("message_status"), std::string("message_sender"),
+                  std::string("message_receiver"), std::string("created_at"),
+                  std::string("updated_at"), std::string("message_content"))));
+
+  m_sql.insert(
+      std::pair(MySQLSelection::CREATE_PRIVATE_GLOBAL_THREAD_INDEX,
+                fmt::format("INSERT INTO {0} ({1}, {2}) VALUES (?, NOW());",
+                            std::string("GlobalThreadIndexTable"), // {0}
+                            std::string("type"),                   // {1}
+                            std::string("created_at")              // {2}
+                            )));
 }
 
 void mysql::MySQLConnectionPool::roundRobinChecking() {
-  std::lock_guard<std::mutex> _lckg(m_RRMutex);
-  if (m_stop) {
+  roundRobinCheckLowGranularity();
+}
+
+void mysql::MySQLConnectionPool::roundRobinCheckLowGranularity() {
+  if (m_stop)
     return;
+
+  std::size_t fail_count = 0;
+  std::size_t expectedStubs{0}, currentStubs{0};
+  auto currentTimeStamp = std::chrono::steady_clock::now();
+
+  // get target queue size first, we need to know how many stubs are instead the
+  // queue
+  {
+    std::lock_guard<std::mutex> _lckg(m_mtx);
+    expectedStubs = m_stub_queue.size();
   }
 
-  for (std::size_t i = 0; i < m_stub_queue.size(); ++i) {
+  for (; !expectedStubs && currentStubs < expectedStubs; currentStubs++) {
+
+    {
+      // sometimes. m_stub_queue might be empty;
+      std::lock_guard<std::mutex> _lckg(m_mtx);
+      if (m_stub_queue.empty()) {
+        break;
+      }
+    }
+
+    // get stub from the queue
     connection::ConnectionRAII<mysql::MySQLConnectionPool,
                                mysql::MySQLConnection>
         instance;
 
-    [[maybe_unused]] bool status = instance->get()->checkTimeout(
-        std::chrono::steady_clock::now(), m_timeout);
+    if (std::chrono::duration_cast<std::chrono::seconds>(
+            currentTimeStamp - instance->get()->last_operation_time) <
+        std::chrono::seconds(5)) {
+      continue;
+    }
 
-    /*checktimeout error, then create a new connection*/
-    if (!status) [[unlikely]] {
-      /*create a new connection*/
-      m_stub_queue.push(std::move(std::make_unique<mysql::MySQLConnection>(
-          m_username, m_password, m_database, m_host, m_port, this)));
+    try {
+      /*execute timeout checking, if there is sth wrong , then throw exceptionn
+       * and re-create connction*/
+      if (!instance->get()->checkTimeout(currentTimeStamp, m_timeout))
+          [[unlikely]]
+        throw std::runtime_error("Check Timeout Failed!");
 
-      m_cv.notify_one();
+      /*update current operation time!*/
+      instance->get()->last_operation_time = currentTimeStamp;
+    } catch (const std::exception &e) {
+
+      /*checktimeout error, but we will handle restart later*/
+      spdlog::warn("[MySQL DataBase]: Error = {} Restarting Connection...",
+                   e.what());
+
+      // disable RAII feature to return this item back to the pool
+      instance.invalidate();
+
+      fail_count++; // record failed time!
     }
   }
+
+  // handle failed events, and try to reconnect
+  while (fail_count > 0) {
+    if (!connector(m_username, m_password, m_database, m_host, m_port))
+        [[unlikely]] {
+      return;
+    }
+    fail_count--;
+  }
+}
+
+bool mysql::MySQLConnectionPool::connector(const std::string &username,
+                                           const std::string &password,
+                                           const std::string &database,
+                                           const std::string &host,
+                                           const std::string &port) {
+  auto currentTimeStamp = std::chrono::steady_clock::now();
+
+  try {
+    auto new_item = std::make_unique<mysql::MySQLConnection>(
+        username, password, database, host, port, this);
+    new_item->last_operation_time = currentTimeStamp;
+
+    {
+      std::lock_guard<std::mutex> _lckg(m_mtx);
+      m_stub_queue.push(std::move(new_item));
+    }
+
+    return true;
+  } catch (const std::exception &e) {
+    spdlog::warn("[MySQL Connector]: Error = {}", e.what());
+  }
+  return false;
 }

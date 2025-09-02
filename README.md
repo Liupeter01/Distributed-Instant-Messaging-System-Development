@@ -2,15 +2,15 @@
 
 ## 0x00 Description
 
-Distributed-Instant-Messaging-System-Development is a real-time chat application built using C++17, Boost, and gRPC, featuring a distributed TCP server architecture. The system now supports file transfer functionality.
+Distributed-Instant-Messaging-System-Development is a real-time chat application built using C++17, Boost ~~FFmpeg, OpenGL~~  and gRPC, featuring a distributed TCP server architecture. ~~file transfer and Real time video streaming functionalities are still testing.~~
 
 ### **Frontend Development:**
 
 - Developed a chat dialog using **Qt**, using `QListWidget` for an efficient chat record list and combining `QGridLayout` and `QPainter` for customized chat bubble styling to enhance the user experience.
 - Encapsulated **Qt Network** modules to support HTTP and C/S service communication.
-- Implemented core features such as adding friends, friend communication, and chat record display.
-- Integrated file transfer functionality to allow users to upload and download files.
-- Implemented an intuitive file management interface with drag-and-drop support.
+- Implemented core features such as adding friends, friend communication, chat record and chat record status display.
+- ~~Integrated file transfer functionality to allow users to upload and download files.~~
+- ~~Implemented an intuitive file management interface with drag-and-drop support.~~
 
 
 
@@ -19,10 +19,10 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 - Designed a distributed service architecture with the following components:
 
   - `**gateway-server**` **(Gateway Service):** Provides HTTP APIs to handle user login, registration, and authentication.
-  - `**chatting-server**` **(Chat Service):** Utilized ASIO to implement efficient TCP long connection communication.
+  - `**chatting-server**` **(Distributed Chatting Service):** Utilized ASIO to implement efficient TCP long connection communication.
   - `**balance-server**` **(Load Balancing Service):** Allocates chat services dynamically to achieve load balancing.
   - `**captcha-server**` **(Captcha Service):** Generates and validates captchas for enhanced security.
-  - `**resources-server**` **(Resources Service):** Manages file storage, supporting file uploads and downloads.
+  - `**resources-server**` **(Distributed Resources Service):** Manages file storage, supporting file uploads and downloads.
 
 - Enabled inter-service communication using the **gRPC protocol**, ensuring high availability and support for reconnections.
 
@@ -33,7 +33,7 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 - Implemented multithreading with `io_context` pools in the `chatting-server` to boost concurrent performance.
 - Developed a **MySQL connection pool** to manage user data, friend relationships, and chat records.
 - Designed a **Redis connection pool** for caching optimization.
-- Built a gRPC connection pool to enhance distributed service access efficiency.
+- Built a **gRPC connection pool** to enhance distributed service access efficiency.
 
 
 
@@ -41,8 +41,8 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 
 - File transfers are managed using the `resources-server`.
 - Implemented chunked file uploads to handle large files efficiently.
-- Supported resumable uploads and downloads using unique identifiers.
-- Enhanced file security with authentication checks and encryption.
+- Supported resumable uploads and downloads using unique identifiers shared by `chatting service`
+- ~~Enhanced file security with authentication checks and encryption.~~
 
 
 
@@ -50,7 +50,9 @@ Distributed-Instant-Messaging-System-Development is a real-time chat application
 
 - Gateway service provides **stateless HTTP interfaces** and integrates load balancing functionality.
 - Chat service supports **asynchronous message forwarding** with reliable TCP long connections.
-- Achieved support for **8k~10k+ concurrent connections** on a single server, with distributed deployment supporting **10K-20K active users**.
+- Resources service supports **Flow Control** ~~and `RTMP` real time streaming protocol~~
+- Achieved support for **8k~10k+ concurrent connections** on a single server.
+- Support deferred connection cleanup process, ensuring all data are transmitted before closing the connection 
 
 
 
@@ -76,9 +78,25 @@ Responsible for storing user-uploaded files and ensuring secure file access.
 
 3. User Search For Peers`(SERVICE_SEARCHUSERNAME)`
 
-4. User Who Initiated Friend Request `(SERVICE_FRIENDREQUESTSENDER)`
+4. Create Private Chat `Thread ID`(`SERVICE_CREATENEWPRIVATECHAT`)
 
-5. User Who Received Friend Request`(SERVICE_FRIENDREQUESTCONFIRM)`
+5. Pull Chat Thread By Page`(SERVICE_PULLCHATTHREAD)`
+
+6. Pull Chat Record By Page`(SERVICE_PULLCHATRECORD)`
+
+7. User Who Initiated Friend Request `(SERVICE_FRIENDREQUESTSENDER)`
+
+8. User Who Received Friend Request`(SERVICE_FRIENDREQUESTCONFIRM)`
+
+9. **User** Sends Text Msg To It's Server`(SERVICE_TEXTCHATMSGREQUEST)`
+
+10. **Server** verifies Text Msg and allocate a `Message ID` as a confirmation `(SERVICE_TEXTCHATMSGRESPONSE)`
+
+11. **Server(It could be another server)** forwards Text Msg to target user `(SERVICE_TEXTCHATMSGICOMINGREQUEST)`
+
+12. Client Terminal Sends Heart Beat`(SERVICE_HEARTBEAT_REQUEST)`
+
+    
 
 ### Gateway-server
 
@@ -118,105 +136,25 @@ Ensure you have the following installed:
 
 - **MySQL** for user and file metadata storage
 
+- ~~**FFmpeg**~~
+
+- ~~**OpenGL**~~
+
   
 
-### Basic Infrastructures
+### 1. Basic Infrastructures
 
-**It's strongly suggested to use docker to build up those services ^_^**
+It's strongly suggested to use docker to build up those services ^_^. If you intended to pass a host directory, please use absolute path.
 
-**If you intended to pass a host directory, please use absolute path.**
-
-#### Redis Memory Database
+#### 1.1 Redis Memory Database
 
 - Create a local volume on host machine and editing configuration files. **Please don't forget to change your password.**
 
-  ```ini
-  #if you are using windows, please download WSL2
-  mkdir -p /path/to/redis/{conf,data} 
-  cat > /path/to/redis/conf/redis.conf <<EOF
-  # bind 192.168.1.100 10.0.0.1     # listens on two specific IPv4 addresses
-  # bind 127.0.0.1 ::1              # listens on loopback IPv4 and IPv6
-  # bind * -::*                     # like the default, all available interfaces
-  # bind 127.0.0.1 -::1
-  protected-mode no
-  port 6379
-  tcp-backlog 511
-  timeout 0
-  tcp-keepalive 300
-  daemonize no
-  pidfile /var/run/redis_6379.pid
-  loglevel notice
-  logfile ""
-  databases 16
-  always-show-logo no
-  set-proc-title yes
-  proc-title-template "{title} {listen-addr} {server-mode}"
-  locale-collate ""
-  stop-writes-on-bgsave-error yes
-  rdbcompression yes
-  rdbchecksum yes
-  dbfilename dump.rdb
-  rdb-del-sync-files no
-  dir ./
-  #---------------------------password--------------------------------------------
-  requirepass 123456
-  #---------------------------------------------------------------------------------
-  replica-serve-stale-data yes
-  replica-read-only yes
-  repl-diskless-sync yes
-  repl-diskless-sync-delay 5
-  repl-diskless-sync-max-replicas 0
-  repl-diskless-load disabled
-  repl-disable-tcp-nodelay no
-  replica-priority 100
-  acllog-max-len 128
-  lazyfree-lazy-eviction no
-  lazyfree-lazy-expire no
-  lazyfree-lazy-server-del no
-  replica-lazy-flush no
-  lazyfree-lazy-user-del no
-  lazyfree-lazy-user-flush no
-  oom-score-adj no
-  oom-score-adj-values 0 200 800
-  disable-thp yes
-  appendonly no
-  appendfilename "appendonly.aof"
-  appenddirname "appendonlydir"
-  appendfsync everysec
-  no-appendfsync-on-rewrite no
-  auto-aof-rewrite-percentage 100
-  auto-aof-rewrite-min-size 64mb
-  aof-load-truncated yes
-  aof-use-rdb-preamble yes
-  aof-timestamp-enabled no
-  slowlog-log-slower-than 10000
-  slowlog-max-len 128
-  latency-monitor-threshold 0
-  notify-keyspace-events ""
-  hash-max-listpack-entries 512
-  hash-max-listpack-value 64
-  list-max-listpack-size -2
-  list-compress-depth 0
-  set-max-intset-entries 512
-  set-max-listpack-entries 128
-  set-max-listpack-value 64
-  zset-max-listpack-entries 128
-  zset-max-listpack-value 64
-  hll-sparse-max-bytes 3000
-  stream-node-max-bytes 4096
-  stream-node-max-entries 100
-  activerehashing yes
-  client-output-buffer-limit normal 0 0 0
-  client-output-buffer-limit replica 256mb 64mb 60
-  client-output-buffer-limit pubsub 32mb 8mb 60
-  hz 10
-  dynamic-hz yes
-  aof-rewrite-incremental-fsync yes
-  rdb-save-incremental-fsync yes
-  jemalloc-bg-thread yes
-  EOF
+  ```bash
+  mkdir /absolute_path_to/conf/
+  cp ./DistributedIMSystem/conf/redis.conf /absolute_path_to/conf/redis.conf
   ```
-
+  
 - Creating a `Redis` container and execute following commands.
 
   ```bash
@@ -225,8 +163,8 @@ Ensure you have the following installed:
       --restart always \
       -p 16379:6379 --name redis \
       --privileged=true \
-      -v /path/to/redis/conf/redis.conf:/etc/redis/redis.conf \
-      -v /path/to/redis/data:/data:rw \
+      -v /absolute_path_to/conf/redis.conf:/etc/redis/redis.conf \
+      -v /absolute_path_to/data:/data:rw \
       -d redis:7.2.4 redis-server /etc/redis/redis.conf \
       --appendonly yes
   ```
@@ -240,41 +178,23 @@ Ensure you have the following installed:
 
   
 
-#### MySQL Database
+#### 1.2 MySQL Database
 
 - Create a local volume on host machine and editing configration files. **Please don't forget to change your password.**
 
-  ```ini
+  ```bash
   #if you are using windows, please download WSL2
-  mkdir -p /path/to/mysql/{conf,data} 
-  touch /path/to/mysql/conf/my.cnf #create
-  cat > /path/to/redis/conf/redis.conf <<EOF
-  [mysqld]
-  default-authentication-plugin=mysql_native_password
-  skip-host-cache
-  skip-name-resolve
-  datadir=/var/lib/mysql
-  socket=/var/run/mysqld/mysqld.sock
-  secure-file-priv=/var/lib/mysql-files
-  user=mysql
-  character-set-server=utf8
-  max_connections=200
-  max_connect_errors=10
-  pid-file=/var/run/mysqld/mysqld.pid
-  [client]
-  socket=/var/run/mysqld/mysqld.sock
-  default-character-set=utf8
-  !includedir /etc/mysql/conf.d/
-  EOF
+  mkdir -p /absolute_path_to/mysql/{conf,data} 
+  cp ./DistributedIMSystem/conf/mysql.cnf /absolute_path_to/conf/mysql.cnf
   ```
-
+  
 - Creating a `MySQL` container and execute following commands.
 
   ```bash
   docker pull mysql:8.0  #Pull the official docker image from Docker hub
   docker run --restart=on-failure:3 -d \
-      -v /path/to/mysql/conf:/etc/mysql/conf.d \
-      -v /path/to/mysql/data:/var/lib/mysql \
+      -v /absolute_path_to/mysql/conf:/etc/mysql/conf.d \
+      -v /absolute_path_to/data:/var/lib/mysql \
       -e MYSQL_ROOT_PASSWORD="your_password" \
       -p 3307:3306 --name "your_container_name" \
       mysql:8.0
@@ -289,52 +209,10 @@ Ensure you have the following installed:
 
 - Initialize `MySQL` database with following `SQL` commands to create DB and table schemas.
 
-  ```sql
-  CREATE DATABASE chatting;
-  
-  -- Create Authentication Table
-  CREATE TABLE chatting.Authentication (
-      uuid INT AUTO_INCREMENT PRIMARY KEY,
-      username VARCHAR(50) NOT NULL UNIQUE,
-      password VARCHAR(255) NOT NULL,
-      email VARCHAR(100) UNIQUE
-   );
-  
-   -- Create UserProfile Table
-   CREATE TABLE chatting.UserProfile (
-      uuid INT PRIMARY KEY,
-      avatar VARCHAR(255),
-      nickname VARCHAR(50),
-      description TEXT,
-      sex BOOL,
-      FOREIGN KEY (uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
-   );
-  
-  -- Create Friend Request Table
-  CREATE TABLE chatting.FriendRequest(
-      id INT AUTO_INCREMENT PRIMARY KEY,
-   src_uuid INT NOT NULL,
-      dst_uuid INT NOT NULL,
-      nickname VARCHAR(255),
-      message VARCHAR(255),
-      status BOOL, -- request status
-      FOREIGN KEY (src_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE,
-      FOREIGN KEY (dst_uuid) REFERENCES Authentication(uuid) ON DELETE CASCADE
-  );
-  
-  -- Create Auth Friend Table
-  CREATE TABLE chatting.AuthFriend(
-      id INT AUTO_INCREMENT PRIMARY KEY,
-   self_uuid INT NOT NULL,
-      friend_uuid INT NOT NULL,
-   alternative_name VARCHAR(255), --
-      FOREIGN KEY (self_uuid ) REFERENCES Authentication(uuid) ON DELETE CASCADE,
-      FOREIGN KEY ( friend_uuid ) REFERENCES Authentication(uuid) ON DELETE CASCADE
-  );
-  
-  CREATE UNIQUE INDEX idx_self_friend ON chatting.AuthFriend(self_uuid ASC, friend_uuid ASC) USING BTREE;
+  ```bash
+  ./DistributedIMSystem/conf/DistributedIMSystem.sql
   ```
-
+  
   
 
 ### Servers' Configurations
@@ -343,133 +221,13 @@ Most of those basic configurations are using *.ini file, except `Captcha-server`
 
 #### Captcha-server**(config.json)**
 
-```bash
-{
-      "email": {
-                "host": "please set to your email host name",
-                "port": "please set to your email port",
-                "username": "please set to your email address",
-                "password": "please use your own authorized code"
-      },
-      "mysql": {
-                "host": "127.0.0.1",
-                "port": 3307,
-                "password": 123456
-      },
-      "redis": {
-                "host": "127.0.0.1",
-                "port": 16379,
-                "password": 123456
-      }
-}
-```
-
 #### Gateway-server**(config.ini)**
-
-```ini
-[GateServer]
-port = 8080
-
-[VerificationServer]
-host=192.168.0.218
-port = 65500
-
-[MySQL]
-username=root
-password=123456
-database=chatting
-host=localhost
-port=3307
-timeout=60          #timeoutsetting seconds
-
-[Redis]
-host=127.0.0.1
-port=16379
-password=123456
-
-[BalanceService]
-host=192.168.0.218
-port=59900
-```
 
 #### Balance-server**(config.ini)**
 
-```ini
-[BalanceService]
-host=192.168.0.218
-port=59900
-
-[Redis]
-host=127.0.0.1
-port=16379
-password=123456
-```
-
 #### Chatting-server**(config.ini)**
 
-```ini
-[BalanceService]
-host=192.168.0.218
-port=59900
-
-[gRPCServer]
-server_name=ChattingServer0
-host=192.168.0.218
-port=64400
-
-[ChattingServer]
-port=60000
-send_queue_size=1000
-heart_beat_timeout = 60      # seconds
-
-[Redis]
-host=127.0.0.1
-port=16379
-password=123456
-
-[MySQL]
-username=root
-password=123456
-database=chatting
-host=localhost
-port=3307
-timeout=60          #timeoutsetting seconds
-```
-
 #### Resources Server**(config.ini)**
-
-```ini
-[ResourcesServer]
-host=192.168.0.218
-port = 62232
-send_queue_size=100000
-msg_length=131072
-
-[Output]
-path= data
-
-[BalanceService]
-host=192.168.0.218
-port=59900
-
-[gRPCServer]
-server_name=ResourcesServer0
-host=192.168.0.218
-port=64422
-
-[MySQL]
-username=root
-password=123456
-database=chatting
-host=localhost
-port=3307
-timeout=60          #timeoutsetting seconds
-
-[Redis]
-host=192.168.0.218
-port=16379
-password=123456
-```
 
 
 
@@ -519,7 +277,7 @@ cmake --build build --parallel [x] --target all
 #### Step 2 - Execute LoadBalance-Server
 
 ```bash
-.\build\debug\balance-server\LoadBalanceServer.exe
+.\build\debug\balance-server\LoadBalanceServer
 ```
 
 #### Step3 - Execute Resources-Server and Chatting-Server

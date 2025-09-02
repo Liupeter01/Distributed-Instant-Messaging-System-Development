@@ -33,7 +33,7 @@ add_custom_command(
 
 project(
   ChattingServer
-  VERSION 2.4.1
+  VERSION 2.4.2
   LANGUAGES CXX)
 
 file(GLOB_RECURSE source_file CONFIGURE_DEPENDS src/*.cpp src/*.cc src/*.c)
@@ -50,8 +50,7 @@ target_link_libraries(ChattingServer PUBLIC boost_chatting grpc++ inicpp spdlog
 target_compile_definitions(
   ChattingServer PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 
-  if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
+if("${CMAKE_BUILD_TYPE}" MATCHES "[Dd]ebug")
   message(STATUS "This is a Debug build.")
-     target_sources(  ChattingServer PUBLIC ${BACKWARD_ENABLE})
-             add_backward(ChattingServer )
+  target_sources(ChattingServer PUBLIC ${BACKWARD_ENABLE})
 endif()

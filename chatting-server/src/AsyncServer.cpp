@@ -1,8 +1,8 @@
 #include <config/ServerConfig.hpp>
 #include <server/AsyncServer.hpp>
-#include <server/UserManager.hpp>
 #include <service/IOServicePool.hpp>
 #include <spdlog/spdlog.h>
+#include <user/UserManager.hpp>
 
 AsyncServer::AsyncServer(boost::asio::io_context &_ioc, unsigned short port)
     : m_ioc(_ioc),
@@ -69,6 +69,16 @@ void AsyncServer::stopTimer() {
   m_timer.cancel();
 }
 
+void AsyncServer::shutdown() {
+
+  spdlog::info(
+      "[{}] Start Kicking All The Clients Off The Server, Please Stand By ...",
+      ServerConfig::get_instance()->GrpcServerName);
+
+  // send offline message to all the clients
+  UserManager::get_instance()->teminate();
+}
+
 void AsyncServer::heartBeatEvent(const boost::system::error_code &ec) {
 
   // Error's Occured!
@@ -89,18 +99,27 @@ void AsyncServer::heartBeatEvent(const boost::system::error_code &ec) {
   /*only record "dead" session's uuid, and we deal with them later*/
   std::vector<std::string> to_be_terminated;
 
-  auto &lists = UserManager::get_instance()->m_uuid2Session;
+  // copy original session to a duplicate one
+  UserManager::ContainerType &lists =
+      UserManager::get_instance()->m_uuid2Session;
+
+  // record valid connection amount
+  std::size_t session_counter{0};
+
   for (auto &client : lists) {
     // check if this user already timeout!
-    if (!client.second->isSessionTimeout(now))
+    if (!client.second->isSessionTimeout(now)) {
+      // not timeout, continue
+      ++session_counter;
       continue;
+    }
 
     // Ask the client to be offlined, and move it to waitingToBeClosed queue
     client.second->sendOfflineMessage();
     client.second->removeRedisCache(client.second->get_user_uuid(),
                                     client.second->get_session_id());
-    // client.second->decrementConnection();
 
+    // collect expired client info, and we process them later!
     to_be_terminated.push_back(client.first);
   }
 
@@ -110,10 +129,9 @@ void AsyncServer::heartBeatEvent(const boost::system::error_code &ec) {
     UserManager::get_instance()->removeUsrSession(gg);
   }
 
+  // re-register timer event
   m_timer.expires_after(boost::asio::chrono::seconds(
       ServerConfig::get_instance()->heart_beat_timeout));
-
-  // re-register
   startTimer();
 }
 

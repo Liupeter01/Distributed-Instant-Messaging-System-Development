@@ -5,9 +5,9 @@
 #include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/Session.hpp>
-#include <server/UserManager.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
+#include <user/UserManager.hpp>
 
 /*store the current session id that this user belongs to*/
 std::string Session::session_prefix = "session_";

@@ -17,6 +17,7 @@ public:
   void startAccept();
   void startTimer();
   void stopTimer();
+  void shutdown();
 
 protected:
   // waiting to be closed

@@ -100,7 +100,7 @@ void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
   boost::json::object obj;
   obj["error"] = static_cast<uint8_t>(status);
   spdlog::warn("[Resources Server]: " + log);
-  conn->sendMessage(type, boost::json::serialize(obj));
+  conn->sendMessage(type, boost::json::serialize(obj), conn);
 }
 
 void handler::RequestHandlerNode::processing() {
@@ -207,7 +207,7 @@ void handler::RequestHandlerNode::handlingLogin(
 
   /*send it back*/
   session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                       boost::json::serialize(result));
+                       boost::json::serialize(result), session);
 }
 
 void handler::RequestHandlerNode::handlingLogout(
@@ -314,7 +314,7 @@ void handler::RequestHandlerNode::handlingFileUploading(
   dst_root["EOF"] = isEOF ? true : false;
 
   session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                       boost::json::serialize(dst_root));
+                       boost::json::serialize(dst_root), session);
 }
 
 /*

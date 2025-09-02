@@ -1,14 +1,18 @@
+#pragma once
 #ifndef USERACCOUNTMANAGER_H
 #define USERACCOUNTMANAGER_H
 
 #include "singleton.hpp"
+#include <ChattingThreadDef.hpp>
 #include <QString>
-#include <UserFriendRequest.hpp>
+#include <UserDef.hpp>
+#include <list>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
-class QJsonArray;
-struct FriendChattingHistory;
+struct ChattingThreadDesc;
+class UserChatThread;
 
 enum class TargetList {
   FRIENDLIST,
@@ -37,16 +41,28 @@ public:
 public:
   void appendArrayToList(TargetList target, const QJsonArray &array);
 
+  // add friendinfo to the friend request list(Owner not granted!!!)
   void addItem2List(std::shared_ptr<UserFriendRequest> info);
-  void addItem2List(std::shared_ptr<UserNameCard> info);
-  void addItem2List(const QString &friend_uuid,
-                    std::shared_ptr<FriendChattingHistory> info);
-
-  std::optional<std::shared_ptr<FriendChattingHistory>>
-  getChattingHistoryFromList(const QString &friend_uuid);
 
   /*get all list(not recommended!)*/
-  std::vector<std::shared_ptr<UserFriendRequest>> getFriendRequestList();
+  const std::vector<std::shared_ptr<UserFriendRequest>> &
+  getFriendRequestList() const {
+    return m_friend_request_list;
+  }
+
+  // add friend usernamecard to auth friend list
+  void addItem2List(std::shared_ptr<UserNameCard> info);
+
+  // create mapping relation of uuid<->thread_id
+  // and relation between thread_id <-> ChattingThreadDesc
+  void addItem2List(const QString &friend_uuid,
+                    std::shared_ptr<ChattingThreadDesc> info);
+
+  // Create all above(EXCEPT friend request list)
+  void addItem2List(std::shared_ptr<UserChatThread> info);
+
+  std::optional<std::shared_ptr<UserChatThread>>
+  getChattingThreadData(const QString &thread_id);
 
   /*get limited amount of friending request list*/
   std::optional<std::vector<std::shared_ptr<UserFriendRequest>>>
@@ -62,28 +78,41 @@ public:
   std::optional<std::shared_ptr<UserNameCard>>
   findAuthFriendsInfo(const QString &uuid);
 
+  /*get friend's thread_id through their uuid*/
+  std::optional<QString> getThreadIdByUUID(const QString &uuid);
+
   bool alreadyExistInAuthList(const QString &uuid) const;
   bool alreadyExistInRequestList(const QString &uuid) const;
-  bool alreadyExistInHistoryList(const QString &friend_uuid) const;
 
-  void setUserInfo(std::shared_ptr<UserNameCard> info);
+  void setUserInfo(std::shared_ptr<UserNameCard> info) { m_userInfo = info; }
+
+  void setLastThreadID(const QString &id) {
+    if (id.toLongLong() > m_last_thread_id.toLongLong()) {
+      m_last_thread_id = id;
+    }
+    // m_last_thread_id = id;
+  }
+
+  std::optional<std::shared_ptr<UserChatThread>> getCurThreadSession();
+
+  std::optional<std::shared_ptr<UserChatThread>> getNextThreadSession();
 
 protected:
   void appendAuthFriendList(const QJsonArray &array);
   void appendFriendRequestList(const QJsonArray &array);
+  std::optional<std::shared_ptr<UserChatThread>>
+  _loadSession(const std::size_t pos);
 
 private:
   UserAccountManager();
 
 private:
+  // for pull and retrieve last thread info from server
+  QString m_last_thread_id;
+
   struct ChattingServerInfo {
-    ChattingServerInfo() : uuid(), host(), port(), token() {}
-    void clear() {
-      uuid.clear();
-      host.clear();
-      port.clear();
-      token.clear();
-    }
+    ChattingServerInfo();
+    void clear();
     QString uuid;
     QString host;
     QString port;
@@ -93,15 +122,44 @@ private:
   /*store current user's info*/
   std::shared_ptr<UserNameCard> m_userInfo;
 
-  /*store friending requests*/
+  /*store incoming friending requests, which are not granted by the account
+   * owner!*/
   std::vector<std::shared_ptr<UserFriendRequest>> m_friend_request_list;
 
-  /*store authenticated friend*/
-  std::unordered_map<QString, std::shared_ptr<UserNameCard>> m_auth_friend_list;
+  /*store all authenticated friend*/
+  std::unordered_map<
+      /*uuid*/ QString,
+      /*namecard*/ std::shared_ptr<UserNameCard>>
+      m_auth_friend_list;
 
-  /*store chatting history*/
-  std::unordered_map<QString, std::shared_ptr<FriendChattingHistory>>
-      m_user_chatting_histroy;
+  /*relation between thread_id <-> ChattingThreadDesc*/
+  std::unordered_map<
+      /*thread_id*/ QString,
+      /*ChattingThreadDesc*/ std::shared_ptr<ChattingThreadDesc>>
+      m_threadDescLists;
+
+  /*relation between user uuid <-> thread_id*/
+  std::unordered_map<
+      /*uuid*/ QString,
+      /*thread_id*/ QString>
+      m_friendOnThreadsLists;
+
+  /*
+   * store chatting history
+   * relation between thread_id <-> std::shared_ptr<UserChatThread>
+   */
+  std::unordered_map<
+      /*thread_id */ QString,
+      /*thread_data*/ std::shared_ptr<UserChatThread>>
+      m_ThreadData;
+
+  /*
+   * store a sequence of QString(thread_id), for storing chatting sessions
+   * we could find ChattingThreadDesc by using thread_id,
+   * then we could load chat history data!
+   */
+  std::vector</*thread_id*/ QString> m_allChattingSessions;
+  std::size_t m_currSessionLoadingSeq = 0;
 };
 
 #endif // USERACCOUNTMANAGER_H

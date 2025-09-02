@@ -1,7 +1,6 @@
 #pragma once
 #ifndef _CONNECTIONPOOOL_HPP_
 #define _CONNECTIONPOOOL_HPP_
-
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -10,6 +9,15 @@
 #include <singleton/singleton.hpp>
 #include <thread>
 #include <tools/tools.hpp>
+
+/*forward*/
+namespace mysql {
+class MySQLConnectionPool;
+}
+
+namespace redis {
+class RedisConnectionPool;
+}
 
 namespace connection {
 /*please pass your new pool as template parameter*/
@@ -78,38 +86,63 @@ protected:
   std::queue<stub_ptr> m_stub_queue;
 };
 
-/*
- * get stub automatically!
- */
-template <typename WhichPool, typename _Type> class ConnectionRAII {
+template <typename WhichPool, typename _Type> struct ConnectionRAII {
+
+  friend class mysql::MySQLConnectionPool;
+  friend class redis::RedisConnectionPool;
+
   using wrapper = tools::ResourcesWrapper<_Type>;
+  ConnectionRAII(const ConnectionRAII &) = delete;
+  ConnectionRAII &operator=(const ConnectionRAII &) = delete;
 
-public:
-  ConnectionRAII() : status(true) {
-    auto optional = WhichPool::get_instance()->acquire();
-    if (!optional.has_value()) {
-      status = false;
-    } else {
-      m_stub = std::move(optional.value());
-    }
-  }
-  virtual ~ConnectionRAII() {
-    if (status) {
-      WhichPool::get_instance()->release(std::move(m_stub));
+  ConnectionRAII(ConnectionRAII &&) = default;
+  ConnectionRAII &operator=(ConnectionRAII &&) = default;
 
-      /*StubRAII failed!!*/
-      status = false;
-    }
-  }
+  ConnectionRAII() : status(true) { acquire(); }
+  virtual ~ConnectionRAII() { release(); }
   std::optional<wrapper> operator->() {
-    if (status) {
+    if (is_active()) {
       return wrapper(m_stub.get());
     }
     return std::nullopt;
   }
 
+  std::optional<std::reference_wrapper<std::unique_ptr<_Type>>> get_native() {
+    if (is_active()) {
+      return std::ref(m_stub);
+    }
+    return std::nullopt;
+  }
+
+  bool is_active() const { return status; }
+
+protected:
+  void acquire() {
+    // valid resources retrieved!
+    if (auto optional = WhichPool::get_instance()->acquire(); optional) {
+      m_stub = std::move(optional.value());
+      return;
+    }
+
+    invalidate();
+  }
+
+  void release() {
+    if (is_active()) {
+
+      WhichPool::get_instance()->release(std::move(m_stub));
+
+      /*Stub no longer active*/
+      invalidate();
+    }
+  }
+
 private:
-  std::atomic<bool> status; // load stub success flag
+  // Raii no longer needs to put this resources back to container!
+  void invalidate() { status = false; }
+
+private:
+  bool status; // load stub success flag
   std::unique_ptr<_Type> m_stub;
 };
 } // namespace connection

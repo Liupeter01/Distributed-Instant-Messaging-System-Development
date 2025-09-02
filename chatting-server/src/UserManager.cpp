@@ -1,7 +1,7 @@
 #include <network/def.hpp>
-#include <server/UserManager.hpp>
+#include <user/UserManager.hpp>
 
-UserManager::UserManager() {}
+UserManager::UserManager() : m_status(true) {}
 
 UserManager::~UserManager() { teminate(); }
 
@@ -86,8 +86,29 @@ bool UserManager::moveUserToTerminationZone(const std::string &uuid) {
 
 void UserManager::teminate() {
 
-  std::for_each(m_uuid2Session.begin(), m_uuid2Session.end(),
-                [this](decltype(*m_uuid2Session.begin()) &pair) {
-                  pair.second->sendOfflineMessage();
-                });
+  if (m_status) {
+    /* record  session's uuid, and we deal with them later*/
+    std::vector<std::string> to_be_terminated;
+
+    // copy original session to a duplicate one
+    UserManager::ContainerType &lists =
+        UserManager::get_instance()->m_uuid2Session;
+
+    for (auto &client : lists) {
+      // Ask the client to be offlined, and move it to waitingToBeClosed queue
+      client.second->sendOfflineMessage();
+      client.second->removeRedisCache(client.second->get_user_uuid(),
+                                      client.second->get_session_id());
+
+      // collect expired client info, and we process them later!
+      to_be_terminated.push_back(client.first);
+    }
+
+    for (const auto &gg : to_be_terminated) {
+      UserManager::get_instance()->moveUserToTerminationZone(gg);
+      UserManager::get_instance()->removeUsrSession(gg);
+    }
+
+    m_status = false;
+  }
 }

@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QTextCursor>
+#include <ChattingThreadDef.hpp>
 
 MsgTextEdit::MsgTextEdit(QWidget *parent) : QTextEdit(parent) {}
 

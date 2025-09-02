@@ -1,7 +1,6 @@
 #ifndef FILETRANSFERTHREAD_H
 #define FILETRANSFERTHREAD_H
 
-#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
 #include <QFile>
 #include <QObject>

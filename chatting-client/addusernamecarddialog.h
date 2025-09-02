@@ -2,8 +2,8 @@
 #define ADDUSERNAMECARDDIALOG_H
 
 /*store user info*/
-#include "UserNameCard.h"
 #include <QDialog>
+#include <UserDef.hpp>
 
 namespace Ui {
 class AddUserNameCardDialog;

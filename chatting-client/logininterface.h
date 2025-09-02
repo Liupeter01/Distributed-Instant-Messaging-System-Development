@@ -4,7 +4,6 @@
 #include "httpnetworkconnection.h"
 #include "tcpnetworkconnection.h"
 #include "tools.h"
-#include <ByteOrderConverter.hpp>
 #include <MsgNode.hpp>
 #include <QDialog>
 #include <functional>

@@ -2,7 +2,6 @@
 #ifndef _SESSION_HPP_
 #define _SESSION_HPP_
 #include <boost/asio.hpp>
-#include <buffer/ByteOrderConverter.hpp>
 #include <buffer/MsgNode.hpp>
 #include <memory>
 #include <network/def.hpp>
@@ -16,10 +15,12 @@ class GrpcDistributedChattingImpl;
 
 class AsyncServer;
 class SyncLogic;
+class UserManager;
 
 class Session : public std::enable_shared_from_this<Session> {
   friend class AsyncServer;
   friend class SyncLogic;
+  friend class UserManager;
   friend class grpc::GrpcDistributedChattingImpl;
 
   using Recv = RecvNode<std::string, ByteOrderConverter>;

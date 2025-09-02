@@ -20,10 +20,12 @@ public:
   unsigned short ResourceServerPort;
   std::size_t ResourceQueueSize;
   std::size_t ResourcesMsgLength;
+  std::size_t heart_beat_timeout;
 
   std::string Redis_ip_addr;
   unsigned short Redis_port;
   std::string Redis_passwd;
+  std::size_t Redis_timeout;
 
   std::string MySQL_host;
   std::string MySQL_port;
@@ -64,6 +66,9 @@ private:
 
     ResourcesMsgLength =
         m_ini["ResourcesServer"]["msg_length"].as<unsigned long>();
+
+    heart_beat_timeout =
+              m_ini["ResourcesServer"]["heart_beat_timeout"].as<int>();
   }
 
   void loadGrpcServerInfo() {
@@ -76,6 +81,7 @@ private:
     Redis_port = m_ini["Redis"]["port"].as<unsigned short>();
     Redis_ip_addr = m_ini["Redis"]["host"].as<std::string>();
     Redis_passwd = m_ini["Redis"]["password"].as<std::string>();
+    Redis_timeout = m_ini["Redis"]["timeout"].as<unsigned long>();
   }
 
   void loadMySQLInfo() {

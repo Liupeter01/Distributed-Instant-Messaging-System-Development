@@ -11,16 +11,13 @@ ChattingHistoryWidget::ChattingHistoryWidget(QWidget *parent)
 
 ChattingHistoryWidget::~ChattingHistoryWidget() { delete ui; }
 
-void ChattingHistoryWidget::setUserInfo(
-    std::shared_ptr<FriendChattingHistory> info) {
+void ChattingHistoryWidget::setUserInfo(std::shared_ptr<UserNameCard> info) {
   /*store the friendchattinghistory obj*/
   m_userinfo = info;
-
-  updateLastMsg();
 }
 
-void ChattingHistoryWidget::updateLastMsg() {
-  setLastMessage<ChattingTextMsg>();
+void ChattingHistoryWidget::setLastMessage(const QString &msg) {
+  ui->last_message->setText(msg);
 }
 
 void ChattingHistoryWidget::setItemDisplay() {
@@ -33,7 +30,6 @@ void ChattingHistoryWidget::setItemDisplay() {
   ui->user_name->setText(m_userinfo->m_nickname);
 }
 
-std::shared_ptr<FriendChattingHistory>
-ChattingHistoryWidget::getChattingContext() {
+std::shared_ptr<UserNameCard> ChattingHistoryWidget::getFriendsInfo() {
   return m_userinfo;
 }

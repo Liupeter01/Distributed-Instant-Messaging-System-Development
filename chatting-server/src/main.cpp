@@ -157,6 +157,7 @@ int main() {
     }
 
     async->stopTimer(); // terminate timer!
+    async->shutdown();  // shutdown system and kick out all the clients
 
     /*
      * Chatting server shutdown

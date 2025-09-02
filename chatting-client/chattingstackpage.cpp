@@ -182,10 +182,18 @@ void ChattingStackPage::setupBubbleFrameOnItem(
   } else if (type == MsgType::FILE) {
   }
 
-  if (bubble) {
-    item->setupBubbleWidget(bubble);
-    ui->chatting_record->pushBackItem(item);
+  if (!bubble) return;
+  item->setupBubbleWidget(bubble);
+
+  if(value->isOnLocal()){
+      item->setupMsgStatus(MessageStatus::UNSENT);
   }
+  else{
+      /*maybe more logic in the future*/
+    item->setupMsgStatus(MessageStatus::SENT);
+  }
+
+  ui->chatting_record->pushBackItem(item);
 }
 
 void ChattingStackPage::distribute(std::shared_ptr<ChattingBaseType> value) {

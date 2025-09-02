@@ -11,7 +11,10 @@
 #include <tcpnetworkconnection.h>
 
 FileTransferThread::FileTransferThread(QObject *parent)
-    : QObject{parent}, m_thread(new QThread(this)) {
+    : QObject{parent},
+      m_thread(new QThread()) { /*you should NOT use this at here, it's going to
+                                   be create on the parent's thread!!!*/
+
   moveToThread(m_thread);
 
   registerSignal();
@@ -19,11 +22,7 @@ FileTransferThread::FileTransferThread(QObject *parent)
   m_thread->start();
 }
 
-FileTransferThread::~FileTransferThread() {
-  m_thread->quit();
-  m_thread->wait();
-  m_thread->deleteLater();
-}
+FileTransferThread::~FileTransferThread() { m_thread->quit(); }
 
 std::size_t
 FileTransferThread::calculateBlockNumber(const std::size_t totalSize,
@@ -33,6 +32,10 @@ FileTransferThread::calculateBlockNumber(const std::size_t totalSize,
 }
 
 void FileTransferThread::registerSignal() {
+
+  // when thread finished then delete m_thread later!
+  connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
+
   connect(this, &FileTransferThread::signal_start_file_transmission, this,
           &FileTransferThread::slot_start_file_transmission);
 

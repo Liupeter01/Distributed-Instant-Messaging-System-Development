@@ -42,7 +42,7 @@ void SyncLogic::registerCallbacks() {
                 std::placeholders::_3)));
 
   /*
-   * ServiceType::SERVICE_CREATENEWPRIVATECHAT
+   * ServiceType::SERVICE_PULLCHATTHREAD
    * Handling User Pull Chat Thread For indexing
    */
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(

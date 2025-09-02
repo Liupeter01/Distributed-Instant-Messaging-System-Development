@@ -120,10 +120,9 @@ void ChattingMsgItem::setupMsgStatus(const MessageStatus status) {
     return;
   }
 
-  if(status == MessageStatus::UNSENT){
+  if (status == MessageStatus::UNSENT) {
 
-  }
-  else if (status == MessageStatus::SENT) {
+  } else if (status == MessageStatus::SENT) {
     Tools::setQLableImage(m_statusLabel, "unread.png");
   } else if (status == MessageStatus::READ) {
     Tools::setQLableImage(m_statusLabel, "read.png");

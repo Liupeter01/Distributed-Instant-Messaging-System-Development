@@ -182,14 +182,14 @@ void ChattingStackPage::setupBubbleFrameOnItem(
   } else if (type == MsgType::FILE) {
   }
 
-  if (!bubble) return;
+  if (!bubble)
+    return;
   item->setupBubbleWidget(bubble);
 
-  if(value->isOnLocal()){
-      item->setupMsgStatus(MessageStatus::UNSENT);
-  }
-  else{
-      /*maybe more logic in the future*/
+  if (value->isOnLocal()) {
+    item->setupMsgStatus(MessageStatus::UNSENT);
+  } else {
+    /*maybe more logic in the future*/
     item->setupMsgStatus(MessageStatus::SENT);
   }
 

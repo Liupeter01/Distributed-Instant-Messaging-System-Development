@@ -2,6 +2,7 @@
 #pragma once
 #ifndef _MSGNODE_H_
 #define _MSGNODE_H_
+#include <QObject>
 #include <QtEndian>
 #include <cstdint>
 #include <functional>
@@ -379,5 +380,7 @@ std::size_t MsgHeader<Container>::MSGNODE_NORMAL_HEADER_LENGTH =
 template <typename Container>
 std::size_t MsgHeader<Container>::MSGNODE_FILE_HEADER_LENGTH =
     sizeof(uint16_t) + sizeof(uint32_t);
+
+Q_DECLARE_METATYPE(MsgNodeType)
 
 #endif

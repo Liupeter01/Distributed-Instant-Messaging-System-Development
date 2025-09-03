@@ -1,6 +1,7 @@
 #pragma once
 #ifndef _USERDEF_HPP
 #define _USERDEF_HPP
+#include <QObject>
 #include <QString>
 #include <optional>
 #include <vector>
@@ -44,5 +45,9 @@ struct UserFriendRequest {
 
   const UserNameCard &getNameCard() const { return sender_card; }
 };
+
+Q_DECLARE_METATYPE(Sex)
+Q_DECLARE_METATYPE(UserNameCard)
+Q_DECLARE_METATYPE(UserFriendRequest)
 
 #endif // _USERDEF_HPP

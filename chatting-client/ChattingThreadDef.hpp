@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QUuid>
+#include <QObject>
 #include <UserDef.hpp>
 #include <optional>
 #include <string>
@@ -144,7 +145,7 @@ public:
 };
 
 struct ChattingTextMsg : public ChattingRecordBase {
-
+     ChattingTextMsg():ChattingRecordBase(){}
   ChattingTextMsg(const QString &sender, const QString &receiver)
       : ChattingRecordBase(sender, receiver, MsgType::TEXT) {}
 
@@ -187,6 +188,7 @@ struct ChattingTextMsg : public ChattingRecordBase {
 };
 
 struct ChattingVoice : public ChattingRecordBase {
+     ChattingVoice():ChattingRecordBase(){}
   ChattingVoice(const QString &sender, const QString &receiver)
       : ChattingRecordBase(sender, receiver, MsgType::AUDIO) {}
 
@@ -208,6 +210,7 @@ struct ChattingVoice : public ChattingRecordBase {
 };
 
 struct ChattingVideo : public ChattingRecordBase {
+            ChattingVideo():ChattingRecordBase(){}
   ChattingVideo(const QString &sender, const QString &receiver)
       : ChattingRecordBase(sender, receiver, MsgType::VIDEO) {}
 
@@ -229,6 +232,7 @@ struct ChattingVideo : public ChattingRecordBase {
 };
 
 struct ChattingImage : public ChattingRecordBase {
+        ChattingImage():ChattingRecordBase(){}
   ChattingImage(const QString &sender, const QString &receiver)
       : ChattingRecordBase(sender, receiver, MsgType::IMAGE) {}
 
@@ -250,6 +254,7 @@ struct ChattingImage : public ChattingRecordBase {
 };
 
 struct ChattingFile : public ChattingRecordBase {
+    ChattingFile():ChattingRecordBase(){}
   ChattingFile(const QString &sender, const QString &receiver)
       : ChattingRecordBase(sender, receiver, MsgType::FILE) {}
 
@@ -285,7 +290,7 @@ static constexpr bool allowed_types =
     std::is_same_v<ChattingVoice, _Ty> || std::is_same_v<ChattingVideo, _Ty>;
 
 struct ChatThreadPageResult {
-  ChatThreadPageResult() = default;
+    ChatThreadPageResult() = default;
   ChatThreadPageResult(const bool load_more, const QString &next_id,
                        std::vector<std::unique_ptr<ChatThreadMeta>> &&lists)
       : m_load_more(load_more), m_next_thread_id(next_id),
@@ -324,6 +329,7 @@ class UserChatThread {
 public:
   using ChatType = ChattingRecordBase;
 
+  UserChatThread() = default;
   explicit UserChatThread(const QString &thread_id, const UserNameCard &card,
                           const UserChatType type = UserChatType::PRIVATE)
 
@@ -446,5 +452,20 @@ private:
   // Message storge structure
   MessageBuffer<ChatType> m_recordStorge;
 };
+
+Q_DECLARE_METATYPE(UserChatType)
+Q_DECLARE_METATYPE(MsgType)
+Q_DECLARE_METATYPE(ChatThreadMeta)
+Q_DECLARE_METATYPE(ChattingThreadDesc)
+Q_DECLARE_METATYPE(FriendingConfirmInfo)
+Q_DECLARE_METATYPE(ChattingRecordBase)
+Q_DECLARE_METATYPE(ChattingTextMsg)
+Q_DECLARE_METATYPE(ChattingVoice)
+Q_DECLARE_METATYPE(ChattingVideo)
+Q_DECLARE_METATYPE(ChattingImage)
+Q_DECLARE_METATYPE(ChattingFile)
+//Q_DECLARE_METATYPE(ChatThreadPageResult)
+Q_DECLARE_METATYPE(ChatMsgPageResult)
+Q_DECLARE_METATYPE(UserChatThread)
 
 #endif //_CHATTINGTHREADDEF_H

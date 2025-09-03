@@ -106,4 +106,7 @@ struct Tools {
                                 const QString &load_dir = "/res/");
 };
 
+Q_DECLARE_METATYPE(LabelState)
+Q_DECLARE_METATYPE(PushButtonState)
+
 #endif // TOOLS_H

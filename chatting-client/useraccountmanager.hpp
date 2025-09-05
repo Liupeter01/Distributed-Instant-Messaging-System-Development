@@ -6,10 +6,11 @@
 #include <ChattingThreadDef.hpp>
 #include <QString>
 #include <UserDef.hpp>
-#include <list>
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <QObject>
+#include <mutex>
 
 struct ChattingThreadDesc;
 class UserChatThread;
@@ -23,11 +24,25 @@ class UserAccountManager : public Singleton<UserAccountManager> {
   friend class Singleton<UserAccountManager>;
 
 public:
+  struct ChattingServerInfo {
+      ChattingServerInfo()    : uuid(), host(), port(), token() {}
+      void clear(){
+          uuid.clear();
+          host.clear();
+          port.clear();
+          token.clear();
+      }
+      QString uuid;
+      QString host;
+      QString port;
+      QString token;
+  } ;
+
   ~UserAccountManager();
-  void set_host(const QString &_host) { m_info.host = _host; }
-  void set_port(const QString &_port) { m_info.port = _port; }
-  void set_token(const QString &_token) { m_info.token = _token; }
-  void set_uuid(const QString &_uuid) { m_info.uuid = _uuid; }
+  void set_host(const QString &_host);
+  void set_port(const QString &_port);
+  void set_token(const QString &_token);
+  void set_uuid(const QString &_uuid);
 
   const QString &get_host() const { return m_info.host; }
   const QString &get_port() const { return m_info.port; }
@@ -84,14 +99,9 @@ public:
   bool alreadyExistInAuthList(const QString &uuid) const;
   bool alreadyExistInRequestList(const QString &uuid) const;
 
-  void setUserInfo(std::shared_ptr<UserNameCard> info) { m_userInfo = info; }
+  void setUserInfo(std::shared_ptr<UserNameCard> info);
 
-  void setLastThreadID(const QString &id) {
-    if (id.toLongLong() > m_last_thread_id.toLongLong()) {
-      m_last_thread_id = id;
-    }
-    // m_last_thread_id = id;
-  }
+  void setLastThreadID(const QString &id);
 
   std::optional<std::shared_ptr<UserChatThread>> getCurThreadSession();
 
@@ -100,6 +110,8 @@ public:
 protected:
   void appendAuthFriendList(const QJsonArray &array);
   void appendFriendRequestList(const QJsonArray &array);
+
+  [[nodiscard]]
   std::optional<std::shared_ptr<UserChatThread>>
   _loadSession(const std::size_t pos);
 
@@ -107,17 +119,14 @@ private:
   UserAccountManager();
 
 private:
+  //because tctnetworkconnection class runs on another thread
+  //it might cause race condition!
+  mutable std::mutex m_mtx;
+
+  ChattingServerInfo  m_info;
+
   // for pull and retrieve last thread info from server
   QString m_last_thread_id;
-
-  struct ChattingServerInfo {
-    ChattingServerInfo();
-    void clear();
-    QString uuid;
-    QString host;
-    QString port;
-    QString token;
-  } m_info;
 
   /*store current user's info*/
   std::shared_ptr<UserNameCard> m_userInfo;
@@ -161,5 +170,7 @@ private:
   std::vector</*thread_id*/ QString> m_allChattingSessions;
   std::size_t m_currSessionLoadingSeq = 0;
 };
+
+Q_DECLARE_METATYPE(UserAccountManager::ChattingServerInfo)
 
 #endif // USERACCOUNTMANAGER_H

@@ -13,6 +13,8 @@
 #include <functional>
 #include <optional>
 #include <singleton.hpp>
+#include <queue>
+#include <atomic>
 
 struct UserNameCard;
 struct UserFriendRequest;
@@ -58,6 +60,7 @@ public:
   }
 
   static void send_buffer(ServiceType type, QJsonObject &&obj);
+  static qint64 send_binary_flow(QTcpSocket& socket, const QByteArray& array);
 
 private:
   TCPNetworkConnection();
@@ -205,7 +208,18 @@ signals:
                                   const QString &thread_id);
 
 private:
-  /*establish tcp socket with server*/
+  qint64 m_bytes_have_been_written{};
+
+  //the qbytearray we are processing right now!
+  QByteArray m_curr_processing{};
+
+  //is there any bytearray we are processing right now
+  std::atomic<bool> m_pending_flag = false;
+
+  //queue
+  std::queue<QByteArray> m_chatting_queue;
+
+    /*establish tcp socket with server*/
   QTcpSocket m_chatting_server_socket;
   QTcpSocket m_resources_server_socket;
 
@@ -219,5 +233,7 @@ private:
   /*according to service type to execute callback*/
   std::map<ServiceType, Callbackfunction> m_callbacks;
 };
+
+Q_DECLARE_METATYPE(TargetServer)
 
 #endif // TCPNETWORKCONNECTION_H

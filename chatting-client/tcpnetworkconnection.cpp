@@ -11,10 +11,8 @@
 #include <tools.h>
 
 TCPNetworkConnection::TCPNetworkConnection()
-    : m_pending_flag(false)
-    , m_bytes_have_been_written(0)
-    , m_curr_processing{}
-    , m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
+    : m_pending_flag(false), m_bytes_have_been_written(0), m_curr_processing{},
+      m_chatting_buffer(std::make_unique<RecvNodeType>(ByteOrderConverter{})),
       m_resources_buffer(std::make_unique<RecvNodeType>(
           ByteOrderConverter{}, MsgNodeType::MSGNODE_FILE_TRANSFER)) {
 
@@ -90,37 +88,36 @@ void TCPNetworkConnection::registerSocketSignal() {
             emit signal_connection_status(false);
           });
 
-  //callback function
-    connect(&m_chatting_server_socket, &QTcpSocket::bytesWritten, this,
+  // callback function
+  connect(&m_chatting_server_socket, &QTcpSocket::bytesWritten, this,
           [this](qint64 bytes) {
+            m_bytes_have_been_written += bytes;
 
-      m_bytes_have_been_written += bytes;
+            // Not Finished Yet
+            if (m_bytes_have_been_written < m_curr_processing.size()) {
 
-      //Not Finished Yet
-      if(m_bytes_have_been_written < m_curr_processing.size()){
+              // split the rest part of the data!
+              auto new_piece = m_curr_processing.mid(m_bytes_have_been_written);
+              send_binary_flow(m_chatting_server_socket, new_piece);
+              return;
+            }
 
-          //split the rest part of the data!
-          auto new_piece = m_curr_processing.mid(m_bytes_have_been_written);
-          send_binary_flow(m_chatting_server_socket, new_piece);
-          return;
-      }
+            // clear some data;
+            m_curr_processing.clear();
+            m_bytes_have_been_written = 0;
 
-      //clear some data;
-       m_curr_processing.clear();
-       m_bytes_have_been_written = 0;
+            // Finished Start to process next qbytearray
+            if (m_chatting_queue.empty()) {
+              m_pending_flag = false;
+              return;
+            }
 
-      //Finished Start to process next qbytearray
-      if(m_chatting_queue.empty()){
-          m_pending_flag = false;
-          return;
-      }
+            m_pending_flag = true;
+            m_curr_processing = m_chatting_queue.front();
+            m_chatting_queue.pop();
 
-      m_pending_flag = true;
-      m_curr_processing = m_chatting_queue.front();
-      m_chatting_queue.pop();
-
-      send_binary_flow(m_chatting_server_socket, m_curr_processing);
-  });
+            send_binary_flow(m_chatting_server_socket, m_curr_processing);
+          });
 
   connect(&m_resources_server_socket, &QTcpSocket::bytesWritten, this,
           [this](qint64 bytes) { emit signal_block_send(bytes); });
@@ -900,20 +897,22 @@ void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
 
   if (tar == TargetServer::CHATTINGSERVER) {
 
-      //another bytearray is now being processed by the kernel network!
-      if(m_pending_flag){
-          m_chatting_queue.push(std::move(data->get_buffer()));
-          return;
-      }
+    // another bytearray is now being processed by the kernel network!
+    if (m_pending_flag) {
+      m_chatting_queue.push(std::move(data->get_buffer()));
+      return;
+    }
 
-      m_curr_processing = std::move(data->get_buffer());
-      m_pending_flag = true;
-      m_bytes_have_been_written = 0;
+    m_curr_processing = std::move(data->get_buffer());
+    m_pending_flag = true;
+    m_bytes_have_been_written = 0;
 
-      bytes_written = send_binary_flow(m_chatting_server_socket, m_curr_processing);
+    bytes_written =
+        send_binary_flow(m_chatting_server_socket, m_curr_processing);
 
   } else if (tar == TargetServer::RESOURCESSERVER) {
-    bytes_written = send_binary_flow(m_resources_server_socket, data->get_buffer());
+    bytes_written =
+        send_binary_flow(m_resources_server_socket, data->get_buffer());
   }
 }
 
@@ -931,6 +930,7 @@ void TCPNetworkConnection::send_buffer(ServiceType type, QJsonObject &&obj) {
   emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer);
 }
 
-qint64 TCPNetworkConnection::send_binary_flow(QTcpSocket& socket, const QByteArray& array){
-    return socket.write(array);
+qint64 TCPNetworkConnection::send_binary_flow(QTcpSocket &socket,
+                                              const QByteArray &array) {
+  return socket.write(array);
 }

@@ -10,11 +10,11 @@
 #include <QTcpSocket>
 #include <QUrl>
 #include <QtEndian>
+#include <atomic>
 #include <functional>
 #include <optional>
-#include <singleton.hpp>
 #include <queue>
-#include <atomic>
+#include <singleton.hpp>
 
 struct UserNameCard;
 struct UserFriendRequest;
@@ -60,7 +60,7 @@ public:
   }
 
   static void send_buffer(ServiceType type, QJsonObject &&obj);
-  static qint64 send_binary_flow(QTcpSocket& socket, const QByteArray& array);
+  static qint64 send_binary_flow(QTcpSocket &socket, const QByteArray &array);
 
 private:
   TCPNetworkConnection();
@@ -210,16 +210,16 @@ signals:
 private:
   qint64 m_bytes_have_been_written{};
 
-  //the qbytearray we are processing right now!
+  // the qbytearray we are processing right now!
   QByteArray m_curr_processing{};
 
-  //is there any bytearray we are processing right now
+  // is there any bytearray we are processing right now
   std::atomic<bool> m_pending_flag = false;
 
-  //queue
+  // queue
   std::queue<QByteArray> m_chatting_queue;
 
-    /*establish tcp socket with server*/
+  /*establish tcp socket with server*/
   QTcpSocket m_chatting_server_socket;
   QTcpSocket m_resources_server_socket;
 

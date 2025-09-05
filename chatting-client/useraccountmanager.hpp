@@ -4,13 +4,13 @@
 
 #include "singleton.hpp"
 #include <ChattingThreadDef.hpp>
+#include <QObject>
 #include <QString>
 #include <UserDef.hpp>
+#include <mutex>
 #include <optional>
 #include <unordered_map>
 #include <vector>
-#include <QObject>
-#include <mutex>
 
 struct ChattingThreadDesc;
 class UserChatThread;
@@ -25,18 +25,18 @@ class UserAccountManager : public Singleton<UserAccountManager> {
 
 public:
   struct ChattingServerInfo {
-      ChattingServerInfo()    : uuid(), host(), port(), token() {}
-      void clear(){
-          uuid.clear();
-          host.clear();
-          port.clear();
-          token.clear();
-      }
-      QString uuid;
-      QString host;
-      QString port;
-      QString token;
-  } ;
+    ChattingServerInfo() : uuid(), host(), port(), token() {}
+    void clear() {
+      uuid.clear();
+      host.clear();
+      port.clear();
+      token.clear();
+    }
+    QString uuid;
+    QString host;
+    QString port;
+    QString token;
+  };
 
   ~UserAccountManager();
   void set_host(const QString &_host);
@@ -119,11 +119,11 @@ private:
   UserAccountManager();
 
 private:
-  //because tctnetworkconnection class runs on another thread
-  //it might cause race condition!
+  // because tctnetworkconnection class runs on another thread
+  // it might cause race condition!
   mutable std::mutex m_mtx;
 
-  ChattingServerInfo  m_info;
+  ChattingServerInfo m_info;
 
   // for pull and retrieve last thread info from server
   QString m_last_thread_id;

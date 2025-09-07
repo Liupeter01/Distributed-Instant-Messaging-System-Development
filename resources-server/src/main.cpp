@@ -1,7 +1,6 @@
 #include <config/ServerConfig.hpp>
 #include <grpc/GrpcResourcesRegisterService.hpp>
 #include <grpc/ResourcesRegisterServicePool.hpp>
-#include <handler/SyncLogic.hpp>
 #include <redis/RedisManager.hpp>
 #include <server/AsyncServer.hpp>
 #include <service/IOServicePool.hpp>

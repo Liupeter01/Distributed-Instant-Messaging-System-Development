@@ -7,155 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>229</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QWidget" name="widget" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>25</height>
-      </size>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label_4">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>server address: </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="server_addr">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>192.168.0.218</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="widget_7" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>25</height>
-      </size>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label_5">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Server port: </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="server_port">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>62232</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item>
     <spacer name="verticalSpacer_2">
      <property name="orientation">
@@ -409,6 +267,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="connect_server">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -472,7 +333,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_4">
+       <widget class="QPushButton" name="pauseandresume">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -486,12 +347,12 @@
          </size>
         </property>
         <property name="text">
-         <string>PushButton</string>
+         <string>pause</string>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer_6">
+       <spacer name="horizontalSpacer_9">
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
         </property>

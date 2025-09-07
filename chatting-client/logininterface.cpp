@@ -118,7 +118,7 @@ void LoginInterface::regisrerCallBackFunctions() {
         ResourceStorageManager::get_instance()->set_port(json["resources_port"].toString());
 
         emit signal_connect2_chatting_server();
-
+        emit signal_connect2_resources_server();
       }));
 }
 
@@ -230,8 +230,8 @@ void LoginInterface::slot_connection_status(bool status) {
     json_obj["token"] = UserAccountManager::get_instance()->get_token();
 
     /*after connection to server, send TCP request*/
-    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_LOGINSERVER,
-                                      std::move(json_obj));
+    ChattingTCPNetwork::get_instance()->send_buffer(
+        ServiceType::SERVICE_LOGINSERVER, std::move(json_obj));
 
   } else {
     Tools::setWidgetAttribute(ui->status_label_3, QString("Network error!"),

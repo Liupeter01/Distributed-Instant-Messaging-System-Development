@@ -23,7 +23,10 @@ service UserService {
   rpc LoginUser(LoginRequest) returns (LoginResponse);
 }
 
-message UserRegisterRequest { int32 uuid = 1; }
+message UserRegisterRequest { 
+          int32 uuid = 1; 
+          int32 target = 2;   //0=chatting_server 1=resource_server
+}
 
 message UserRegisterResponse {
   int32 error = 1;

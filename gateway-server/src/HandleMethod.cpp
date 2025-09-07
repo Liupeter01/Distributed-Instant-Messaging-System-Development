@@ -338,19 +338,45 @@ void HandleMethod::registerPostCallBacks() {
          *pass user's uuid parameter to the server, and returns available server
          *address to user
          */
-        auto response = gRPCGrpcUserService::addNewUserToServer(uuid);
+        auto response = gRPCGrpcUserService::addNewUserToServer(uuid, 
+                  gRPCGrpcUserService::TargetServer::CHATTING_SERVER);
 
         if (response.error() !=
             static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
           spdlog::error("[client {}] try login server failed!, error code {}",
                         std::to_string(uuid), response.error());
+
+          send_obj["error"] = response.error();
+
+          boost::beast::ostream(conn->http_response.body())
+                    << boost::json::serialize(send_obj);
+          return false;
         }
 
+        /*chatting server*/
+        send_obj["chatting_host"] = response.host();
+        send_obj["chatting_port"] = response.port();
+        send_obj["chatting_token"] = response.token();
+
+        response = gRPCGrpcUserService::addNewUserToServer(uuid, 
+                  gRPCGrpcUserService::TargetServer::RESOURCES_SERVER);
+
+        if (response.error() !=
+                  static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
+                  spdlog::error("[client {}] try login server failed!, error code {}",
+                            std::to_string(uuid), response.error());
+
+                  send_obj["error"] = response.error();
+                  boost::beast::ostream(conn->http_response.body())
+                            << boost::json::serialize(send_obj);
+                  return false;
+        }
+
+        /*resource server*/
         send_obj["uuid"] = std::to_string(uuid);
-        send_obj["error"] = response.error();
-        send_obj["host"] = response.host();
-        send_obj["port"] = response.port();
-        send_obj["token"] = response.token();
+        send_obj["resources_host"] = response.host();
+        send_obj["resources_port"] = response.port();
+        send_obj["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
 
         boost::beast::ostream(conn->http_response.body())
             << boost::json::serialize(send_obj);

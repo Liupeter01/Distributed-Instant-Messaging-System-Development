@@ -110,7 +110,10 @@ struct recv_msg_check<
 
 template <typename Container> struct MsgHeader {
   /*letting tcpnetwork to handle protected _buffer*/
-  friend class TCPNetworkConnection;
+
+  friend class TCPNetworkBase;
+  friend class FileTCPNetwork;
+  friend class ChattingTCPNetwork;
 
   /*For receiving data*/
   MsgHeader(MsgNodeType type = MsgNodeType::MSGNODE_NORMAL) noexcept

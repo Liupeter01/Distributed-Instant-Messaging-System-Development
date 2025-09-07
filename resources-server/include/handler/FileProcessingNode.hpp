@@ -12,33 +12,9 @@
 #include <server/Session.hpp>
 #include <singleton/singleton.hpp>
 #include <thread>
+#include <server/FileHasherLogger.hpp>
 
 namespace handler {
-
-struct FileDescriptionBlock {
-  FileDescriptionBlock() = default;
-  FileDescriptionBlock(const std::string &filename,
-                       const std::string &block_data,
-                       const std::string &checksum,
-                       const std::string &curr_sequence,
-                       const std::string &last_sequence,
-                       const std::string &_eof, std::size_t accumlated_size,
-                       std::size_t file_size)
-      : filename(filename), block_data(block_data), checksum(checksum),
-        curr_sequence(curr_sequence), last_sequence(last_sequence),
-        accumlated_size(accumlated_size), file_size(file_size), isEOF(_eof) {}
-
-  std::string filename;
-  std::string block_data;
-  std::string checksum;
-  std::string curr_sequence;
-  std::string last_sequence;
-  std::string isEOF;
-
-  std::size_t accumlated_size;
-  std::size_t file_size;
-};
-
 class FileProcessingNode {
   using SessionPtr = std::shared_ptr<Session>;
   using NodePtr = std::unique_ptr<FileDescriptionBlock>;

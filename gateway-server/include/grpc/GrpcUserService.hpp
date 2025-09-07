@@ -11,14 +11,12 @@
 
 struct gRPCGrpcUserService {
 
-          enum class TargetServer {
-                    CHATTING_SERVER = 0,
-                    RESOURCES_SERVER
-          };
+  enum class TargetServer { CHATTING_SERVER = 0, RESOURCES_SERVER };
 
   // pass user's uuid parameter to the server, and returns available server
   // address to user
-  static message::UserRegisterResponse addNewUserToServer(std::size_t uuid, const TargetServer target) {
+  static message::UserRegisterResponse
+  addNewUserToServer(std::size_t uuid, const TargetServer target) {
 
     grpc::ClientContext context;
     message::UserRegisterRequest request;

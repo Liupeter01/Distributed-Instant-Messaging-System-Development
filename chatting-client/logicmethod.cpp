@@ -2,10 +2,9 @@
 #include <filetcpnetwork.h>
 
 LogicMethod::LogicMethod(QObject *parent)
-    : QObject{parent}, m_thread(new QThread()),
-      m_exec(new LogicExecutor()) {
+    : QObject{parent}, m_thread(new QThread()), m_exec(new LogicExecutor()) {
 
-  //meta type
+  // meta type
   registerMetaType();
 
   /*move executor to subthread*/
@@ -19,7 +18,7 @@ LogicMethod::LogicMethod(QObject *parent)
 }
 
 void LogicMethod::registerMetaType() {
-    qRegisterMetaType<std::shared_ptr<QFileInfo>>("std::shared_ptr<QFileInfo>");
+  qRegisterMetaType<std::shared_ptr<QFileInfo>>("std::shared_ptr<QFileInfo>");
 }
 
 void LogicMethod::registerSignals() {
@@ -47,35 +46,35 @@ void LogicMethod::registerSignals() {
 }
 
 void LogicMethod::recordMD5Progress(const QString &md5,
-                                    std::shared_ptr<QFileInfo> info){
+                                    std::shared_ptr<QFileInfo> info) {
 
-    std::lock_guard<std::mutex> _lckg(m_mtx);
+  std::lock_guard<std::mutex> _lckg(m_mtx);
 
-    auto it = m_md5_cache.find(md5);
+  auto it = m_md5_cache.find(md5);
 
-    //only update
-    if(it != m_md5_cache.end()){
-        if(it->second){
-            it->second.reset();
-        }
-        it->second = info;
-        return;
+  // only update
+  if (it != m_md5_cache.end()) {
+    if (it->second) {
+      it->second.reset();
     }
-    auto [_, status] = m_md5_cache.try_emplace(md5, info);
-    if(!status){
-        qDebug() << "md5 uuid exist!\n";
-    }
+    it->second = info;
+    return;
+  }
+  auto [_, status] = m_md5_cache.try_emplace(md5, info);
+  if (!status) {
+    qDebug() << "md5 uuid exist!\n";
+  }
 }
 
 std::optional<std::shared_ptr<QFileInfo>>
-LogicMethod::getFileByMD5(const QString &md5){
+LogicMethod::getFileByMD5(const QString &md5) {
 
-    std::lock_guard<std::mutex> _lckg(m_mtx);
-    auto it = m_md5_cache.find(md5);
-    if(it == m_md5_cache.end()){
-        return std::nullopt;
-    }
-    return it->second;
+  std::lock_guard<std::mutex> _lckg(m_mtx);
+  auto it = m_md5_cache.find(md5);
+  if (it == m_md5_cache.end()) {
+    return std::nullopt;
+  }
+  return it->second;
 }
 
 bool LogicMethod::getPauseStatus() const { return m_pause; }

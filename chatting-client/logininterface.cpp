@@ -6,11 +6,11 @@
 #include <QtEndian>
 
 #include "logininterface.h"
+#include "resourcestoragemanager.h"
 #include "ui_logininterface.h"
 #include "useraccountmanager.hpp"
-#include "resourcestoragemanager.h"
-#include <filetcpnetwork.h>
 #include <chattingtcpnetwork.h>
+#include <filetcpnetwork.h>
 
 LoginInterface::LoginInterface(QWidget *parent)
     : QDialog(parent), ui(new Ui::LoginInterface) {
@@ -109,13 +109,19 @@ void LoginInterface::regisrerCallBackFunctions() {
                                   QString("Login Success!"), true);
 
         UserAccountManager::get_instance()->set_uuid(json["uuid"].toString());
-        UserAccountManager::get_instance()->set_host(json["chatting_host"].toString());
-        UserAccountManager::get_instance()->set_port(json["chatting_port"].toString());
-        UserAccountManager::get_instance()->set_token(json["chatting_token"].toString());
+        UserAccountManager::get_instance()->set_host(
+            json["chatting_host"].toString());
+        UserAccountManager::get_instance()->set_port(
+            json["chatting_port"].toString());
+        UserAccountManager::get_instance()->set_token(
+            json["chatting_token"].toString());
 
-        ResourceStorageManager::get_instance()->set_uuid(json["uuid"].toString());
-        ResourceStorageManager::get_instance()->set_host(json["resources_host"].toString());
-        ResourceStorageManager::get_instance()->set_port(json["resources_port"].toString());
+        ResourceStorageManager::get_instance()->set_uuid(
+            json["uuid"].toString());
+        ResourceStorageManager::get_instance()->set_host(
+            json["resources_host"].toString());
+        ResourceStorageManager::get_instance()->set_port(
+            json["resources_port"].toString());
 
         emit signal_connect2_chatting_server();
         emit signal_connect2_resources_server();

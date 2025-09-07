@@ -12,28 +12,30 @@ grpc::GrpcUserServiceImpl::GrpcUserServiceImpl() {
     const ::message::UserRegisterRequest *request,
     ::message::UserRegisterResponse *response) {
 
-          if (request->target() < 0 || 
-                    request->target() >= static_cast<int32_t>(details::SERVER_TYPE::CHATTING_GRPC_SERVER)) {
+  if (request->target() < 0 ||
+      request->target() >=
+          static_cast<int32_t>(details::SERVER_TYPE::CHATTING_GRPC_SERVER)) {
 
-                    response->set_error(
-                              static_cast<std::size_t>(ServiceStatus::GRPC_ERROR));
-                    return grpc::Status::OK;
-          }
+    response->set_error(static_cast<std::size_t>(ServiceStatus::GRPC_ERROR));
+    return grpc::Status::OK;
+  }
 
   /*get the lowest load server*/
   auto server_opt =
       details::GrpcDataLayer::get_instance()->serverInstanceLoadBalancer(
-                static_cast<details::SERVER_TYPE>(request->target()));
+          static_cast<details::SERVER_TYPE>(request->target()));
 
   /*if serverloadbalancer returns a nullopt, then it means that there is no
    * avaibale chatting-server right now!*/
   if (!server_opt.has_value()) {
 
-            response->set_error(
-                      ((static_cast<details::SERVER_TYPE>(request->target()) ==
-                      details::SERVER_TYPE::CHATTING_SERVER_INSTANCE ?
-                      static_cast<std::size_t>(ServiceStatus::NO_AVAILABLE_CHATTING_SERVER)
-                      : static_cast<std::size_t>(ServiceStatus::NO_AVAILABLE_RESOURCES_SERVER))));
+    response->set_error(
+        ((static_cast<details::SERVER_TYPE>(request->target()) ==
+                  details::SERVER_TYPE::CHATTING_SERVER_INSTANCE
+              ? static_cast<std::size_t>(
+                    ServiceStatus::NO_AVAILABLE_CHATTING_SERVER)
+              : static_cast<std::size_t>(
+                    ServiceStatus::NO_AVAILABLE_RESOURCES_SERVER))));
 
     return grpc::Status::OK;
   }
@@ -43,21 +45,21 @@ grpc::GrpcUserServiceImpl::GrpcUserServiceImpl() {
   response->set_port((*server_opt)->_port);
 
   if (static_cast<details::SERVER_TYPE>(request->target()) ==
-            details::SERVER_TYPE::CHATTING_SERVER_INSTANCE) {
-            // check if this user's uuid has token or not!
-            std::optional<std::string> exists_opt =
-                      details::GrpcDataLayer::get_instance()->getUserToken(request->uuid());
-            std::string token{};
-            if (exists_opt.has_value()) {
-                      token = std::move(*exists_opt);
-            }
-            else {
-                      /*Generate a new token, and register to data layer then return it back to user!*/
-                      token = tools::userTokenGenerator();
-                      details::GrpcDataLayer::get_instance()->registerUserInfo(request->uuid(),
-                                token);
-            }
-            response->set_token(token);
+      details::SERVER_TYPE::CHATTING_SERVER_INSTANCE) {
+    // check if this user's uuid has token or not!
+    std::optional<std::string> exists_opt =
+        details::GrpcDataLayer::get_instance()->getUserToken(request->uuid());
+    std::string token{};
+    if (exists_opt.has_value()) {
+      token = std::move(*exists_opt);
+    } else {
+      /*Generate a new token, and register to data layer then return it back to
+       * user!*/
+      token = tools::userTokenGenerator();
+      details::GrpcDataLayer::get_instance()->registerUserInfo(request->uuid(),
+                                                               token);
+    }
+    response->set_token(token);
   }
   return grpc::Status::OK;
 }

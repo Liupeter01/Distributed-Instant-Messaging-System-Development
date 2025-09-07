@@ -916,16 +916,17 @@ void TCPNetworkConnection::slot_send_message(std::shared_ptr<SendNodeType> data,
   }
 }
 
-void TCPNetworkConnection::send_buffer(ServiceType type, QJsonObject &&obj, TargetServer tar) {
+void TCPNetworkConnection::send_buffer(ServiceType type, QJsonObject &&obj,
+                                       TargetServer tar) {
 
   QJsonDocument doc(std::move(obj));
   auto byte = doc.toJson(QJsonDocument::Compact);
 
   std::shared_ptr<SendNodeType> buffer = std::make_shared<SendNodeType>(
-      static_cast<uint16_t>(type), byte,
-      ByteOrderConverterReverse{}, ((tar == TargetServer::RESOURCESSERVER) ?
-                                                MsgNodeType::MSGNODE_FILE_TRANSFER
-                                              : MsgNodeType::MSGNODE_NORMAL));
+      static_cast<uint16_t>(type), byte, ByteOrderConverterReverse{},
+      ((tar == TargetServer::RESOURCESSERVER)
+           ? MsgNodeType::MSGNODE_FILE_TRANSFER
+           : MsgNodeType::MSGNODE_NORMAL));
 
   /*after connection to server, send TCP request*/
   emit TCPNetworkConnection::get_instance() -> signal_send_message(buffer, tar);

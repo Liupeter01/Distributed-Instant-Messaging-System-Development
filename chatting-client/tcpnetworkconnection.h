@@ -59,7 +59,8 @@ public:
     emit signal_send_message(data, tar);
   }
 
-  static void send_buffer(ServiceType type, QJsonObject &&obj,  TargetServer tar = TargetServer::CHATTINGSERVER);
+  static void send_buffer(ServiceType type, QJsonObject &&obj,
+                          TargetServer tar = TargetServer::CHATTINGSERVER);
   static qint64 send_binary_flow(QTcpSocket &socket, const QByteArray &array);
 
 private:

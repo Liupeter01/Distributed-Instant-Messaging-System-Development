@@ -68,7 +68,7 @@ private:
         m_ini["ResourcesServer"]["msg_length"].as<unsigned long>();
 
     heart_beat_timeout =
-              m_ini["ResourcesServer"]["heart_beat_timeout"].as<int>();
+        m_ini["ResourcesServer"]["heart_beat_timeout"].as<int>();
   }
 
   void loadGrpcServerInfo() {

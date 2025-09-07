@@ -1,6 +1,5 @@
 #include <config/ServerConfig.hpp>
 #include <dispatcher/RequestHandlerDispatcher.hpp>
-#include <handler/SyncLogic.hpp>
 #include <server/AsyncServer.hpp>
 #include <server/UserManager.hpp>
 #include <server/Session.hpp>
@@ -278,11 +277,11 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
     RecvPtr recv(m_recv_buffer.release());
 
     /*send the received data to SyncLogic to process it */
-    SyncLogic::get_instance()->commit(std::make_pair(session, std::move(recv)));
+    //SyncLogic::get_instance()->commit(std::make_pair(session, std::move(recv)));
 
     /*send the received data to RequestHandlerDispatcher to process it */
-    // dispatcher::RequestHandlerDispatcher::get_instance()->commit(
-    //           std::make_pair(session, std::move(recv)), session);
+     dispatcher::RequestHandlerDispatcher::get_instance()->commit(
+               std::make_pair(session, std::move(recv)), session);
 
     /*
      * if handle_msgbody is finished, then go back to header reader

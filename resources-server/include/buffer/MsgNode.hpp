@@ -2,6 +2,7 @@
 #pragma once
 #ifndef _MSGNODE_H_
 #define _MSGNODE_H_
+#include <boost/asio/detail/socket_ops.hpp>
 #include <cstdint>
 #include <functional>
 #include <iterator>
@@ -9,7 +10,6 @@
 #include <string>
 #include <type_traits> //SFINAE
 #include <utility>     // for std::declval
-#include <boost/asio/detail/socket_ops.hpp>
 
 class QString;
 class TCPNetworkConnection;
@@ -22,37 +22,37 @@ enum class MsgNodeType {
 template <typename T,
           typename std::enable_if_t<sizeof(T) == sizeof(uint16_t), int> = 0>
 T convert_from_network(T value) {
-          return boost::asio::detail::socket_ops::network_to_host_short(value);
+  return boost::asio::detail::socket_ops::network_to_host_short(value);
 }
 
 template <typename T,
           typename std::enable_if_t<sizeof(T) == sizeof(uint32_t), int> = 0>
 T convert_from_network(T value) {
-          return boost::asio::detail::socket_ops::network_to_host_long(value);
+  return boost::asio::detail::socket_ops::network_to_host_long(value);
 }
 
 template <typename T,
           typename std::enable_if_t<sizeof(T) == sizeof(uint16_t), int> = 0>
 T convert_to_network(T value) {
-          return boost::asio::detail::socket_ops::host_to_network_short(value);
+  return boost::asio::detail::socket_ops::host_to_network_short(value);
 }
 
 template <typename T,
           typename std::enable_if_t<sizeof(T) == sizeof(uint32_t), int> = 0>
 T convert_to_network(T value) {
-          return boost::asio::detail::socket_ops::host_to_network_long(value);
+  return boost::asio::detail::socket_ops::host_to_network_long(value);
 }
 
 struct ByteOrderConverter {
-          template <typename T> T operator()(T value) const {
-                    return convert_from_network(value);
-          }
+  template <typename T> T operator()(T value) const {
+    return convert_from_network(value);
+  }
 };
 
 struct ByteOrderConverterReverse {
-          template <typename T> T operator()(T value) const {
-                    return convert_to_network(value);
-          }
+  template <typename T> T operator()(T value) const {
+    return convert_to_network(value);
+  }
 };
 
 template <typename _Ty> struct add_const_lvalue_reference {

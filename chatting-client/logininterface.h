@@ -2,10 +2,10 @@
 #define LOGININTERFACE_H
 
 #include "httpnetworkconnection.h"
+#include <chattingtcpnetwork.h>
 #include "tools.h"
 #include <MsgNode.hpp>
 #include <QDialog>
-#include <chattingtcpnetwork.h>
 #include <functional>
 #include <map>
 
@@ -51,6 +51,9 @@ signals:
 
   /*try to connect to chatting server*/
   void signal_connect2_chatting_server();
+
+  /*try to connect to resource server*/
+  void signal_connect2_resources_server();
 
 private slots:
   void on_login_button_clicked();

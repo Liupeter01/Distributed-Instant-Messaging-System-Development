@@ -8,6 +8,9 @@
 #include "logininterface.h"
 #include "ui_logininterface.h"
 #include "useraccountmanager.hpp"
+#include "resourcestoragemanager.h"
+#include <filetcpnetwork.h>
+#include <chattingtcpnetwork.h>
 
 LoginInterface::LoginInterface(QWidget *parent)
     : QDialog(parent), ui(new Ui::LoginInterface) {
@@ -78,6 +81,10 @@ void LoginInterface::registerNetworkEvent() {
           ChattingTCPNetwork::get_instance().get(),
           &ChattingTCPNetwork::signal_connect2_server);
 
+  connect(this, &LoginInterface::signal_connect2_resources_server,
+          FileTCPNetwork::get_instance().get(),
+          &FileTCPNetwork::signal_connect2_server);
+
   /*connect connection signal <--> slot */
   connect(ChattingTCPNetwork::get_instance().get(),
           &ChattingTCPNetwork::signal_connection_status, this,
@@ -102,11 +109,16 @@ void LoginInterface::regisrerCallBackFunctions() {
                                   QString("Login Success!"), true);
 
         UserAccountManager::get_instance()->set_uuid(json["uuid"].toString());
-        UserAccountManager::get_instance()->set_host(json["host"].toString());
-        UserAccountManager::get_instance()->set_port(json["port"].toString());
-        UserAccountManager::get_instance()->set_token(json["token"].toString());
+        UserAccountManager::get_instance()->set_host(json["chatting_host"].toString());
+        UserAccountManager::get_instance()->set_port(json["chatting_port"].toString());
+        UserAccountManager::get_instance()->set_token(json["chatting_token"].toString());
+
+        ResourceStorageManager::get_instance()->set_uuid(json["uuid"].toString());
+        ResourceStorageManager::get_instance()->set_host(json["resources_host"].toString());
+        ResourceStorageManager::get_instance()->set_port(json["resources_port"].toString());
 
         emit signal_connect2_chatting_server();
+
       }));
 }
 
@@ -218,8 +230,8 @@ void LoginInterface::slot_connection_status(bool status) {
     json_obj["token"] = UserAccountManager::get_instance()->get_token();
 
     /*after connection to server, send TCP request*/
-    ChattingTCPNetwork::get_instance()->send_buffer(
-        ServiceType::SERVICE_LOGINSERVER, std::move(json_obj));
+    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_LOGINSERVER,
+                                      std::move(json_obj));
 
   } else {
     Tools::setWidgetAttribute(ui->status_label_3, QString("Network error!"),

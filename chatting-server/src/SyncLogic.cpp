@@ -30,96 +30,96 @@ SyncLogic::SyncLogic() : m_stop(false) {
 SyncLogic::~SyncLogic() { shutdown(); }
 
 void SyncLogic::registerCallbacks() {
-          /*
-           * ServiceType::SERVICE_LOGINSERVER
-           * Handling Login Request
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_LOGINSERVER,
-                    std::bind(&SyncLogic::handlingLogin, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  /*
+   * ServiceType::SERVICE_LOGINSERVER
+   * Handling Login Request
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_LOGINSERVER,
+      std::bind(&SyncLogic::handlingLogin, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          /*
-           * ServiceType::SERVICE_LOGOUTSERVER
-           * Handling Logout Request
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_LOGOUTSERVER,
-                    std::bind(&SyncLogic::handlingLogout, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  /*
+   * ServiceType::SERVICE_LOGOUTSERVER
+   * Handling Logout Request
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_LOGOUTSERVER,
+      std::bind(&SyncLogic::handlingLogout, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          /*
-           * ServiceType::SERVICE_SEARCHUSERNAME
-           * Handling User Search Username
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_SEARCHUSERNAME,
-                    std::bind(&SyncLogic::handlingUserSearch, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  /*
+   * ServiceType::SERVICE_SEARCHUSERNAME
+   * Handling User Search Username
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_SEARCHUSERNAME,
+      std::bind(&SyncLogic::handlingUserSearch, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          /*
-           * ServiceType::SERVICE_CREATENEWPRIVATECHAT
-           * Handling User Create A Private Chat for thread_id
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_CREATENEWPRIVATECHAT,
-                    std::bind(&SyncLogic::handlingCreateNewPrivateChat, this,
-                              std::placeholders::_1, std::placeholders::_2,
-                              std::placeholders::_3)));
+  /*
+   * ServiceType::SERVICE_CREATENEWPRIVATECHAT
+   * Handling User Create A Private Chat for thread_id
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_CREATENEWPRIVATECHAT,
+      std::bind(&SyncLogic::handlingCreateNewPrivateChat, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
-          /*
-           * ServiceType::SERVICE_PULLCHATTHREAD
-           * Handling User Pull Chat Thread For indexing
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_PULLCHATTHREAD,
-                    std::bind(&SyncLogic::handlingUserChatTheads, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  /*
+   * ServiceType::SERVICE_PULLCHATTHREAD
+   * Handling User Pull Chat Thread For indexing
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_PULLCHATTHREAD,
+      std::bind(&SyncLogic::handlingUserChatTheads, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          /*
-           * ServiceType:: ServiceType::SERVICE_PULLCHATRECORD
-           * Handling User Pull Chat Message By Thread_id and messsage_id
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_PULLCHATRECORD,
-                    std::bind(&SyncLogic::handlingUserChatMessage, this,
-                              std::placeholders::_1, std::placeholders::_2,
-                              std::placeholders::_3)));
+  /*
+   * ServiceType:: ServiceType::SERVICE_PULLCHATRECORD
+   * Handling User Pull Chat Message By Thread_id and messsage_id
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_PULLCHATRECORD,
+      std::bind(&SyncLogic::handlingUserChatMessage, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
-          /*
-           * ServiceType::FRIENDREQUEST_SRC
-           * Handling the person who added other(dst) as a friend
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_FRIENDREQUESTSENDER,
-                    std::bind(&SyncLogic::handlingFriendRequestCreator, this,
-                              std::placeholders::_1, std::placeholders::_2,
-                              std::placeholders::_3)));
+  /*
+   * ServiceType::FRIENDREQUEST_SRC
+   * Handling the person who added other(dst) as a friend
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_FRIENDREQUESTSENDER,
+      std::bind(&SyncLogic::handlingFriendRequestCreator, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
-          /*
-           * ServiceType::FRIENDREQUEST_DST
-           * Handling the person was being added response to the person who init this
-           * action
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_FRIENDREQUESTCONFIRM,
-                    std::bind(&SyncLogic::handlingFriendRequestConfirm, this,
-                              std::placeholders::_1, std::placeholders::_2,
-                              std::placeholders::_3)));
+  /*
+   * ServiceType::FRIENDREQUEST_DST
+   * Handling the person was being added response to the person who init this
+   * action
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_FRIENDREQUESTCONFIRM,
+      std::bind(&SyncLogic::handlingFriendRequestConfirm, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
-          /*
-           * ServiceType::SERVICE_TEXTCHATMSGREQUEST
-           * Handling the user send chatting text msg to others
-           */
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_TEXTCHATMSGREQUEST,
-                    std::bind(&SyncLogic::handlingTextChatMsg, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  /*
+   * ServiceType::SERVICE_TEXTCHATMSGREQUEST
+   * Handling the user send chatting text msg to others
+   */
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_TEXTCHATMSGREQUEST,
+      std::bind(&SyncLogic::handlingTextChatMsg, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 
-          m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-                    ServiceType::SERVICE_HEARTBEAT_REQUEST,
-                    std::bind(&SyncLogic::handlingHeartBeat, this, std::placeholders::_1,
-                              std::placeholders::_2, std::placeholders::_3)));
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+      ServiceType::SERVICE_HEARTBEAT_REQUEST,
+      std::bind(&SyncLogic::handlingHeartBeat, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3)));
 }
 
 void SyncLogic::commit(pair recv_node) {

@@ -53,10 +53,10 @@ void SyncLogic::handlingLogin(ServiceType srv_type,
                ServerConfig::get_instance()->GrpcServerName, uuid, token);
 
   if (!tools::string_to_value<std::size_t>(uuid).has_value()) {
-            generateErrorMessage("Failed to cast uuid strings to size_t",
-                      ServiceType::SERVICE_LOGINRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    generateErrorMessage("Failed to cast uuid strings to size_t",
+                         ServiceType::SERVICE_LOGINRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   auto response =
@@ -193,10 +193,10 @@ void SyncLogic::handlingLogout(ServiceType srv_type,
                ServerConfig::get_instance()->GrpcServerName, uuid, token);
 
   if (!tools::string_to_value<std::size_t>(uuid).has_value()) {
-            generateErrorMessage("Failed to cast uuid strings to size_t",
-                      ServiceType::SERVICE_LOGOUTRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+    generateErrorMessage("Failed to cast uuid strings to size_t",
+                         ServiceType::SERVICE_LOGOUTRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   auto response =
@@ -333,20 +333,19 @@ void SyncLogic::handlingFriendRequestCreator(ServiceType srv_type,
                dst_uuid);
 
   if (!tools::string_to_value<std::size_t>(src_uuid).has_value() ||
-            !tools::string_to_value<std::size_t>(dst_uuid).has_value()) {
-            generateErrorMessage("Failed to cast uuid strings to size_t",
-                      ServiceType::SERVICE_FRIENDSENDERRESPONSE,
-                      ServiceStatus::JSONPARSE_ERROR, session);
-            return;
+      !tools::string_to_value<std::size_t>(dst_uuid).has_value()) {
+    generateErrorMessage("Failed to cast uuid strings to size_t",
+                         ServiceType::SERVICE_FRIENDSENDERRESPONSE,
+                         ServiceStatus::JSONPARSE_ERROR, session);
+    return;
   }
 
   auto src_uuid_value = std::stoi(src_uuid);
   auto dst_uuid_value = std::stoi(dst_uuid);
 
   /*insert friend request info into mysql db*/
-  if (!mysql->get()->createFriendRequest(src_uuid_value,
-            dst_uuid_value, nickname,
-                                         msg)) {
+  if (!mysql->get()->createFriendRequest(src_uuid_value, dst_uuid_value,
+                                         nickname, msg)) {
     generateErrorMessage(" Insert Friend Request Failed",
                          ServiceType::SERVICE_FRIENDSENDERRESPONSE,
                          ServiceStatus::FRIENDING_ERROR, session);

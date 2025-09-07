@@ -2,10 +2,10 @@
 #define LOGININTERFACE_H
 
 #include "httpnetworkconnection.h"
-#include <chattingtcpnetwork.h>
 #include "tools.h"
 #include <MsgNode.hpp>
 #include <QDialog>
+#include <chattingtcpnetwork.h>
 #include <functional>
 #include <map>
 

@@ -1,7 +1,6 @@
 #include "adduserrequestdialog.h"
 #include "addusernamecarddialog.h"
 #include "onceclickableqlabel.h"
-#include <chattingtcpnetwork.h>
 #include "tools.h"
 #include "ui_adduserrequestdialog.h"
 #include <QDebug>
@@ -9,6 +8,7 @@
 #include <QJsonObject>
 #include <QScrollBar>
 #include <algorithm>
+#include <chattingtcpnetwork.h>
 #include <useraccountmanager.hpp>
 
 AddUserRequestDialog::AddUserRequestDialog(QWidget *parent)
@@ -303,8 +303,8 @@ void AddUserRequestDialog::on_confirm_button_clicked() {
   obj["nickname"] = nickname;
 
   /*after connection to server, send TCP request*/
-  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_FRIENDREQUESTSENDER,
-                                    std::move(obj));
+  ChattingTCPNetwork::get_instance()->send_buffer(
+      ServiceType::SERVICE_FRIENDREQUESTSENDER, std::move(obj));
 
   closeDialog();
 }

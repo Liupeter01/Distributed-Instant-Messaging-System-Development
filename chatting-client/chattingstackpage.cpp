@@ -7,8 +7,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUuid>
-#include <filetransferdialog.h>
 #include <chattingtcpnetwork.h>
+#include <filetransferdialog.h>
 #include <useraccountmanager.hpp>
 
 std::size_t ChattingStackPage::TXT_MSG_BUFFER_SIZE = 1024;
@@ -317,8 +317,8 @@ void ChattingStackPage::on_send_message_clicked() {
   text_obj["text_msg"] = array;
 
   /*after connection to server, send TCP request*/
-  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_TEXTCHATMSGREQUEST,
-                                    std::move(text_obj));
+  ChattingTCPNetwork::get_instance()->send_buffer(
+      ServiceType::SERVICE_TEXTCHATMSGREQUEST, std::move(text_obj));
 
   /*clean all array value*/
   array = QJsonArray{};

@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include <chattingtcpnetwork.h>
 #include <QMessageBox>
+#include <chattingtcpnetwork.h>
 #include <useraccountmanager.hpp>
 
 MainWindow::MainWindow(QWidget *parent)

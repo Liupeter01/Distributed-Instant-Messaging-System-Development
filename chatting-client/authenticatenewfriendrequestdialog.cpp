@@ -1,13 +1,13 @@
 #include "authenticatenewfriendrequestdialog.h"
 #include "addusernamecarddialog.h"
 #include "onceclickableqlabel.h"
-#include <chattingtcpnetwork.h>
 #include "tools.h"
 #include "ui_authenticatenewfriendrequestdialog.h"
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QScrollBar>
+#include <chattingtcpnetwork.h>
 #include <useraccountmanager.hpp>
 
 AuthenticateNewFriendRequestDialog::AuthenticateNewFriendRequestDialog(
@@ -297,8 +297,8 @@ void AuthenticateNewFriendRequestDialog::on_confirm_button_clicked() {
   obj["alternative_name"] = alternativeName;
 
   /*after connection to server, send TCP request*/
-  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_FRIENDREQUESTCONFIRM,
-                                    std::move(obj));
+  ChattingTCPNetwork::get_instance()->send_buffer(
+      ServiceType::SERVICE_FRIENDREQUESTCONFIRM, std::move(obj));
 
   closeDialog();
 }

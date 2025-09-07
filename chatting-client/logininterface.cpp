@@ -218,8 +218,8 @@ void LoginInterface::slot_connection_status(bool status) {
     json_obj["token"] = UserAccountManager::get_instance()->get_token();
 
     /*after connection to server, send TCP request*/
-    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_LOGINSERVER,
-                                      std::move(json_obj));
+    ChattingTCPNetwork::get_instance()->send_buffer(
+        ServiceType::SERVICE_LOGINSERVER, std::move(json_obj));
 
   } else {
     Tools::setWidgetAttribute(ui->status_label_3, QString("Network error!"),

@@ -1,7 +1,7 @@
 #include "mainframesearchlists.h"
 #include "addnewuserwidget.h"
 #include "def.hpp"
-#include "tcpnetworkconnection.h"
+#include <chattingtcpnetwork.h>
 #include <QListWidgetItem>
 #include <useraccountmanager.hpp>
 
@@ -21,8 +21,8 @@ MainFrameSearchLists::~MainFrameSearchLists() {}
 
 void MainFrameSearchLists::registerSignal() {
   /*connect to TCP mgr signal_search_username response*/
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_search_username, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_search_username, this,
           &MainFrameSearchLists::slot_search_username);
 }
 

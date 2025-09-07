@@ -3,7 +3,7 @@
 #include "ui_addnewuserstackwidget.h"
 #include <QListWidgetItem>
 #include <authenticatenewfriendrequestdialog.h>
-#include <tcpnetworkconnection.h>
+#include <chattingtcpnetwork.h>
 #include <useraccountmanager.hpp>
 
 /* define how many friend request are going to show up on list */
@@ -69,12 +69,12 @@ void AddNewUserStackWidget::loadLimitedReqList() {
 }
 
 void AddNewUserStackWidget::registerSignal() {
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_incoming_friend_request, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_incoming_friend_request, this,
           &AddNewUserStackWidget::slot_incoming_friend_request);
 
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_init_friend_request_list, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_init_friend_request_list, this,
           &AddNewUserStackWidget::slot_init_friend_request_list);
 }
 

@@ -3,7 +3,7 @@
 #include "chattinghistorywidget.h"
 #include "loadingwaitdialog.h"
 #include "msgtextedit.h"
-#include "tcpnetworkconnection.h"
+#include <chattingtcpnetwork.h>
 #include "tools.h"
 #include "ui_chattingdlgmainframe.h"
 #include <ChattingThreadDef.hpp>
@@ -103,7 +103,7 @@ void ChattingDlgMainFrame::sendHeartBeat() {
   QJsonObject obj;
   obj["uuid"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
 
-  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_HEARTBEAT_REQUEST,
+  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_HEARTBEAT_REQUEST,
                                     std::move(obj));
 }
 
@@ -197,27 +197,27 @@ void ChattingDlgMainFrame::registerSignal() {
 
   /*terminate chatting server signal!*/
   connect(this, &ChattingDlgMainFrame::signal_teminate_chatting_server,
-          TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_teminate_chatting_server);
+          ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_terminate_server);
 
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_connection_status, this,
+  connect( ChattingTCPNetwork::get_instance().get(),
+          & ChattingTCPNetwork::signal_connection_status, this,
           &ChattingDlgMainFrame::slot_connection_status);
 
   /*
    * when other user send friend request
    * This method is ONLY USED TO NOTIFY USER AND CHANGE UI
    */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_incoming_friend_request, this,
+  connect( ChattingTCPNetwork::get_instance().get(),
+          & ChattingTCPNetwork::signal_incoming_friend_request, this,
           &ChattingDlgMainFrame::slot_incoming_friend_request);
 
   /*
    * emit a signal to attach auth-friend messages to chatting history
    * DURING this phase, "thread_id" will be dstributed to this chatting thread!
    */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_add_auth_friend_init_chatting_thread,
+  connect( ChattingTCPNetwork::get_instance().get(),
+          & ChattingTCPNetwork::signal_add_auth_friend_init_chatting_thread,
           this,
           &ChattingDlgMainFrame::slot_add_auth_friend_init_chatting_thread);
 
@@ -226,8 +226,8 @@ void ChattingDlgMainFrame::registerSignal() {
    * sender could be a user who is not in the chathistorywidget list
    * so we have to create a new widget for him
    */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_incoming_msg, this,
+  connect( ChattingTCPNetwork::get_instance().get(),
+          & ChattingTCPNetwork::signal_incoming_msg, this,
           &ChattingDlgMainFrame::slot_incoming_msg);
 
   /*
@@ -261,33 +261,33 @@ void ChattingDlgMainFrame::registerSignal() {
           this, &ChattingDlgMainFrame::slot_append_chat_message);
 
   /**
-   * Connecting signal<->slot between TCPNetworkConnection and
+   * Connecting signal<->slot between  ChattingTCPNetwork and
    * chattingdlgmainframe emit a signal to ChattingDlgMainFrame class to update
    * local msg status which returns an allocated msg_id to replace local uuid
    */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_update_local2verification_status, this,
+  connect( ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_update_local2verification_status, this,
           &ChattingDlgMainFrame::slot_update_local2verification_status);
 
   /*setup timer for sending heartbeat package*/
   connect(m_timer, &QTimer::timeout, this, [this]() { sendHeartBeat(); });
 
   /*use to terminate timer*/
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_logout_status, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_logout_status, this,
           &ChattingDlgMainFrame::slot_logout_status);
 
   /*load chatting thread from the server*/
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_update_chat_thread, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_update_chat_thread, this,
           &ChattingDlgMainFrame::slot_update_chat_thread);
 
   /*
    * This function is mainly for the main interface
    * to update it's Chat Msg Related to a thread_id
    */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_update_chat_msg, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_update_chat_msg, this,
           &ChattingDlgMainFrame::slot_update_chat_msg);
 
   /*
@@ -295,8 +295,8 @@ void ChattingDlgMainFrame::registerSignal() {
    * Server has already confirmed the behaviour
    * and returns a thread_id for this friend_uuid
    */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_create_private_chat, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_create_private_chat, this,
           &ChattingDlgMainFrame::slot_create_private_chat);
 
   // every 10s
@@ -568,7 +568,7 @@ void ChattingDlgMainFrame::slot_search_list_item_clicked(
     QJsonObject json_obj;
     json_obj["username"] = ui->search_user_edit->text();
 
-    TCPNetworkConnection::send_buffer(ServiceType::SERVICE_SEARCHUSERNAME,
+    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_SEARCHUSERNAME,
                                       std::move(json_obj));
 
     /*
@@ -859,7 +859,7 @@ void ChattingDlgMainFrame::loadMoreChattingHistory() {
   obj["thread_id"] = (*session)->getCurChattingThreadId();
   obj["msg_id"] = (*session)->getLastMessageId();
 
-  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_PULLCHATRECORD,
+  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_PULLCHATRECORD,
                                     std::move(obj));
 }
 
@@ -911,7 +911,7 @@ void ChattingDlgMainFrame::slot_update_chat_thread(
     obj["uuid"] = UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
     obj["thread_id"] = package->m_next_thread_id;
 
-    TCPNetworkConnection::send_buffer(ServiceType::SERVICE_PULLCHATTHREAD,
+    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_PULLCHATTHREAD,
                                       std::move(obj));
     return;
   }
@@ -928,7 +928,7 @@ void ChattingDlgMainFrame::slot_update_chat_msg(
     obj["thread_id"] = thread_id;
     obj["msg_id"] = next_msg_id;
 
-    TCPNetworkConnection::send_buffer(ServiceType::SERVICE_PULLCHATRECORD,
+    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_PULLCHATRECORD,
                                       std::move(obj));
     return; // preparing for next round
   };
@@ -1011,8 +1011,8 @@ void ChattingDlgMainFrame::slot_switch_chat_item(
         UserAccountManager::get_instance()->getCurUserInfo()->m_uuid;
     obj["friend_uuid"] = info->m_uuid;
 
-    TCPNetworkConnection::send_buffer(ServiceType::SERVICE_CREATENEWPRIVATECHAT,
-                                      std::move(obj));
+    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_CREATENEWPRIVATECHAT,
+                                                    std::move(obj));
 
     return;
   }

@@ -75,12 +75,12 @@ void LoginInterface::registerNetworkEvent() {
           &LoginInterface::slot_login_finished);
 
   connect(this, &LoginInterface::signal_connect2_chatting_server,
-          TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_connect2_chatting_server);
+          ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_connect2_server);
 
   /*connect connection signal <--> slot */
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_connection_status, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_connection_status, this,
           &LoginInterface::slot_connection_status);
 }
 
@@ -218,7 +218,7 @@ void LoginInterface::slot_connection_status(bool status) {
     json_obj["token"] = UserAccountManager::get_instance()->get_token();
 
     /*after connection to server, send TCP request*/
-    TCPNetworkConnection::send_buffer(ServiceType::SERVICE_LOGINSERVER,
+    ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_LOGINSERVER,
                                       std::move(json_obj));
 
   } else {

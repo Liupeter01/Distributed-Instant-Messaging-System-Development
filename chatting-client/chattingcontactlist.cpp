@@ -4,7 +4,7 @@
 #include <QListWidgetItem>
 #include <QRandomGenerator>
 #include <QScrollBar>
-#include <tcpnetworkconnection.h>
+#include <chattingtcpnetwork.h>
 #include <useraccountmanager.hpp>
 
 /*Ui interface*/
@@ -42,8 +42,8 @@ void ChattingContactList::registerSignal() {
           &ChattingContactList::slot_itemClicked);
 
   /*server be able to send authenticate friend list to this client*/
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_init_auth_friend_list, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_init_auth_friend_list, this,
           &ChattingContactList::slot_init_auth_friend_list);
 }
 

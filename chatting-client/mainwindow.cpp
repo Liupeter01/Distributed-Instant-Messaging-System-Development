@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "tcpnetworkconnection.h"
+#include <chattingtcpnetwork.h>
 #include <QMessageBox>
 #include <useraccountmanager.hpp>
 
@@ -23,8 +23,8 @@ MainWindow::~MainWindow() { delete ui; }
 void MainWindow::registerSignal() {}
 
 void MainWindow::registerNetworkSignal() {
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_logout_status, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_logout_status, this,
           &MainWindow::slot_connection_status);
 }
 
@@ -61,8 +61,8 @@ void MainWindow::switchingToLoginDialog() {
           &MainWindow::switchingToResetDialog);
 
   /*connect switch to chatting main frame info event*/
-  connect(TCPNetworkConnection::get_instance().get(),
-          &TCPNetworkConnection::signal_switch_chatting_dialog, this,
+  connect(ChattingTCPNetwork::get_instance().get(),
+          &ChattingTCPNetwork::signal_switch_chatting_dialog, this,
           &MainWindow::swithcingToChattingInf);
 
   setFixedSize(m_login->minimumSize());

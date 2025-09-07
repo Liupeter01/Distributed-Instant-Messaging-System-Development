@@ -8,7 +8,7 @@
 #include <QJsonObject>
 #include <QUuid>
 #include <filetransferdialog.h>
-#include <tcpnetworkconnection.h>
+#include <chattingtcpnetwork.h>
 #include <useraccountmanager.hpp>
 
 std::size_t ChattingStackPage::TXT_MSG_BUFFER_SIZE = 1024;
@@ -276,7 +276,7 @@ void ChattingStackPage::on_send_message_clicked() {
         m_text_msg_counter = 0;
 
         /*after connection to server, send TCP request*/
-        TCPNetworkConnection::send_buffer(
+        ChattingTCPNetwork::get_instance()->send_buffer(
             ServiceType::SERVICE_TEXTCHATMSGREQUEST, std::move(obj));
       }
 
@@ -317,7 +317,7 @@ void ChattingStackPage::on_send_message_clicked() {
   text_obj["text_msg"] = array;
 
   /*after connection to server, send TCP request*/
-  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_TEXTCHATMSGREQUEST,
+  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_TEXTCHATMSGREQUEST,
                                     std::move(text_obj));
 
   /*clean all array value*/

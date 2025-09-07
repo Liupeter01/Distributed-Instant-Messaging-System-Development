@@ -1,7 +1,7 @@
 #include "adduserrequestdialog.h"
 #include "addusernamecarddialog.h"
 #include "onceclickableqlabel.h"
-#include "tcpnetworkconnection.h"
+#include <chattingtcpnetwork.h>
 #include "tools.h"
 #include "ui_adduserrequestdialog.h"
 #include <QDebug>
@@ -303,7 +303,7 @@ void AddUserRequestDialog::on_confirm_button_clicked() {
   obj["nickname"] = nickname;
 
   /*after connection to server, send TCP request*/
-  TCPNetworkConnection::send_buffer(ServiceType::SERVICE_FRIENDREQUESTSENDER,
+  ChattingTCPNetwork::get_instance()->send_buffer(ServiceType::SERVICE_FRIENDREQUESTSENDER,
                                     std::move(obj));
 
   closeDialog();

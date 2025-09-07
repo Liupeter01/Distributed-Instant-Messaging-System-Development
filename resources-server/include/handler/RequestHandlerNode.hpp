@@ -37,8 +37,8 @@ public:
   RequestHandlerNode(const std::size_t id);
   ~RequestHandlerNode();
   void shutdown();
-  void setHandlerId(const std::size_t id);
-  const std::size_t getId() const;
+  void setHandlerId(const std::size_t id) { handler_id = id; }
+  const std::size_t getId() const { return handler_id; }
 
   void commit(pair recv_node, [[maybe_unused]] SessionPtr live_extend);
 
@@ -73,6 +73,9 @@ protected:
 
   void handlingFileUploading(ServiceType srv_type,
                              std::shared_ptr<Session> session, NodePtr recv);
+
+  void handlingCheckUploadProgress(ServiceType srv_type,
+            std::shared_ptr<Session> session, NodePtr recv);
 
 public:
   /*redis*/

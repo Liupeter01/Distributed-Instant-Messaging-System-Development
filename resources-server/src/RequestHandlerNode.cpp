@@ -9,6 +9,7 @@
 #include <server/UserNameCard.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
+#include <server/FileHasherLogger.hpp>
 
 /*redis*/
 std::string handler::RequestHandlerNode::redis_server_login = "redis_server";
@@ -51,18 +52,23 @@ void handler::RequestHandlerNode::registerCallbacks() {
       std::bind(&RequestHandlerNode::handlingFileUploading, this,
                 std::placeholders::_1, std::placeholders::_2,
                 std::placeholders::_3)));
+
+  m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
+            ServiceType::SERVICE_FILECHECKUPLOADPROGRESSREQUEST,
+            std::bind(&RequestHandlerNode::handlingCheckUploadProgress, this, std::placeholders::_1,
+                      std::placeholders::_2, std::placeholders::_3)));
 }
 
 void handler::RequestHandlerNode::commit(
     pair recv_node, [[maybe_unused]] SessionPtr live_extend) {
 
   std::lock_guard<std::mutex> _lckg(m_mtx);
-  if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-    spdlog::warn("[Resources Server]: RequestHandlerNode {}'s Queue is full!",
-                 handler_id);
-
-    return;
-  }
+  //if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
+  //  spdlog::warn("[{}]: RequestHandlerNode {}'s Queue is full!",
+  //            ServerConfig::get_instance()->GrpcServerName,
+  //               handler_id);
+  //  return;
+  //}
 
   m_queue.push(std::move(recv_node));
   m_cv.notify_one();
@@ -143,14 +149,6 @@ void handler::RequestHandlerNode::execute(pair &&node) {
   }
 }
 
-void handler::RequestHandlerNode::setHandlerId(const std::size_t id) {
-  handler_id = id;
-}
-
-const std::size_t handler::RequestHandlerNode::getId() const {
-  return handler_id;
-}
-
 void handler::RequestHandlerNode::shutdown() {
   m_stop = true;
   m_cv.notify_all();
@@ -159,162 +157,6 @@ void handler::RequestHandlerNode::shutdown() {
   if (m_working.joinable()) {
     m_working.join();
   }
-}
-
-void handler::RequestHandlerNode::handlingLogin(
-    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
-
-  boost::json::object src_obj;
-  boost::json::object result;
-
-  parseJson(session, recv, src_obj);
-
-  // Parsing failed
-  if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_LOGINRESPONSE,
-                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-    return;
-  }
-
-  std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
-  std::string token = boost::json::value_to<std::string>(src_obj["token"]);
-
-  spdlog::info("[UUID = {}] Trying to login to ResourcesServer with Token {}",
-               uuid, token);
-
-  auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
-  if (!uuid_value_op.has_value()) {
-    generateErrorMessage("Failed to convert string to number",
-                         ServiceType::SERVICE_LOGINRESPONSE,
-                         ServiceStatus::LOGIN_UNSUCCESSFUL, session);
-    return;
-  }
-
-  /*
-   * add user connection counter for current server
-   * 1. HGET not exist: Current Chatting server didn't setting up connection
-   * counter
-   * 2. HGET exist: Increment by 1
-   */
-  incrementConnection();
-
-  /*store this user belonged server into redis*/
-  if (!tagCurrentUser(uuid)) {
-    spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
-                 ServerConfig::get_instance()->GrpcServerName);
-  }
-
-  /*send it back*/
-  session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
-                       boost::json::serialize(result), session);
-}
-
-void handler::RequestHandlerNode::handlingLogout(
-    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
-
-  boost::json::object src_obj;
-  boost::json::object result;
-
-  parseJson(session, recv, src_obj);
-
-  /*
-   * sub user connection counter for current server
-   * 1. HGET not exist: Current Chatting server didn't setting up connection
-   * counter
-   * 2. HGET exist: Decrement by 1
-   */
-  decrementConnection();
-
-  /*delete user belonged server in redis*/
-  if (!untagCurrentUser(session->get_user_uuid())) {
-    spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
-                 session->get_user_uuid(),
-                 ServerConfig::get_instance()->GrpcServerName);
-  }
-}
-
-void handler::RequestHandlerNode::handlingFileUploading(
-    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
-
-  /*output file*/
-  std::ofstream out;
-
-  boost::json::object src_obj;
-  boost::json::object dst_root;
-
-  parseJson(session, recv, src_obj);
-
-  // Parsing json object
-  if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
-        src_obj.contains("file_size") && src_obj.contains("block") &&
-        src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
-        src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
-
-    generateErrorMessage("Failed to parse json data",
-                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                         ServiceStatus::JSONPARSE_ERROR, session);
-    spdlog::warn(
-        "[Resources Server]: Json Obj Does Not Contains Specific Field!");
-    return;
-  }
-
-  [[maybe_unused]] auto filename =
-      boost::json::value_to<std::string>(src_obj["filename"]);
-  [[maybe_unused]] auto checksum =
-      boost::json::value_to<std::string>(src_obj["checksum"]);
-  [[maybe_unused]] auto last_seq =
-      boost::json::value_to<std::string>(src_obj["last_seq"]);
-  [[maybe_unused]] auto cur_seq =
-      boost::json::value_to<std::string>(src_obj["cur_seq"]);
-  [[maybe_unused]] auto sEOF =
-      boost::json::value_to<std::string>(src_obj["EOF"]);
-  [[maybe_unused]] auto scur_size =
-      boost::json::value_to<std::string>(src_obj["cur_size"]);
-  [[maybe_unused]] auto stotal_size =
-      boost::json::value_to<std::string>(src_obj["file_size"]);
-
-  [[maybe_unused]] auto cur_size_op =
-      tools::string_to_value<std::size_t>(scur_size);
-  [[maybe_unused]] auto total_size_op =
-      tools::string_to_value<std::size_t>(stotal_size);
-
-  if (!cur_size_op.has_value() || !total_size_op.has_value()) {
-    spdlog::warn("Casting string typed key to std::size_t!");
-    generateErrorMessage("Internel Server Error",
-                         ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                         ServiceStatus::FILE_UPLOAD_ERROR, session);
-    return;
-  }
-
-  dispatcher::FileProcessingDispatcher::get_instance()->commit(
-      std::make_unique<handler::FileDescriptionBlock>(
-          /*filename=*/filename,
-          /*block_data = */
-          boost::json::value_to<std::string>(src_obj["block"]),
-          /*checksum = */ checksum,
-          /*curr_sequence=*/cur_seq,
-          /*last_sequence=*/last_seq,
-          /*EOF=*/sEOF,
-          /*accumlated_size=*/cur_size_op.value(),
-          /*file_size=*/total_size_op.value()),
-      session);
-
-  /*if it is end of the file*/
-  bool isEOF =
-      (boost::json::value_to<std::string>(src_obj["EOF"]) == std::string("1"));
-
-  dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-  dst_root["filename"] = filename;
-  dst_root["curr_seq"] = cur_seq;
-  dst_root["curr_size"] = scur_size;
-  dst_root["total_size"] = stotal_size;
-
-  /*End Of File*/
-  dst_root["EOF"] = isEOF ? true : false;
-
-  session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                       boost::json::serialize(dst_root), session);
 }
 
 /*
@@ -378,4 +220,198 @@ bool handler::RequestHandlerNode::tagCurrentUser(const std::string &uuid) {
 bool handler::RequestHandlerNode::untagCurrentUser(const std::string &uuid) {
   RedisRAII raii;
   return raii->get()->delPair(server_prefix + uuid);
+}
+
+void handler::RequestHandlerNode::handlingLogin(ServiceType srv_type,
+          std::shared_ptr<Session> session, NodePtr recv) {
+
+          boost::json::object src_obj;
+          boost::json::object result;
+
+          parseJson(session, recv, src_obj);
+
+          // Parsing failed
+          if (!(src_obj.contains("uuid") && src_obj.contains("token"))) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_LOGINRESPONSE,
+                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+                    return;
+          }
+
+          std::string uuid = boost::json::value_to<std::string>(src_obj["uuid"]);
+          std::string token = boost::json::value_to<std::string>(src_obj["token"]);
+
+          spdlog::info("[UUID = {}] Trying to login to ResourcesServer with Token {}",
+                    uuid, token);
+
+          auto uuid_value_op = tools::string_to_value<std::size_t>(uuid);
+          if (!uuid_value_op.has_value()) {
+                    generateErrorMessage("Failed to convert string to number",
+                              ServiceType::SERVICE_LOGINRESPONSE,
+                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+                    return;
+          }
+
+          /*
+           * add user connection counter for current server
+           * 1. HGET not exist: Current Chatting server didn't setting up connection
+           * counter
+           * 2. HGET exist: Increment by 1
+           */
+          incrementConnection();
+
+          /*store this user belonged server into redis*/
+          if (!tagCurrentUser(uuid)) {
+                    spdlog::warn("[UUID = {}] Bind Current User To Current Server {}", uuid,
+                              ServerConfig::get_instance()->GrpcServerName);
+          }
+
+          /*send it back*/
+          session->sendMessage(ServiceType::SERVICE_LOGINRESPONSE,
+                    boost::json::serialize(result), session);
+}
+
+void handler::RequestHandlerNode::handlingLogout(ServiceType srv_type,
+          std::shared_ptr<Session> session, NodePtr recv) {
+
+          /*
+           * sub user connection counter for current server
+           * 1. HGET not exist: Current Chatting server didn't setting up connection
+           * counter
+           * 2. HGET exist: Decrement by 1
+           */
+          decrementConnection();
+
+          /*delete user belonged server in redis*/
+          if (!untagCurrentUser(session->get_user_uuid())) {
+                    spdlog::warn("[UUID = {}] Unbind Current User From Current Server {}",
+                              session->get_user_uuid(), ServerConfig::get_instance()->GrpcServerName);
+          }
+}
+
+void handler::RequestHandlerNode::handlingFileUploading(ServiceType srv_type,
+          std::shared_ptr<Session> session,
+          NodePtr recv) {
+
+          boost::json::object src_obj;
+          boost::json::object dst_root;
+
+          /*output file*/
+          std::ofstream out;
+
+          parseJson(session, recv, src_obj);
+
+          // Parsing json object
+          if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
+                    src_obj.contains("file_size") && src_obj.contains("block") &&
+                    src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
+                    src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
+
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::JSONPARSE_ERROR, session);
+                    return;
+          }
+
+          [[maybe_unused]] auto filename = boost::json::value_to<std::string>(src_obj["filename"]);
+          [[maybe_unused]] auto checksum = boost::json::value_to<std::string>(src_obj["checksum"]);
+          [[maybe_unused]] auto last_seq = boost::json::value_to<std::string>(src_obj["last_seq"]);
+          [[maybe_unused]] auto cur_seq = boost::json::value_to<std::string>(src_obj["cur_seq"]);
+          [[maybe_unused]] auto cur_size = std::stoi(boost::json::value_to<std::string>(src_obj["cur_size"]));
+          [[maybe_unused]] auto total_size = std::stoi(boost::json::value_to<std::string>(src_obj["file_size"]));
+          [[maybe_unused]] auto eof = boost::json::value_to<std::string>(src_obj["EOF"]);
+
+          std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
+          std::filesystem::path full_path = output_dir / filename;
+
+          std::error_code ec;
+          if (!std::filesystem::exists(output_dir)) {
+                    std::filesystem::create_directories(output_dir, ec);
+                    if (ec) {
+                              generateErrorMessage("Failed to Create Directory",
+                                        ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                                        ServiceStatus::FILE_CREATE_ERROR, session);
+                              return;
+                    }
+          }
+
+          std::filesystem::path target_path = std::filesystem::weakly_canonical(full_path, ec);
+          if (ec) {
+                    generateErrorMessage("Failed to get Canonical Path Canonicalization Error",
+                              ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                              ServiceStatus::FILE_CREATE_ERROR, session);
+                    return;
+          }
+
+          /*
+           * if it is first package then we should create a new file
+           * if it is end of the file
+          */
+          bool isFirstPackage = (cur_seq == std::string("1"));
+          bool isEOF = (eof == std::string("1"));
+
+          /*
+          * We do not need to know wheather the FileHasherDesc exist OR NOT
+          * Just Allocate a block with newest data and REPLACE the old one / INSERT the new one
+          * It's READ ONLY!
+          */
+          auto desc = std::make_shared<const handler::FileHasherDesc>(
+                    filename, checksum, cur_seq, last_seq, eof, cur_size, total_size);
+
+          //it could be new package or update previous version!
+          FileHasherLogger::get_instance()->insert(checksum, desc);
+
+          auto file_chunk = std::make_unique<handler::FileDescriptionBlock>(
+                    *desc, boost::json::value_to<std::string>(src_obj["block"]));
+
+          dispatcher::FileProcessingDispatcher::get_instance()->commit(std::move(file_chunk), session);
+
+          dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+          dst_root["checksum"] = checksum;
+          dst_root["curr_seq"] = cur_seq;
+          dst_root["curr_size"] = std::to_string(cur_size);
+          dst_root["total_size"] = std::to_string(total_size);
+
+          /*End Of File*/
+          dst_root["EOF"] = isEOF ? true : false;
+          session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                    boost::json::serialize(dst_root), session);
+}
+
+void handler::RequestHandlerNode::handlingCheckUploadProgress(ServiceType srv_type,
+          std::shared_ptr<Session> session, NodePtr recv) {
+
+          boost::json::object src_obj;
+          boost::json::object dst_root;
+
+          parseJson(session, recv, src_obj);
+
+          // Parsing failed
+          if (!(src_obj.contains("checksum"))) {
+                    generateErrorMessage("Failed to parse json data",
+                              ServiceType::SERVICE_FILECHECKUPLOADPROGRESSRESPONSE,
+                              ServiceStatus::LOGIN_UNSUCCESSFUL, session);
+                    return;
+          }
+
+          std::string checksum = boost::json::value_to<std::string>(src_obj["checksum"]);
+
+          auto status = FileHasherLogger::get_instance()->getFileDescBlock(checksum);
+          if (!status.has_value()) {
+                    //Not Block Found
+                    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::FILE_NOT_FOUND);
+          }
+          else {
+                    auto opt = status.value();
+                    dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+                    dst_root["checksum"] = checksum;
+                    dst_root["curr_seq"] = opt->curr_sequence;
+                    dst_root["curr_size"] = opt->accumlated_size;
+                    dst_root["total_size"] = opt->file_size;
+                    /*End Of File*/
+                    dst_root["EOF"] = opt->isEOF;
+          }
+
+          session->sendMessage(ServiceType::SERVICE_FILECHECKUPLOADPROGRESSRESPONSE,
+                    boost::json::serialize(dst_root), session);
 }

@@ -9,10 +9,10 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <server/FileHasherLogger.hpp>
 #include <server/Session.hpp>
 #include <singleton/singleton.hpp>
 #include <thread>
-#include <server/FileHasherLogger.hpp>
 
 namespace handler {
 class FileProcessingNode {

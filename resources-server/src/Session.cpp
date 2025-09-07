@@ -1,8 +1,8 @@
 #include <config/ServerConfig.hpp>
 #include <dispatcher/RequestHandlerDispatcher.hpp>
 #include <server/AsyncServer.hpp>
-#include <server/UserManager.hpp>
 #include <server/Session.hpp>
+#include <server/UserManager.hpp>
 #include <spdlog/spdlog.h>
 #include <tools/tools.hpp>
 
@@ -13,14 +13,14 @@ Session::Session(boost::asio::io_context &_ioc, AsyncServer *my_gate)
           ByteOrderConverter{},
           MsgNodeType::MSGNODE_FILE_TRANSFER)) /*init header buffer init*/
 {
-          /*generate the session id*/
-          this->s_session_id = tools::userTokenGenerator();
+  /*generate the session id*/
+  this->s_session_id = tools::userTokenGenerator();
 }
 
 Session::~Session() {
-          if (!s_closed) {
-                    s_closed = true;
-          }
+  if (!s_closed) {
+    s_closed = true;
+  }
 }
 
 void Session::startSession() {
@@ -32,8 +32,8 @@ void Session::startSession() {
         std::bind(&Session::handle_header, this, shared_from_this(),
                   std::placeholders::_1, std::placeholders::_2));
   } catch (const std::exception &e) {
-            spdlog::error("[{}] startSession {}",
-                      ServerConfig::get_instance()->GrpcServerName, e.what());
+    spdlog::error("[{}] startSession {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
 }
 
@@ -49,26 +49,23 @@ void Session::closeSession() {
 }
 
 void Session::terminateAndRemoveFromServer(const std::string &user_uuid) {
-          UserManager::get_instance()->removeUsrSession(user_uuid);
+  UserManager::get_instance()->removeUsrSession(user_uuid);
 }
 
 void Session::terminateAndRemoveFromServer(
-          const std::string& user_uuid, const std::string& expected_session_id) {
-          s_gate->terminateConnection(user_uuid, expected_session_id);
+    const std::string &user_uuid, const std::string &expected_session_id) {
+  s_gate->terminateConnection(user_uuid, expected_session_id);
 }
 
-bool 
-Session::isSessionTimeout(const std::time_t& now) const {
-          return std::difftime(now, m_last_heartbeat) >
-                    static_cast<double>(ServerConfig::get_instance()->heart_beat_timeout);
+bool Session::isSessionTimeout(const std::time_t &now) const {
+  return std::difftime(now, m_last_heartbeat) >
+         static_cast<double>(ServerConfig::get_instance()->heart_beat_timeout);
 }
 
-void 
-Session::updateLastHeartBeat() {
-          m_last_heartbeat = std::time(nullptr);
-}
+void Session::updateLastHeartBeat() { m_last_heartbeat = std::time(nullptr); }
 
-void Session::sendMessage(ServiceType srv_type, const std::string &message, std::shared_ptr<Session> self) {
+void Session::sendMessage(ServiceType srv_type, const std::string &message,
+                          std::shared_ptr<Session> self) {
   try {
     // if (m_send_queue.size() >
     // ServerConfig::get_instance()->ResourceQueueSize) {
@@ -86,27 +83,27 @@ void Session::sendMessage(ServiceType srv_type, const std::string &message, std:
     bool expected = false;
     if (m_write_in_progress.compare_exchange_strong(expected, true)) {
       if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
-                if (checkDeferredTermination()) {
-                          m_write_in_progress = false;
-                          return;
-                }
+        if (checkDeferredTermination()) {
+          m_write_in_progress = false;
+          return;
+        }
 
         boost::asio::async_write(
             s_socket,
             boost::asio::buffer(m_current_write_msg->get_header_base(),
                                 m_current_write_msg->get_full_length()),
-                  [self](const boost::system::error_code& ec,
-                            std::size_t /*bytes_transferred*/) {
-                                      self->handle_write(self, ec);
-                  });
+            [self](const boost::system::error_code &ec,
+                   std::size_t /*bytes_transferred*/) {
+              self->handle_write(self, ec);
+            });
 
       } else {
         m_write_in_progress = false;
       }
     }
   } catch (const std::exception &e) {
-            spdlog::error("[{}] Session::sendMessage {}",
-                      ServerConfig::get_instance()->GrpcServerName, e.what());
+    spdlog::error("[{}] Session::sendMessage {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
 }
 
@@ -126,10 +123,10 @@ void Session::handle_write(std::shared_ptr<Session> session,
 
     /*till there is no element inside queue*/
     if (m_concurrent_sent_queue.try_pop(m_current_write_msg)) {
-              if (checkDeferredTermination()) {
-                        m_write_in_progress = false;
-                        return;
-              }
+      if (checkDeferredTermination()) {
+        m_write_in_progress = false;
+        return;
+      }
 
       boost::asio::async_write(
           s_socket,
@@ -141,8 +138,8 @@ void Session::handle_write(std::shared_ptr<Session> session,
       m_write_in_progress = false;
     }
   } catch (const std::exception &e) {
-            spdlog::error("[{}] Session::handle_write {}",
-                      ServerConfig::get_instance()->GrpcServerName, e.what());
+    spdlog::error("[{}] Session::handle_write {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
 }
 
@@ -236,8 +233,8 @@ void Session::handle_header(std::shared_ptr<Session> session,
         std::bind(&Session::handle_msgbody, this, session,
                   std::placeholders::_1, std::placeholders::_2));
   } catch (const std::exception &e) {
-            spdlog::error("[{}] Session::handle_header {}",
-                      ServerConfig::get_instance()->GrpcServerName, e.what());
+    spdlog::error("[{}] Session::handle_header {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
 }
 
@@ -277,11 +274,12 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
     RecvPtr recv(m_recv_buffer.release());
 
     /*send the received data to SyncLogic to process it */
-    //SyncLogic::get_instance()->commit(std::make_pair(session, std::move(recv)));
+    // SyncLogic::get_instance()->commit(std::make_pair(session,
+    // std::move(recv)));
 
     /*send the received data to RequestHandlerDispatcher to process it */
-     dispatcher::RequestHandlerDispatcher::get_instance()->commit(
-               std::make_pair(session, std::move(recv)), session);
+    dispatcher::RequestHandlerDispatcher::get_instance()->commit(
+        std::make_pair(session, std::move(recv)), session);
 
     /*
      * if handle_msgbody is finished, then go back to header reader
@@ -299,62 +297,62 @@ void Session::handle_msgbody(std::shared_ptr<Session> session,
                   std::placeholders::_2));
 
   } catch (const std::exception &e) {
-            spdlog::error("[{}] handle_msgbody {}",
-                      ServerConfig::get_instance()->GrpcServerName, e.what());
+    spdlog::error("[{}] handle_msgbody {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
 }
 
-bool 
-Session::checkDeferredTermination() {
-          auto state = m_state.load();
-          if (state == SessionState::LogoutPending || state == SessionState::Kicked) {
-                    spdlog::info("[{}] Session {} is terminating, skipping async_write.",
-                              ServerConfig::get_instance()->GrpcServerName, s_session_id);
+bool Session::checkDeferredTermination() {
+  auto state = m_state.load();
+  if (state == SessionState::LogoutPending || state == SessionState::Kicked) {
+    spdlog::info("[{}] Session {} is terminating, skipping async_write.",
+                 ServerConfig::get_instance()->GrpcServerName, s_session_id);
 
-                    if (m_finalSendCompleteHandler) {
-                              m_state.store(SessionState::Terminated);
-                              m_finalSendCompleteHandler(); // execute defer handler
-                              m_finalSendCompleteHandler = nullptr;
-                    }
-                    return true;
-          }
-          return false;
+    if (m_finalSendCompleteHandler) {
+      m_state.store(SessionState::Terminated);
+      m_finalSendCompleteHandler(); // execute defer handler
+      m_finalSendCompleteHandler = nullptr;
+    }
+    return true;
+  }
+  return false;
 }
 
 void Session::purgeRemoveConnection(std::shared_ptr<Session> session) {
-          /*this is the real socket.close method, because the client teminate the connection*/
-          UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
+  /*this is the real socket.close method, because the client teminate the
+   * connection*/
+  UserManager::get_instance()->removeUsrSession(session->get_user_uuid());
 }
 
-void Session::markAsDeferredTerminated(std::function<void()>&& callable) {
-          m_state = SessionState::LogoutPending;
-          m_finalSendCompleteHandler = std::move(callable);
+void Session::markAsDeferredTerminated(std::function<void()> &&callable) {
+  m_state = SessionState::LogoutPending;
+  m_finalSendCompleteHandler = std::move(callable);
 
-          // SessionState expected = SessionState::Alive;
-          // if (m_state.compare_exchange_strong(expected, SessionState::LogoutPending))
-          // {
-          //           m_finalSendCompleteHandler = std::move(callable);
-          // }
-          // else {
-          //           spdlog::warn("[{}] Session::markAsDeferredTerminated() called in
-          //           wrong state: {}",
-          //                     ServerConfig::get_instance()->GrpcServerName,
-          //                     static_cast<int>(expected));
-          // }
+  // SessionState expected = SessionState::Alive;
+  // if (m_state.compare_exchange_strong(expected, SessionState::LogoutPending))
+  // {
+  //           m_finalSendCompleteHandler = std::move(callable);
+  // }
+  // else {
+  //           spdlog::warn("[{}] Session::markAsDeferredTerminated() called in
+  //           wrong state: {}",
+  //                     ServerConfig::get_instance()->GrpcServerName,
+  //                     static_cast<int>(expected));
+  // }
 }
 
 void Session::sendOfflineMessage() {
-          boost::json::object logout;
+  boost::json::object logout;
 
-          logout["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
-          logout["uuid"] = get_user_uuid();
+  logout["error"] = static_cast<std::size_t>(ServiceStatus::SERVICE_SUCCESS);
+  logout["uuid"] = get_user_uuid();
 
-          sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
-                    boost::json::serialize(logout), shared_from_this());
+  sendMessage(ServiceType::SERVICE_LOGOUTRESPONSE,
+              boost::json::serialize(logout), shared_from_this());
 
-          /*Now we have to remove this, because it might causing other issue
-           * it has to be deployed seperatly, and ALSO IT SHOULD NOT BE DEPLOYED
-           *  IN TRAVERSAL SCENAIRO
-           * UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());
-           */
+  /*Now we have to remove this, because it might causing other issue
+   * it has to be deployed seperatly, and ALSO IT SHOULD NOT BE DEPLOYED
+   *  IN TRAVERSAL SCENAIRO
+   * UserManager::get_instance()->moveUserToTerminationZone(get_user_uuid());
+   */
 }

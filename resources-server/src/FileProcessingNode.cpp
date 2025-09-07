@@ -1,8 +1,8 @@
-#include <spdlog/spdlog.h>
 #include <absl/strings/escaping.h> /*base64*/
 #include <config/ServerConfig.hpp>
-#include <handler/FileProcessingNode.hpp>
 #include <dispatcher/RequestHandlerDispatcher.hpp>
+#include <handler/FileProcessingNode.hpp>
+#include <spdlog/spdlog.h>
 
 handler::FileProcessingNode::FileProcessingNode() : FileProcessingNode(0) {}
 
@@ -91,26 +91,27 @@ void handler::FileProcessingNode::execute(pair &&block) {
     // conduct base64 decode on block data first
     block.second->block_data = base64Decode(block.second->block_data);
     if (block.second->block_data.empty()) {
-      spdlog::error(
-          "[{}]: Decoded block is empty. Skipping write.", ServerConfig::get_instance()->GrpcServerName);
+      spdlog::error("[{}]: Decoded block is empty. Skipping write.",
+                    ServerConfig::get_instance()->GrpcServerName);
       return;
     }
   } catch (const std::exception &e) {
-    spdlog::error("[{}]: base64 decoding failed: {}", ServerConfig::get_instance()->GrpcServerName, e.what());
+    spdlog::error("[{}]: base64 decoding failed: {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
     return;
   }
 
   // write to file
   if (!writeToFile(block.second->block_data)) {
-    spdlog::warn(
-        "[{}]: Skipped closing file due to write failure.", ServerConfig::get_instance()->GrpcServerName);
+    spdlog::warn("[{}]: Skipped closing file due to write failure.",
+                 ServerConfig::get_instance()->GrpcServerName);
     return;
   }
 
   if (isEOF) {
-    spdlog::info(
-        "[{}]: EOF received, file stream closed for '{}'", ServerConfig::get_instance()->GrpcServerName,
-        block.second->filename);
+    spdlog::info("[{}]: EOF received, file stream closed for '{}'",
+                 ServerConfig::get_instance()->GrpcServerName,
+                 block.second->filename);
     closeCurrentFile();
   }
 }
@@ -120,12 +121,13 @@ void handler::FileProcessingNode::commit(
     [[maybe_unused]] SessionPtr live_extend) {
 
   std::lock_guard<std::mutex> _lckg(m_mtx);
-  //if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-  //  spdlog::warn("[{}]: FileProcessingNode {}'s Queue is full!",
-  //            ServerConfig::get_instance()->GrpcServerName, processing_id);
-  //  return;
-  //}
-  // spdlog::info("[{}]: Commit File: {}", ServerConfig::get_instance()->GrpcServerName, block->filename);
+  // if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
+  //   spdlog::warn("[{}]: FileProcessingNode {}'s Queue is full!",
+  //             ServerConfig::get_instance()->GrpcServerName, processing_id);
+  //   return;
+  // }
+  //  spdlog::info("[{}]: Commit File: {}",
+  //  ServerConfig::get_instance()->GrpcServerName, block->filename);
   m_queue.push(std::make_pair(live_extend, std::move(block)));
   m_cv.notify_one();
 }
@@ -148,7 +150,8 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
                                                   const std::size_t cur_size) {
 
   if (validFilename(filename)) {
-    spdlog::error("[{}]: Illegal filename '{}'", ServerConfig::get_instance()->GrpcServerName, filename);
+    spdlog::error("[{}]: Illegal filename '{}'",
+                  ServerConfig::get_instance()->GrpcServerName, filename);
     return false;
   }
 
@@ -167,13 +170,14 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
     // Open another file, and test if it's already created before.
     if (std::filesystem::exists(full_path)) {
       if (!openFile(full_path, std::ios::binary | std::ios::app)) {
-        spdlog::error("[{}]: Failed to reopen file '{}'", ServerConfig::get_instance()->GrpcServerName,
-                      filename);
+        spdlog::error("[{}]: Failed to reopen file '{}'",
+                      ServerConfig::get_instance()->GrpcServerName, filename);
         return false;
       }
 
-      spdlog::info("[{}]: Reopened file '{}', seeking to {}", ServerConfig::get_instance()->GrpcServerName,
-                   filename, cur_size);
+      spdlog::info("[{}]: Reopened file '{}', seeking to {}",
+                   ServerConfig::get_instance()->GrpcServerName, filename,
+                   cur_size);
       m_fileStream.seekp(cur_size, std::ios::beg);
       m_lastfile = filename;
       return true;
@@ -194,20 +198,20 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
   closeCurrentFile();
 
   if (!openFile(*opt_path, std::ios::binary | std::ios::trunc)) {
-    spdlog::error("[{}]: Failed to create and open new file '{}'", ServerConfig::get_instance()->GrpcServerName,
-                  filename);
+    spdlog::error("[{}]: Failed to create and open new file '{}'",
+                  ServerConfig::get_instance()->GrpcServerName, filename);
     return false;
   }
 
   if (cur_size != 0) {
-    spdlog::warn(
-        "[{}]: New file '{}', but cur_size = {}, seeking anyway.", ServerConfig::get_instance()->GrpcServerName,
-        filename, cur_size);
+    spdlog::warn("[{}]: New file '{}', but cur_size = {}, seeking anyway.",
+                 ServerConfig::get_instance()->GrpcServerName, filename,
+                 cur_size);
     m_fileStream.seekp(cur_size, std::ios::beg);
   }
 
-  spdlog::info("[{}]: Created and opened new file '{}'", ServerConfig::get_instance()->GrpcServerName,
-               filename);
+  spdlog::info("[{}]: Created and opened new file '{}'",
+               ServerConfig::get_instance()->GrpcServerName, filename);
   m_lastfile = filename;
   return true;
 }
@@ -221,8 +225,9 @@ handler::FileProcessingNode::resolveAndPreparePath(
   // Ensure the output directory exists
   if (!std::filesystem::exists(base)) {
     if (!std::filesystem::create_directories(base, ec)) {
-      spdlog::error("[{}]: Failed to create directories '{}': {}", ServerConfig::get_instance()->GrpcServerName,
-                    base.string(), ec.message());
+      spdlog::error("[{}]: Failed to create directories '{}': {}",
+                    ServerConfig::get_instance()->GrpcServerName, base.string(),
+                    ec.message());
 
       return std::nullopt;
     }
@@ -233,16 +238,14 @@ handler::FileProcessingNode::resolveAndPreparePath(
       std::filesystem::weakly_canonical(full, ec);
 
   if (ec) {
-    spdlog::error(
-        "[{}]: Failed to create file '{}' in directory: {}",
-              ServerConfig::get_instance()->GrpcServerName,
-        filename, ec.message());
+    spdlog::error("[{}]: Failed to create file '{}' in directory: {}",
+                  ServerConfig::get_instance()->GrpcServerName, filename,
+                  ec.message());
 
     return std::nullopt;
   }
   spdlog::info("[{}]: File path resolved successfully for '{}'",
-            ServerConfig::get_instance()->GrpcServerName,
-               filename);
+               ServerConfig::get_instance()->GrpcServerName, filename);
   return target_path;
 }
 
@@ -252,21 +255,18 @@ bool handler::FileProcessingNode::writeToFile(const std::string &content) {
     if (m_fileStream.is_open()) {
       m_fileStream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
       m_fileStream.write(content.data(), content.size());
-      //m_fileStream.flush();
+      // m_fileStream.flush();
       return true;
-    } 
-      spdlog::warn(
-          "[{}]: File stream not open, cannot write to file", ServerConfig::get_instance()->GrpcServerName);
+    }
+    spdlog::warn("[{}]: File stream not open, cannot write to file",
+                 ServerConfig::get_instance()->GrpcServerName);
 
   } catch (const std::ios_base::failure &e) {
     spdlog::error("[{}]: I/O error while writing to file: {}",
-              ServerConfig::get_instance()->GrpcServerName,
-                  e.what());
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   } catch (const std::exception &e) {
-    spdlog::error(
-        "[{}]: Unexpected error while writing to file: {}",
-              ServerConfig::get_instance()->GrpcServerName,
-        e.what());
+    spdlog::error("[{}]: Unexpected error while writing to file: {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
   return false;
 }

@@ -79,7 +79,7 @@ int main() {
     ioc.run();
 
     async->stopTimer(); // terminate timer!
-    async->shutdown(); // shutdown system and kick out all the clients
+    async->shutdown();  // shutdown system and kick out all the clients
 
     /*
      * Resources  server shutdown

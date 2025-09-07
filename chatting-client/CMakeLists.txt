@@ -52,6 +52,8 @@ if(Qt6_FOUND)
 
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+
     qt_add_executable(ChattingClient MANUAL_FINALIZATION ${source_file}
                       ${ui_file} ${resource_file})
   endif()
@@ -87,6 +89,8 @@ else()
   target_link_libraries(
     ChattingClient PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
                            Qt${QT_VERSION_MAJOR}::Network ${OpenCV_LIBS})
+target_link_libraries(ChattingClient PRIVATE Qt6::Core)
+target_link_libraries(ChattingClient PRIVATE Qt6::Core)
 endif()
 
 target_include_directories(ChattingClient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}

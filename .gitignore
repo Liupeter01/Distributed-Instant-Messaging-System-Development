@@ -9,3 +9,4 @@ CMakeUserPresets.json
 /chatting-server/include/message
 /gateway-server/include/message
 /resources-server/include/message
+/chatting-client/.qtcreator

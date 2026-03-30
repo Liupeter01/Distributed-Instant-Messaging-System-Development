@@ -150,7 +150,7 @@ template <typename Container> struct MsgHeader {
     if (check_header_remaining()) { /*not OK*/
       return std::nullopt;
     }
-    _id = *(reinterpret_cast<uint16_t *>(get_id_base()));
+    std::memcpy(&_id, get_id_base(), sizeof(uint16_t));
     return _id;
   }
 

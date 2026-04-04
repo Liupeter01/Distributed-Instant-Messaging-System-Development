@@ -280,6 +280,8 @@ using check_datatype_v = typename std::enable_if<
     std::is_same_v<ChattingRecordBase, std::decay_t<_Type>> ||
         std::is_same_v<ChattingTextMsg, std::decay_t<_Type>> ||
         std::is_same_v<ChattingVoice, std::decay_t<_Type>> ||
+                std::is_same_v<ChattingFile, std::decay_t<_Type>> ||
+                std::is_same_v<ChattingImage, std::decay_t<_Type>> ||
         std::is_same_v<ChattingVideo, std::decay_t<_Type>>,
     int>::type;
 
@@ -423,6 +425,10 @@ public:
 
     } else if (type == MsgType::AUDIO) {
     } else if (type == MsgType::IMAGE) {
+    }
+    else{
+        assert(false && "generatePackage: unsupported MsgType");
+        return nullptr;
     }
 
     return res;

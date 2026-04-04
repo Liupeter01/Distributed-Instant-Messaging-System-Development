@@ -33,7 +33,7 @@ public:
       return false;
     }
 
-    if (!m_verifyMessage.count(msg_id)) {
+    if (m_verifyMessage.count(msg_id)) {
       qDebug() << "Msg ID already exists in verified messages!";
       return false;
     }
@@ -150,12 +150,19 @@ private:
       m_localMsgIndex;
 
   // Messages which are verified by the server!
+  struct NumericStringCmp {
+      bool operator()(const QString &a, const QString &b) const {
+          return a.toULongLong() < b.toULongLong();
+      }
+  };
+
   std::map<
       /*msg_id*/
       QString,
       /*the pointer to msg*/
-      LinkListNodePtr>
-      m_verifyMessage;
+      LinkListNodePtr,
+
+      NumericStringCmp> m_verifyMessage;
 
   QString m_lastFetchedMsgId;
 };

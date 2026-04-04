@@ -1071,8 +1071,8 @@ void ChattingDlgMainFrame::slot_switch_chat_item(
     UserAccountManager::get_instance()->addItem2List(thread);
   }
 
+  chatItem->setItemDisplay(thread->getUserNameCard());
   chatItem->setLastMessage(thread->getLastMsg()->getMsgContent());
-  chatItem->setItemDisplay();
 
   /*switch to chatting dialog page*/
   slot_switch_chattingdlg_page(thread);
@@ -1142,8 +1142,7 @@ QListWidgetItem *ChattingDlgMainFrame::addListWidgetItemToList(
   }
 
   ChattingHistoryWidget *new_inserted(new ChattingHistoryWidget());
-  new_inserted->setUserInfo(info);
-  new_inserted->setItemDisplay();
+  new_inserted->setItemDisplay(info);
 
   QListWidgetItem *item(new QListWidgetItem);
   item->setSizeHint(new_inserted->sizeHint());

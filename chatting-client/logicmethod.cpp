@@ -52,18 +52,21 @@ void LogicMethod::recordMD5Progress(const QString &md5,
 
   auto it = m_md5_cache.find(md5);
 
-  // only update
-  if (it != m_md5_cache.end()) {
-    if (it->second) {
+  // insert new element
+  if (it == m_md5_cache.end()) {
+
+    auto [_, status] = m_md5_cache.try_emplace(md5, info);
+    if (!status)
+        qDebug() << "md5 uuid exist!\n";
+
+    return ;
+  }
+
+  //Update Only
+  if (it->second) {
       it->second.reset();
-    }
-    it->second = info;
-    return;
   }
-  auto [_, status] = m_md5_cache.try_emplace(md5, info);
-  if (!status) {
-    qDebug() << "md5 uuid exist!\n";
-  }
+  it->second = info;
 }
 
 std::optional<std::shared_ptr<QFileInfo>>

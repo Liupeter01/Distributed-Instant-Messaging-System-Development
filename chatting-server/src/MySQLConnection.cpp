@@ -577,13 +577,11 @@ mysql::MySQLConnection::getChattingHistoryRecord(const std::size_t thread_id,
     auto flags = executeCommandOrThrow(MySQLSelection::GET_USER_CHAT_RECORDS,
                                        thread_id, msg_id, interval + 1);
 
-    if (!flags.affected_rows())
-      return std::nullopt;
     if (flags.rows().empty())
       return std::nullopt;
 
     for (const auto &tuple : flags.rows()) {
-      auto messag_id = tuple.at(0).as_string(); // message_id
+      [[maybe_unused]] auto messag_id = tuple.at(0).as_string(); // message_id
       auto status = tuple.at(1).as_int64();     // message_status
       auto sender = tuple.at(2).as_string();    // message_sender
       auto receiver = tuple.at(3).as_string();  // message_receiver
@@ -599,16 +597,13 @@ mysql::MySQLConnection::getChattingHistoryRecord(const std::size_t thread_id,
     // it means, there are some other items to be retrieved
     // it is not the end
     if (result.size() > interval) {
-      is_EOF = false;
-      result
-          .pop_back(); // we ignore the last one, because its just for EOF test!
-    }
-
-    if (!result.empty()) {
-      next_msg_id = result.back()->message_id;
+              is_EOF = false;
+              next_msg_id = result.back()->message_id; 
+              result.pop_back();                  // we ignore the last one, because its just for EOF test!
     }
 
     return result;
+
   } catch (const boost::mysql::error_with_diagnostics &err) {
     spdlog::error("createPrivateChat failed: {0}:{1} Operation failed with "
                   "error code: {2} Server diagnostics: {3}",

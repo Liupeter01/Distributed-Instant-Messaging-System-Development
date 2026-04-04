@@ -4,18 +4,42 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QString>
+#include <QStandardPaths>
 #include <imagecropperdialog.h>
+#include <useraccountmanager.hpp>
+#include <logicmethod.h>
 
 UserSettingStackPage::UserSettingStackPage(QWidget *parent)
     : QWidget(parent), ui(new Ui::UserSettingStackPage) {
   ui->setupUi(this);
+
+    registerSignal();
 }
 
 UserSettingStackPage::~UserSettingStackPage() { delete ui; }
 
-void UserSettingStackPage::on_submit_clicked() {}
+void UserSettingStackPage::registerSignal(){
+
+    connect(this, &UserSettingStackPage::signal_start_file_transmission,
+            LogicMethod::get_instance().get(),
+            &LogicMethod::signal_start_file_transmission);
+}
+
+void UserSettingStackPage::on_submit_clicked() {
+    if(m_fileName.isEmpty() || m_filePath.isEmpty()){
+        qDebug() << "No Valid Avator file Selected!\n";
+        return;
+    }
+
+    // reset pause status to prevent unexpected error(because we do not need file upload UI here!)
+    LogicMethod::get_instance()->setPause(false);
+
+    // start to transmit avator to resources server
+    emit signal_start_file_transmission(m_fileName, m_filePath);
+}
 
 void UserSettingStackPage::on_select_avator_clicked() {
+
   QString filepath = QFileDialog::getOpenFileName(
       this, tr("Choose Your Avator"), QString{},
       tr("Image Format(*.png *.jpg *.jpeg *.bmp *.webp)"));
@@ -41,4 +65,29 @@ void UserSettingStackPage::on_select_avator_clicked() {
 
   ui->new_avator->setPixmap(m_avator);     // display this image on qlabel
   ui->new_avator->setScaledContents(true); // scale automatically!
+
+  //Create Sub dir
+  QDir dir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+
+  if(!dir.exists("avators")){
+      if(!dir.mkdir("avators")){
+          qDebug() << "Create Avators Directory Failed!\n";
+          QMessageBox::critical(this, tr("Create Dir Error"),tr("Check your Priviledge"));
+          return;
+      }
+  }
+
+  m_fileName = QString("avatar_.png") + UserAccountManager::get_instance()->get_uuid();
+
+  //generate a local path
+  m_filePath =  dir.filePath(QString("avatars/") + m_fileName);
+
+  //save to local
+  if(!m_avator.save(m_filePath, "png")){
+      //Save to disk error
+    QMessageBox::critical(this, tr("Save Avator Error"),tr("Check your Priviledge"));
+      return;
+  }
+
+  qDebug() << "Avatar Has Been Storged to path = " << m_filePath << "\n";
 }

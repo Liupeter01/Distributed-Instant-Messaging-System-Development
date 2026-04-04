@@ -15,8 +15,9 @@ public:
   virtual ~ChattingHistoryWidget();
 
   void setUserInfo(std::shared_ptr<UserNameCard> info);
+  void setItemDisplay(std::shared_ptr<UserNameCard> info);
   void setLastMessage(const QString &msg);
-  void setItemDisplay();
+  void setNewMessageArrival(bool status);
 
   std::shared_ptr<UserNameCard> getFriendsInfo();
 

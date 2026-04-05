@@ -151,9 +151,9 @@ private:
 
   // Messages which are verified by the server!
   struct NumericStringCmp {
-      bool operator()(const QString &a, const QString &b) const {
-          return a.toULongLong() < b.toULongLong();
-      }
+    bool operator()(const QString &a, const QString &b) const {
+      return a.toULongLong() < b.toULongLong();
+    }
   };
 
   std::map<
@@ -162,7 +162,8 @@ private:
       /*the pointer to msg*/
       LinkListNodePtr,
 
-      NumericStringCmp> m_verifyMessage;
+      NumericStringCmp>
+      m_verifyMessage;
 
   QString m_lastFetchedMsgId;
 };

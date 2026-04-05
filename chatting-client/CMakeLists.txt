@@ -89,8 +89,8 @@ else()
   target_link_libraries(
     ChattingClient PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
                            Qt${QT_VERSION_MAJOR}::Network ${OpenCV_LIBS})
-target_link_libraries(ChattingClient PRIVATE Qt6::Core)
-target_link_libraries(ChattingClient PRIVATE Qt6::Core)
+  target_link_libraries(ChattingClient PRIVATE Qt6::Core)
+  target_link_libraries(ChattingClient PRIVATE Qt6::Core)
 endif()
 
 target_include_directories(ChattingClient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}

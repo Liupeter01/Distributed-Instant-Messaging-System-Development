@@ -22,7 +22,7 @@ void ChattingHistoryWidget::setLastMessage(const QString &msg) {
 
 void ChattingHistoryWidget::setItemDisplay(std::shared_ptr<UserNameCard> info) {
 
-    setUserInfo(info);
+  setUserInfo(info);
 
   QSize size = ui->user_avator->size();
   // auto image =
@@ -33,10 +33,7 @@ void ChattingHistoryWidget::setItemDisplay(std::shared_ptr<UserNameCard> info) {
   ui->user_name->setText(m_userinfo->m_nickname);
 }
 
-void ChattingHistoryWidget::setNewMessageArrival(bool status)
-{
-
-}
+void ChattingHistoryWidget::setNewMessageArrival(bool status) {}
 
 std::shared_ptr<UserNameCard> ChattingHistoryWidget::getFriendsInfo() {
   return m_userinfo;

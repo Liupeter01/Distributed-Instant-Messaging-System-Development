@@ -9,16 +9,17 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <def.hpp>
+#include <filetcpnetwork.h>
 #include <logicmethod.h>
 #include <resourcestoragemanager.h>
-#include <filetcpnetwork.h>
 
 FileTransferDialog::FileTransferDialog(std::shared_ptr<UserNameCard> id,
                                        const std::size_t fileChunk,
                                        QWidget *parent)
 
-    : QDialog(parent), ui(new Ui::FileTransferDialog), m_filePath{}
-      , m_state(TransferState::NOT_READY), m_fileCheckSum{}, m_fileName{}, m_fileSize(0), m_alreadySent{0},
+    : QDialog(parent), ui(new Ui::FileTransferDialog), m_filePath{},
+      m_state(TransferState::NOT_READY), m_fileCheckSum{}, m_fileName{},
+      m_fileSize(0), m_alreadySent{0},
       m_fileChunk(fileChunk) /*init fileChunk size*/
       ,
       m_blockNumber(0) {
@@ -73,7 +74,6 @@ void FileTransferDialog::registerSignals() {
           [this](const QString &checksum, const std::size_t curr_seq,
                  const std::size_t curr_size, const std::size_t total_size,
                  const bool eof) {
-
             if (eof) {
               ui->send_button->setDisabled(false);
               ui->open_file_button->setDisabled(false);
@@ -110,10 +110,10 @@ bool FileTransferDialog::validateFile(const QString &file) {
   QFileInfo info(file);
 
   if (!info.isFile() || !info.isReadable()) {
-     ui->open_file_button->setDisabled(false);
+    ui->open_file_button->setDisabled(false);
     ui->send_button->setDisabled(true);
-     ui->pauseandresume->setDisabled(true);
-     ui->pauseandresume->setText(QString("pause"));
+    ui->pauseandresume->setDisabled(true);
+    ui->pauseandresume->setText(QString("pause"));
     return false;
   }
 
@@ -206,52 +206,56 @@ void FileTransferDialog::slot_connection_status(bool status) {
   }
 }
 
-void FileTransferDialog::pause_clicked(){
-    ui->send_button->setDisabled(true);
-    ui->open_file_button->setDisabled(false);
+void FileTransferDialog::pause_clicked() {
+  ui->send_button->setDisabled(true);
+  ui->open_file_button->setDisabled(false);
 
-    ui->pauseandresume->setDisabled(false);
-    ui->pauseandresume->setText(QString("resume"));
+  ui->pauseandresume->setDisabled(false);
+  ui->pauseandresume->setText(QString("resume"));
 
-    m_state = going_to_pause;
-    emit signal_pause_file_transmission();
+  m_state = going_to_pause;
+  emit signal_pause_file_transmission();
 }
 
-void FileTransferDialog::resume_clicked(){
-    ui->send_button->setDisabled(true);
-    ui->open_file_button->setDisabled(true);
+void FileTransferDialog::resume_clicked() {
+  ui->send_button->setDisabled(true);
+  ui->open_file_button->setDisabled(true);
 
-    ui->pauseandresume->setDisabled(false);
-    ui->pauseandresume->setText(QString("pause"));
+  ui->pauseandresume->setDisabled(false);
+  ui->pauseandresume->setText(QString("pause"));
 
-    m_state = going_to_resume;
-    emit signal_resume_file_transmission();
+  m_state = going_to_resume;
+  emit signal_resume_file_transmission();
 }
 
-void FileTransferDialog::on_pauseandresume_clicked(){
+void FileTransferDialog::on_pauseandresume_clicked() {
 
-    if(static_cast<int>(m_state) & static_cast<int>(TransferState::NOT_READY) ||
-        static_cast<int>(m_state) & static_cast<int>(TransferState::FILE_OPENED) ||
-        static_cast<int>(m_state) & static_cast<int>(TransferState::END_TRANSMISSION)){
+  if (static_cast<int>(m_state) & static_cast<int>(TransferState::NOT_READY) ||
+      static_cast<int>(m_state) &
+          static_cast<int>(TransferState::FILE_OPENED) ||
+      static_cast<int>(m_state) &
+          static_cast<int>(TransferState::END_TRANSMISSION)) {
 
-        return;
-    }
+    return;
+  }
 
-    //Currently, btn is in transmission instead of pause!
-    if(static_cast<int>(m_state) & static_cast<int>(TransferState::START_TRANSMISSION) &&
-        !(static_cast<int>(m_state) & static_cast<int>(TransferState::PAUSE_TRANSMISSION))
-        ){
+  // Currently, btn is in transmission instead of pause!
+  if (static_cast<int>(m_state) &
+          static_cast<int>(TransferState::START_TRANSMISSION) &&
+      !(static_cast<int>(m_state) &
+        static_cast<int>(TransferState::PAUSE_TRANSMISSION))) {
 
-         pause_clicked();
-        return;
-    }
+    pause_clicked();
+    return;
+  }
 
-    // btn is pause!
-    if(!(static_cast<int>(m_state) & static_cast<int>(TransferState::START_TRANSMISSION)) &&
-        (static_cast<int>(m_state) & static_cast<int>(TransferState::PAUSE_TRANSMISSION))
-        ){
+  // btn is pause!
+  if (!(static_cast<int>(m_state) &
+        static_cast<int>(TransferState::START_TRANSMISSION)) &&
+      (static_cast<int>(m_state) &
+       static_cast<int>(TransferState::PAUSE_TRANSMISSION))) {
 
-        resume_clicked();
-        return;
-    }
+    resume_clicked();
+    return;
+  }
 }

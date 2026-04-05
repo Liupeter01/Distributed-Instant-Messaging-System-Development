@@ -57,14 +57,14 @@ void LogicMethod::recordMD5Progress(const QString &md5,
 
     auto [_, status] = m_md5_cache.try_emplace(md5, info);
     if (!status)
-        qDebug() << "md5 uuid exist!\n";
+      qDebug() << "md5 uuid exist!\n";
 
-    return ;
+    return;
   }
 
-  //Update Only
+  // Update Only
   if (it->second) {
-      it->second.reset();
+    it->second.reset();
   }
   it->second = info;
 }

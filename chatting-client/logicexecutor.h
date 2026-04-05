@@ -2,12 +2,12 @@
 #ifndef LOGICEXECUTOR_H
 #define LOGICEXECUTOR_H
 
+#include <MsgNode.hpp>
+#include <QFile>
 #include <QJsonObject>
 #include <QObject>
 #include <def.hpp>
 #include <unordered_map>
-#include <QFile>
-#include <MsgNode.hpp>
 
 class LogicMethod;
 
@@ -23,23 +23,22 @@ public:
 
 public:
   [[nodiscard]]
-  static
-  std::size_t calculateBlockNumber(const std::size_t totalSize,
-                                             const std::size_t chunkSize);
+  static std::size_t calculateBlockNumber(const std::size_t totalSize,
+                                          const std::size_t chunkSize);
 
 signals:
 
-    void signal_start_file_transmission(const QString &fileName,
-                                        const QString &filePath,
-                                        const std::size_t fileChunk);
+  void signal_start_file_transmission(const QString &fileName,
+                                      const QString &filePath,
+                                      const std::size_t fileChunk);
 
-  //pause transmission
+  // pause transmission
   void signal_pause_file_transmission();
 
-  //resume transmission
+  // resume transmission
   void signal_resume_file_transmission();
 
-  void signal_send_next_block(const QString& checksum);
+  void signal_send_next_block(const QString &checksum);
 
   /*data transmission status*/
   void signal_data_transmission_status(const QString &checksum,
@@ -48,25 +47,24 @@ signals:
                                        const std::size_t total_size,
                                        const bool eof);
 
-  private:
-      void registerSignal();
-      void registerCallbacks();
+private:
+  void registerSignal();
+  void registerCallbacks();
 
 private slots:
   /*forward resources server's message to a standlone logic thread*/
   void slot_resources_logic_handler(const uint16_t id, const QJsonObject obj);
 
-    void slot_send_next_block(const QString& checksum);
-    void slot_start_file_transmission(const QString &fileName,
-                                      const QString &filePath,
-                                      const std::size_t fileChunk);
+  void slot_send_next_block(const QString &checksum);
+  void slot_start_file_transmission(const QString &fileName,
+                                    const QString &filePath,
+                                    const std::size_t fileChunk);
 
+  // pause transmission
+  void slot_pause_file_transmission();
 
-  //pause transmission
-    void slot_pause_file_transmission();
-
-    //resume transmission
-    void slot_resume_file_transmission();
+  // resume transmission
+  void slot_resume_file_transmission();
 
 private:
   QString m_fileName;

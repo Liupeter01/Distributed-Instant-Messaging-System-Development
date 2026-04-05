@@ -22,18 +22,18 @@ class FileTransferDialog : public QDialog {
   using SendNodeType = SendNode<QByteArray, ByteOrderConverterReverse>;
 
 public:
-  enum class TransferState{
-      NOT_READY,
-      FILE_OPENED,
-      START_TRANSMISSION,
-      PAUSE_TRANSMISSION,
-      RESUME_TRANSMISSION,
-      END_TRANSMISSION
-    } ;
+  enum class TransferState {
+    NOT_READY,
+    FILE_OPENED,
+    START_TRANSMISSION,
+    PAUSE_TRANSMISSION,
+    RESUME_TRANSMISSION,
+    END_TRANSMISSION
+  };
 
   FileTransferDialog(std::shared_ptr<UserNameCard> id,
-                              const std::size_t fileChunk = 2048,
-                              QWidget *parent = nullptr);
+                     const std::size_t fileChunk = 2048,
+                     QWidget *parent = nullptr);
 
   virtual ~FileTransferDialog();
 
@@ -69,7 +69,7 @@ private slots:
   void on_send_button_clicked();
 
   /*connect to server*/
-  //void on_connect_server_clicked();
+  // void on_connect_server_clicked();
 
   void slot_connection_status(bool status);
 
@@ -78,11 +78,13 @@ private slots:
 private:
   TransferState m_state = TransferState::NOT_READY;
 
-    const TransferState going_to_pause = TransferState(static_cast<int>(TransferState::RESUME_TRANSMISSION) |
-                                                        static_cast<int>(TransferState::START_TRANSMISSION));
+  const TransferState going_to_pause =
+      TransferState(static_cast<int>(TransferState::RESUME_TRANSMISSION) |
+                    static_cast<int>(TransferState::START_TRANSMISSION));
 
-    const TransferState going_to_resume = TransferState(static_cast<int>(TransferState::PAUSE_TRANSMISSION) |
-                                                        static_cast<int>(TransferState::START_TRANSMISSION));
+  const TransferState going_to_resume =
+      TransferState(static_cast<int>(TransferState::PAUSE_TRANSMISSION) |
+                    static_cast<int>(TransferState::START_TRANSMISSION));
 
   Ui::FileTransferDialog *ui;
 

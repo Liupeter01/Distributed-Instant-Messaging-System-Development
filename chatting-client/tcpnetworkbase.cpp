@@ -43,10 +43,9 @@ void TCPNetworkBase::registerSocketSignal() {
   connect(&m_socket, &QTcpSocket::disconnected, this,
           [this]() { emit signal_connection_status(false); });
 
-  //messages sending callback signal & slot!
+  // messages sending callback signal & slot!
   connect(&m_socket, &QTcpSocket::bytesWritten, this, [this](qint64 bytes) {
-
-      //progress display signal for dialog Bar widget display
+    // progress display signal for dialog Bar widget display
     emit signal_block_send(bytes);
 
     m_bytes_have_been_written += bytes;
@@ -68,14 +67,13 @@ void TCPNetworkBase::registerSocketSignal() {
     if (m_queue.empty()) {
       m_pending_flag = false;
 
-    }else{
-        m_pending_flag = true;
-        m_curr_processing = m_queue.front();
-        m_queue.pop();
+    } else {
+      m_pending_flag = true;
+      m_curr_processing = m_queue.front();
+      m_queue.pop();
 
-        m_socket.write(m_curr_processing);
+      m_socket.write(m_curr_processing);
     }
-
   });
 
   setupDataRetrieveEvent(m_socket, m_info, *m_buffer);
@@ -223,8 +221,9 @@ void TCPNetworkBase::slot_send_message(std::shared_ptr<SendNodeType> data) {
   m_bytes_have_been_written = 0;
 
   [[maybe_unused]] qint64 bytes_written = m_socket.write(m_curr_processing);
-  if(!bytes_written){
-      qDebug() << "Network: EWORLDBLOCK/EAGAIN\n"
-                  "As a result, Messages are not sent at this time, waiting for next term!\n";
+  if (!bytes_written) {
+    qDebug() << "Network: EWORLDBLOCK/EAGAIN\n"
+                "As a result, Messages are not sent at this time, waiting for "
+                "next term!\n";
   }
 }

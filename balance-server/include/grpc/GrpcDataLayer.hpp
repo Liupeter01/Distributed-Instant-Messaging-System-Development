@@ -45,7 +45,8 @@ enum class SERVER_TYPE {
   CHATTING_SERVER_INSTANCE,
   RESOURCES_SERVER_INSTANCE,
   CHATTING_GRPC_SERVER,
-  RESOURCES_GRPC_SERVER
+  RESOURCES_GRPC_SERVER,
+  UNDEFINED
 };
 
 class GrpcDataLayer : public Singleton<GrpcDataLayer> {
@@ -99,11 +100,8 @@ protected:
                                 const std::string &tokens);
 
 private:
-  std::optional<std::shared_ptr<grpc::details::ServerInstanceConf>>
-  chattingInstanceLoadBalancer();
-
-  std::optional<std::shared_ptr<grpc::details::ServerInstanceConf>>
-  resourcesInstanceLoadBalancer();
+          std::optional<std::shared_ptr<grpc::details::ServerInstanceConf>>
+                    InstanceLoadBalancer(const InstancesMappingType& map);
 
   template <typename Container,
             std::enable_if_t<is_valid_mapping_type<Container>::value, int> = 0>

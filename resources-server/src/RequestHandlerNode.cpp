@@ -368,6 +368,8 @@ void handler::RequestHandlerNode::handlingFileUploading(
       filename, checksum, cur_seq, last_seq, eof, cur_size, total_size);
 
   // it could be new package or update previous version!
+  // NOT A GOOD IDEA!!!!
+  // We should not leave it at server's memory
   FileHasherLogger::get_instance()->insert(checksum, desc);
 
   auto file_chunk = std::make_unique<handler::FileDescriptionBlock>(
@@ -407,7 +409,10 @@ void handler::RequestHandlerNode::handlingCheckUploadProgress(
   std::string checksum =
       boost::json::value_to<std::string>(src_obj["checksum"]);
 
+  // NOT A GOOD IDEA!!!!
+// We should not leave it at server's memory
   auto status = FileHasherLogger::get_instance()->getFileDescBlock(checksum);
+
   if (!status.has_value()) {
     // Not Block Found
     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::FILE_NOT_FOUND);

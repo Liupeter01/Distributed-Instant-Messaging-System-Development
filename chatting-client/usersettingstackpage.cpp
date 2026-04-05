@@ -68,29 +68,28 @@ void UserSettingStackPage::on_select_avator_clicked() {
   ui->new_avator->setScaledContents(true); // scale automatically!
 
   // Create Sub dir
-  QDir dir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+  QString appDir = QCoreApplication::applicationDirPath();
+  QString subDirName = "avatars";
+  QDir dir(appDir);
 
-  if (!dir.exists("avators")) {
-    if (!dir.mkdir("avators")) {
-      qDebug() << "Create Avators Directory Failed!\n";
-      QMessageBox::critical(this, tr("Create Dir Error"),
-                            tr("Check your Priviledge"));
-      return;
-    }
+  if (!dir.exists(subDirName)) {
+      if (!dir.mkdir(subDirName)) {
+          qDebug() << "Create Directory Failed:" << dir.absoluteFilePath(subDirName);
+          QMessageBox::critical(this, tr("Error"), tr("Check your Privilege"));
+          return;
+      }
   }
 
-  m_fileName =
-      QString("avatar_.png") + UserAccountManager::get_instance()->get_uuid();
+  dir.cd(subDirName);
 
-  // generate a local path
-  m_filePath = dir.filePath(QString("avatars/") + m_fileName);
+  m_fileName = QString("avatar_%1.png").arg(UserAccountManager::get_instance()->get_uuid());
 
-  // save to local
-  if (!m_avator.save(m_filePath, "png")) {
-    // Save to disk error
-    QMessageBox::critical(this, tr("Save Avator Error"),
-                          tr("Check your Priviledge"));
-    return;
+  m_filePath = dir.filePath(m_fileName);
+
+  if (!m_avator.save(m_filePath, "PNG")) {
+      qDebug() << "Save failed to:" << m_filePath;
+      QMessageBox::critical(this, tr("Save Error"), tr("Check your Privilege"));
+      return;
   }
 
   qDebug() << "Avatar Has Been Storged to path = " << m_filePath << "\n";

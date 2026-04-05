@@ -343,7 +343,7 @@ void HandleMethod::registerPostCallBacks() {
 
         if (response.error() !=
             static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
-          spdlog::error("[client {}] try login server failed!, error code {}",
+          spdlog::error("[client {}] Try Login Chatting Server Failed!, Error code {}",
                         std::to_string(uuid), response.error());
 
           send_obj["error"] = response.error();
@@ -363,7 +363,7 @@ void HandleMethod::registerPostCallBacks() {
 
         if (response.error() !=
             static_cast<int32_t>(ServiceStatus::SERVICE_SUCCESS)) {
-          spdlog::error("[client {}] try login server failed!, error code {}",
+          spdlog::error("[client {}] Try Login Resources Server Failed!, Error code {}",
                         std::to_string(uuid), response.error());
 
           send_obj["error"] = response.error();

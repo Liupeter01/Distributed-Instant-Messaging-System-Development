@@ -49,7 +49,7 @@ void handler::FileProcessingNode::processing() {
       return;
     }
 
-    auto &front = m_queue.front();
+    //auto &front = m_queue.front();
     execute(std::move(m_queue.front()));
     m_queue.pop();
   }
@@ -149,7 +149,7 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
                                                   const std::string &filename,
                                                   const std::size_t cur_size) {
 
-  if (validFilename(filename)) {
+  if (!validFilename(filename)) {
     spdlog::error("[{}]: Illegal filename '{}'",
                   ServerConfig::get_instance()->GrpcServerName, filename);
     return false;
@@ -185,8 +185,8 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
   }
 
   // File doesn't exist ¡ª fall through to create
-  spdlog::warn("[Resources Server]: File '{}' not found, will create new.",
-               filename);
+  spdlog::warn("[{}]: File '{}' not found, will create new.",
+            ServerConfig::get_instance()->GrpcServerName, filename);
 
   // Create file path if not exist
   auto opt_path = resolveAndPreparePath(output_dir, filename);
@@ -203,15 +203,23 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
     return false;
   }
 
-  if (cur_size != 0) {
-    spdlog::warn("[{}]: New file '{}', but cur_size = {}, seeking anyway.",
-                 ServerConfig::get_instance()->GrpcServerName, filename,
-                 cur_size);
-    m_fileStream.seekp(cur_size, std::ios::beg);
-  }
+  /*
+  * cur_size means how many bytes of this file WILL BE TRANSFERED, instead of have been transfered!
+  * 
+  -   if (cur_size != 0) {
+  -         spdlog::error("[{}]: New file '{}', but cur_size = {}, aborting.",
+  -                   ServerConfig::get_instance()->GrpcServerName, filename, cur_size);
+  -         closeCurrentFile();
+  -         return false;
+  - }
+  *
+  */
+
+  m_fileStream.seekp(0, std::ios::beg);
 
   spdlog::info("[{}]: Created and opened new file '{}'",
                ServerConfig::get_instance()->GrpcServerName, filename);
+
   m_lastfile = filename;
   return true;
 }
@@ -274,6 +282,14 @@ bool handler::FileProcessingNode::writeToFile(const std::string &content) {
 std::string
 handler::FileProcessingNode::base64Decode(const std::string &origin) {
   std::string decoded;
-  absl::Base64Unescape(origin, &decoded);
+
+
+  if (!absl::Base64Unescape(origin, &decoded)) {
+
+            spdlog::error("[{}]: Base64 decode failed",
+                      ServerConfig::get_instance()->GrpcServerName);
+            return {};
+  }
+
   return decoded;
 }

@@ -14,7 +14,7 @@ grpc::GrpcUserServiceImpl::GrpcUserServiceImpl() {
 
   if (request->target() < 0 ||
       request->target() >=
-          static_cast<int32_t>(details::SERVER_TYPE::CHATTING_GRPC_SERVER)) {
+          static_cast<int32_t>(details::SERVER_TYPE::UNDEFINED)) {
 
     response->set_error(static_cast<std::size_t>(ServiceStatus::GRPC_ERROR));
     return grpc::Status::OK;

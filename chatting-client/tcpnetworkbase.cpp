@@ -98,21 +98,21 @@ void TCPNetworkBase::registerErrorHandling() {
       QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
       this, [this]([[maybe_unused]] QTcpSocket::SocketError socketErr) {
         switch (socketErr) {
-          emit signal_connection_status(false);
         case QTcpSocket::ConnectionRefusedError:
-          qDebug() << "QTcpSocket::ConnectionRefusedError\n";
+          qDebug() << "NetworkBase QTcpSocket::ConnectionRefusedError\n";
           break;
         case QTcpSocket::RemoteHostClosedError:
-          qDebug() << "QTcpSocket::RemoteHostClosedError\n";
+          qDebug() << "NetworkBase QTcpSocket::RemoteHostClosedError\n";
+            emit signal_connection_status(false);
           break;
         case QTcpSocket::HostNotFoundError:
-          qDebug() << "QTcpSocket::HostNotFoundError\n";
+          qDebug() << "NetworkBase QTcpSocket::HostNotFoundError\n";
           break;
         case QTcpSocket::NetworkError:
-          qDebug() << "QTcpSocket:::NetworkError\n";
+          qDebug() << "NetworkBase QTcpSocket:::NetworkError\n";
           break;
         case QTcpSocket::SocketTimeoutError:
-          qDebug() << "QTcpSocket::SocketTimeoutError\n";
+          qDebug() << "NetworkBase QTcpSocket::SocketTimeoutError\n";
           break;
         }
       });

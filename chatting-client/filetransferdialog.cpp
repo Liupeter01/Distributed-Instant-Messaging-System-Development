@@ -70,7 +70,7 @@ void FileTransferDialog::registerSignals() {
 
   /* update progress bar*/
   connect(LogicMethod::get_instance().get(),
-          &LogicMethod::signal_data_transmission_status, this,
+          &LogicMethod::signal_break_point_resume, this,
           [this](const QString &checksum, const std::size_t curr_seq,
                  const std::size_t curr_size, const std::size_t total_size,
                  const bool eof) {

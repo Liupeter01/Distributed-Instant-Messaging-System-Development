@@ -83,7 +83,7 @@ void handler::FileProcessingNode::execute(pair &&block) {
 
   // redirect file stream
   if (!resetFileStream(isFirstPackage, block.second->filename,
-                       block.second->accumlated_size)) {
+                       block.second->transfered_size)) {
     return;
   }
 
@@ -132,22 +132,9 @@ void handler::FileProcessingNode::commit(
   m_cv.notify_one();
 }
 
-void handler::FileProcessingNode::commit(
-    const std::string &filename, const std::string &block_data,
-    const std::string &checksum, const std::string &curr_sequence,
-    const std::string &last_sequence, const std::string &_eof,
-    std::size_t accumlated_size, std::size_t file_size,
-    [[maybe_unused]] SessionPtr live_extend) {
-
-  commit(std::make_unique<FileDescriptionBlock>(
-             filename, block_data, checksum, curr_sequence, last_sequence, _eof,
-             accumlated_size, file_size),
-         live_extend);
-}
-
 bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
                                                   const std::string &filename,
-                                                  const std::size_t cur_size) {
+                                                  const std::size_t transfered_size) {
 
   if (!validFilename(filename)) {
     spdlog::error("[{}]: Illegal filename '{}'",
@@ -177,8 +164,8 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
 
       spdlog::info("[{}]: Reopened file '{}', seeking to {}",
                    ServerConfig::get_instance()->GrpcServerName, filename,
-                   cur_size);
-      m_fileStream.seekp(cur_size, std::ios::beg);
+                transfered_size);
+      m_fileStream.seekp(transfered_size, std::ios::beg);
       m_lastfile = filename;
       return true;
     }
@@ -203,17 +190,12 @@ bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
     return false;
   }
 
-  /*
-  * cur_size means how many bytes of this file WILL BE TRANSFERED, instead of have been transfered!
-  * 
-  -   if (cur_size != 0) {
-  -         spdlog::error("[{}]: New file '{}', but cur_size = {}, aborting.",
-  -                   ServerConfig::get_instance()->GrpcServerName, filename, cur_size);
-  -         closeCurrentFile();
-  -         return false;
-  - }
-  *
-  */
+  if (transfered_size != 0) {
+            spdlog::error("[{}]: New file '{}', but cur_size = {}, aborting.",
+                      ServerConfig::get_instance()->GrpcServerName, filename, transfered_size);
+            closeCurrentFile();
+            return false;
+  }
 
   m_fileStream.seekp(0, std::ios::beg);
 
@@ -266,7 +248,7 @@ bool handler::FileProcessingNode::writeToFile(const std::string &content) {
       // m_fileStream.flush();
       return true;
     }
-    spdlog::warn("[{}]: File stream not open, cannot write to file",
+    spdlog::error("[{}]: File stream not open, cannot write to file",
                  ServerConfig::get_instance()->GrpcServerName);
 
   } catch (const std::ios_base::failure &e) {

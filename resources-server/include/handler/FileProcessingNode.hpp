@@ -45,7 +45,7 @@ protected:
                         const std::string &filename);
   bool writeToFile(const std::string &content);
   bool resetFileStream(const bool isFirstPackage, const std::string &filename,
-                       const std::size_t cur_size = 0);
+                       const std::size_t transfered_size = 0);
 
   [[nodiscard]] std::string base64Decode(const std::string &origin);
 

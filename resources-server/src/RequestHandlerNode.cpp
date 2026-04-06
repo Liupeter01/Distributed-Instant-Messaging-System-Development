@@ -304,8 +304,10 @@ void handler::RequestHandlerNode::handlingFileUploading(
 
   // Parsing json object
   if (!(src_obj.contains("filename") && src_obj.contains("checksum") &&
-        src_obj.contains("file_size") && src_obj.contains("block") &&
-        src_obj.contains("cur_size") && src_obj.contains("cur_seq") &&
+        src_obj.contains("total_size") &&
+            src_obj.contains("current_block_size") && 
+        src_obj.contains("transfered_size") && 
+            src_obj.contains("cur_seq")  && src_obj.contains("block") &&
         src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
 
     generateErrorMessage("Failed to parse json data",
@@ -322,10 +324,12 @@ void handler::RequestHandlerNode::handlingFileUploading(
       boost::json::value_to<std::string>(src_obj["last_seq"]);
   [[maybe_unused]] auto cur_seq =
       boost::json::value_to<std::string>(src_obj["cur_seq"]);
-  [[maybe_unused]] auto cur_size =
-      std::stoi(boost::json::value_to<std::string>(src_obj["cur_size"]));
+  [[maybe_unused]] auto transfered_size =
+      std::stoi(boost::json::value_to<std::string>(src_obj["transfered_size"]));
+  [[maybe_unused]] auto current_block_size =
+            std::stoi(boost::json::value_to<std::string>(src_obj["current_block_size"]));
   [[maybe_unused]] auto total_size =
-      std::stoi(boost::json::value_to<std::string>(src_obj["file_size"]));
+      std::stoi(boost::json::value_to<std::string>(src_obj["total_size"]));
   [[maybe_unused]] auto eof =
       boost::json::value_to<std::string>(src_obj["EOF"]);
 
@@ -365,7 +369,7 @@ void handler::RequestHandlerNode::handlingFileUploading(
    * new one It's READ ONLY!
    */
   auto desc = std::make_shared<const handler::FileHasherDesc>(
-      filename, checksum, cur_seq, last_seq, eof, cur_size, total_size);
+      filename, checksum, cur_seq, last_seq, eof, transfered_size, current_block_size, total_size);
 
   // it could be new package or update previous version!
   // NOT A GOOD IDEA!!!!
@@ -381,7 +385,10 @@ void handler::RequestHandlerNode::handlingFileUploading(
   dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
   dst_root["checksum"] = checksum;
   dst_root["curr_seq"] = cur_seq;
-  dst_root["curr_size"] = std::to_string(cur_size);
+
+  //transfered: the accumlated transfered size in the perviou rounds
+//current_block_size: the transfered size in the last round
+  dst_root["curr_size"] = std::to_string(transfered_size + current_block_size);
   dst_root["total_size"] = std::to_string(total_size);
 
   /*End Of File*/
@@ -421,8 +428,12 @@ void handler::RequestHandlerNode::handlingCheckUploadProgress(
     dst_root["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
     dst_root["checksum"] = checksum;
     dst_root["curr_seq"] = opt->curr_sequence;
-    dst_root["curr_size"] = opt->accumlated_size;
-    dst_root["total_size"] = opt->file_size;
+
+    //transfered: the accumlated transfered size in the perviou rounds
+    //current_block_size: the transfered size in the last round
+    dst_root["curr_size"] = opt->transfered_size + opt->current_block_size;
+    dst_root["total_size"] = opt->total_size;
+
     /*End Of File*/
     dst_root["EOF"] = opt->isEOF;
   }

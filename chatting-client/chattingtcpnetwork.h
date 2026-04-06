@@ -28,7 +28,6 @@ protected:
   void registerNetworkEvent() override;
   void registerCallback() override;
   void registerMetaType() override;
-  void readyReadHandler(const uint16_t id, QJsonObject &&obj) override;
 
 signals:
   /*logout from server*/

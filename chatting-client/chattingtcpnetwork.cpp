@@ -530,16 +530,6 @@ void ChattingTCPNetwork::registerMetaType() {
       "std::shared_ptr<SendNodeType>");
 }
 
-void ChattingTCPNetwork::readyReadHandler(const uint16_t id,
-                                          QJsonObject &&obj) {
-
-  try {
-    m_callbacks[static_cast<ServiceType>(id)](std::move(obj));
-  } catch (const std::exception &e) {
-    qDebug() << e.what();
-  }
-}
-
 void ChattingTCPNetwork::slot_terminate_server() {
   QJsonObject json_obj;
   json_obj["uuid"] = UserAccountManager::get_instance()->get_uuid();

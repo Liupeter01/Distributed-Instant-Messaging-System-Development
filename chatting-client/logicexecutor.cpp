@@ -17,7 +17,7 @@ std::size_t LogicExecutor::calculateBlockNumber(const std::size_t totalSize,
 LogicExecutor::LogicExecutor(QObject *parent) : QObject(parent) {
 
   // register callback
-  registerCallbacks();
+  // registerCallbacks();
 
   // register signal
   registerSignal();
@@ -26,6 +26,7 @@ LogicExecutor::LogicExecutor(QObject *parent) : QObject(parent) {
 LogicExecutor::~LogicExecutor() {}
 
 void LogicExecutor::registerSignal() {
+
   connect(this, &LogicExecutor::signal_start_file_transmission, this,
           &LogicExecutor::slot_start_file_transmission);
 
@@ -37,70 +38,6 @@ void LogicExecutor::registerSignal() {
 
   connect(this, &LogicExecutor::signal_resume_file_transmission, this,
           &LogicExecutor::slot_resume_file_transmission);
-
-  /*
-   * flow control Server will return transmission status back(EOF or not?)
-   * If NOT eof, this transmission progress could be paused!
-   */
-  connect(this, &LogicExecutor::signal_data_transmission_status, this,
-          [this](const QString &checksum, const std::size_t curr_seq,
-                 const std::size_t curr_size, const std::size_t total_size,
-                 const bool eof) {
-            if (eof) {
-              m_curSeq = 0;
-              accumulate_transferred = 0;
-
-              // reset pause status to prevent unexpected error!
-              LogicMethod::get_instance()->setPause(false);
-            } else {
-              m_curSeq = curr_seq + 1;
-              accumulate_transferred = curr_size;
-              emit signal_send_next_block(checksum);
-            }
-          });
-}
-
-void LogicExecutor::registerCallbacks() {
-
-  auto updateNextBlocksInfo = [this](const QJsonObject json) {
-    /*error occured!*/
-    if (!json.contains("error")) {
-      qDebug() << "Json Parse Error!";
-      return;
-    }
-    if (json["error"].toInt() !=
-        static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-      qDebug() << "File Transmission Resume Failed!";
-      return;
-    }
-
-    [[maybe_unused]] auto checksum = json["checksum"].toString();
-    [[maybe_unused]] auto curr_seq = json["curr_seq"].toString();
-    [[maybe_unused]] auto curr_size = json["curr_size"].toString();
-    [[maybe_unused]] auto total_size = json["total_size"].toString();
-    [[maybe_unused]] auto eof = json["EOF"].toBool();
-
-    // /*notifying the main UI interface to update progress bar!*/
-    emit signal_data_transmission_status(checksum, curr_seq.toUInt(),
-                                         curr_size.toUInt(),
-                                         total_size.toUInt(), eof);
-  };
-
-  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
-      ServiceType::SERVICE_FILEUPLOADRESPONSE, updateNextBlocksInfo));
-
-  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
-      ServiceType::SERVICE_FILECHECKUPLOADPROGRESSRESPONSE,
-      updateNextBlocksInfo));
-}
-
-void LogicExecutor::slot_resources_logic_handler(const uint16_t id,
-                                                 const QJsonObject obj) {
-  try {
-    m_callbacks[static_cast<ServiceType>(id)](obj);
-  } catch (const std::exception &e) {
-    qDebug() << e.what();
-  }
 }
 
 void LogicExecutor::slot_send_next_block(const QString &checksum) {
@@ -155,9 +92,11 @@ void LogicExecutor::slot_send_next_block(const QString &checksum) {
   obj["checksum"] = m_fileCheckSum;
   obj["cur_seq"] = QString::number(m_curSeq);
   obj["last_seq"] = QString::number(m_totalBlocks);
-  obj["cur_size"] =
-      QString::number(accumulate_transferred + bytes_transferred_curr_sequence);
-  obj["file_size"] = QString::number(m_fileSize);
+
+  obj["transfered_size"] = QString::number(accumulate_transferred);
+  obj["current_block_size"] = QString::number(bytes_transferred_curr_sequence);
+  obj["total_size"] = QString::number(m_fileSize);
+
   obj["block"] = QString(buffer.toBase64());
   obj["EOF"] = (m_curSeq == m_totalBlocks) ? "1" : "0";
 
@@ -224,4 +163,23 @@ void LogicExecutor::slot_resume_file_transmission() {
 
   FileTCPNetwork::get_instance()->send_buffer(
       ServiceType::SERVICE_FILECHECKUPLOADPROGRESSREQUEST, std::move(obj));
+}
+
+void LogicExecutor::slot_break_point_resume(QString checksum,
+                                            const std::size_t curr_seq,
+                                            const std::size_t curr_size,
+                                            const std::size_t total_size,
+                                            const bool eof)
+{
+    if (eof) {
+        m_curSeq = 0;
+        accumulate_transferred = 0;
+
+        // reset pause status to prevent unexpected error!
+        LogicMethod::get_instance()->setPause(false);
+    } else {
+        m_curSeq = curr_seq + 1;
+        accumulate_transferred = curr_size;
+        emit signal_send_next_block(checksum);
+    }
 }

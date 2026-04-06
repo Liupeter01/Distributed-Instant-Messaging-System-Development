@@ -40,22 +40,14 @@ signals:
 
   void signal_send_next_block(const QString &checksum);
 
-  /*data transmission status*/
-  void signal_data_transmission_status(const QString &checksum,
-                                       const std::size_t curr_seq,
-                                       const std::size_t curr_size,
-                                       const std::size_t total_size,
-                                       const bool eof);
-
 private:
   void registerSignal();
-  void registerCallbacks();
+  //void registerCallbacks();
 
 private slots:
-  /*forward resources server's message to a standlone logic thread*/
-  void slot_resources_logic_handler(const uint16_t id, const QJsonObject obj);
 
   void slot_send_next_block(const QString &checksum);
+
   void slot_start_file_transmission(const QString &fileName,
                                     const QString &filePath,
                                     const std::size_t fileChunk);
@@ -65,6 +57,17 @@ private slots:
 
   // resume transmission
   void slot_resume_file_transmission();
+
+  /*
+   * slot_break_point_resume could serve for two main purposes
+   * - indicate the process of file upload response, and start to prepare for the next block!
+   * - when user activate break point resume, it will start from the curr_size of the file
+   */
+  void slot_break_point_resume(QString checksum,
+                                 const std::size_t curr_seq,
+                                 const std::size_t curr_size,
+                                 const std::size_t total_size,
+                                 const bool eof);
 
 private:
   QString m_fileName;

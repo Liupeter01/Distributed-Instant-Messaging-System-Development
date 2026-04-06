@@ -21,18 +21,46 @@ void LogicMethod::registerMetaType() {
   qRegisterMetaType<std::shared_ptr<QFileInfo>>("std::shared_ptr<QFileInfo>");
 }
 
+void LogicMethod::slot_resources_logic_handler(const uint16_t id, QJsonObject json)
+{
+    if(static_cast<ServiceType>(id) == ServiceType::SERVICE_FILEUPLOADRESPONSE ||
+        static_cast<ServiceType>(id) == ServiceType::SERVICE_FILECHECKUPLOADPROGRESSRESPONSE){
+
+        if (!json.contains("error")) {
+            qDebug() << "Json Parse Error!";
+            return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+            qDebug() << "File Upload Failed!!";
+            return;
+        }
+
+        [[maybe_unused]] auto checksum = json["checksum"].toString();
+        [[maybe_unused]] auto curr_seq = json["curr_seq"].toString().toUInt();
+        [[maybe_unused]] auto curr_size = json["curr_size"].toString().toUInt();
+        [[maybe_unused]] auto total_size = json["total_size"].toString().toUInt();
+        [[maybe_unused]] auto eof = json["EOF"].toBool();
+
+        emit signal_break_point_resume(checksum, curr_seq, curr_size, total_size, eof);
+
+    }else{
+        qDebug() << "Invalid Resources Service ID!";
+    }
+}
+
 void LogicMethod::registerSignals() {
-  /*incoming signal from resources server*/
-  connect(this, &LogicMethod::signal_resources_logic_handler, m_exec,
-          &LogicExecutor::slot_resources_logic_handler);
 
-  /*
-   * parse the data inside logicexecutor
-   * retrieve data transmission status(propotion)
-   */
-  connect(m_exec, &LogicExecutor::signal_data_transmission_status, this,
-          &LogicMethod::signal_data_transmission_status);
+  /*incoming signal from FileTcpNetwork class*/
+  connect(FileTCPNetwork::get_instance().get(),
+          &FileTCPNetwork::signal_resources_logic_handler,
+          this,
+          &LogicMethod::slot_resources_logic_handler);
 
+  connect(this, &LogicMethod::signal_break_point_resume, m_exec,
+          &LogicExecutor::slot_break_point_resume);
+
+  //forward signal to executor
   connect(this, &LogicMethod::signal_start_file_transmission, m_exec,
           &LogicExecutor::signal_start_file_transmission);
 

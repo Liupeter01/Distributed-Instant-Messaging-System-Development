@@ -20,9 +20,9 @@ void FileTCPNetwork::registerCallback() {}
 
 void FileTCPNetwork::registerMetaType() {}
 
-void FileTCPNetwork::readyReadHandler(const uint16_t id, QJsonObject &&obj) {
-  /*forward resources server's message to a standlone logic thread*/
-  emit signal_resources_logic_handler(id, std::move(obj));
+void FileTCPNetwork::readyReadHandler(const uint16_t id, QJsonObject &&obj){
+
+    emit signal_resources_logic_handler(id, obj);
 }
 
 void FileTCPNetwork::slot_terminate_server() {}

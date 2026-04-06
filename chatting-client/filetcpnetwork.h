@@ -25,8 +25,8 @@ protected:
   void readyReadHandler(const uint16_t id, QJsonObject &&obj) override;
 
 signals:
-  /*forward resources server's message to a standlone logic thread*/
-  void signal_resources_logic_handler(const uint16_t id, const QJsonObject obj);
+  /* forward resources server's message to a standlone logic thread */
+    void signal_resources_logic_handler(const uint16_t id, QJsonObject obj);
 
 private slots:
   void slot_terminate_server() override;

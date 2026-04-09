@@ -75,6 +75,14 @@ void handler::FileProcessingNode::closeCurrentFile() {
 
 void handler::FileProcessingNode::execute(pair &&block) {
 
+          if (!block.second) {
+                    return;
+          }
+
+          if (!block.second->callback) {
+                    return;
+          }
+
   /*if it is first package then we should create a new file*/
   bool isFirstPackage = block.second->curr_sequence == std::string("1");
 
@@ -84,6 +92,9 @@ void handler::FileProcessingNode::execute(pair &&block) {
   // redirect file stream
   if (!resetFileStream(isFirstPackage, block.second->filename,
                        block.second->transfered_size)) {
+
+            block.second->callback(ServiceStatus::FILE_OPEN_ERROR);
+
     return;
   }
 
@@ -93,11 +104,13 @@ void handler::FileProcessingNode::execute(pair &&block) {
     if (block.second->block_data.empty()) {
       spdlog::error("[{}]: Decoded block is empty. Skipping write.",
                     ServerConfig::get_instance()->GrpcServerName);
+
       return;
     }
   } catch (const std::exception &e) {
     spdlog::error("[{}]: base64 decoding failed: {}",
                   ServerConfig::get_instance()->GrpcServerName, e.what());
+    block.second->callback(ServiceStatus::FILE_UPLOAD_ERROR);
     return;
   }
 
@@ -105,6 +118,7 @@ void handler::FileProcessingNode::execute(pair &&block) {
   if (!writeToFile(block.second->block_data)) {
     spdlog::warn("[{}]: Skipped closing file due to write failure.",
                  ServerConfig::get_instance()->GrpcServerName);
+    block.second->callback(ServiceStatus::FILE_WRITE_ERROR);
     return;
   }
 
@@ -114,6 +128,8 @@ void handler::FileProcessingNode::execute(pair &&block) {
                  block.second->filename);
     closeCurrentFile();
   }
+
+  block.second->callback(ServiceStatus::SERVICE_SUCCESS);
 }
 
 void handler::FileProcessingNode::commit(

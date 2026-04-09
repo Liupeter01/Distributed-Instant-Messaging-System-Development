@@ -341,6 +341,40 @@ bool redis::RedisContext::release(const std::string &lockName,
   return releaseLock(full_lock_name, identifer);
 }
 
+bool redis::RedisContext::setValueExp(const std::string& key, const std::string& field, const std::size_t EXPX,
+          TimeUnit unit) {
+
+          if (key.empty() || field.empty() || !EXPX) {
+                    return false;
+          }
+
+          std::string inputSchema;
+          inputSchema.clear();
+          if (unit == TimeUnit::Seconds) {
+                    inputSchema = std::string("SETEX %s %d %s ");
+          }
+          else if (unit == TimeUnit::Milliseconds) {
+                    inputSchema = std::string("SETPX %s %d %s ");
+          }
+          else {
+                    spdlog::error("[REDIS]: Time Unit Error!");
+                    return false;
+          }
+
+          std::unique_ptr<RedisReply> m_replyDelegate = std::make_unique<RedisReply>();
+
+          auto status = m_replyDelegate->redisCommand(
+                    *this, inputSchema, key.c_str(), EXPX, field.c_str());
+
+          if (status) {
+                    spdlog::info("Execute command [ SETEX/PX key = {0}, expire = {1}, value = {2}] "
+                              "successfully!",
+                              key.c_str(), EXPX, field.c_str());
+                    return true;
+          }
+          return false;
+}
+
 bool redis::RedisContext::releaseLock(const std::string &lockName,
                                       const std::string &identifer) {
 

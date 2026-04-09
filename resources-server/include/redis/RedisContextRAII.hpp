@@ -42,6 +42,7 @@ public:
   bool setValue(const std::string &key, const std::string &value);
   bool setValue2Hash(const std::string &key, const std::string &field,
                      const std::string &value);
+
   bool delValueFromHash(const std::string &key, const std::string &field);
   bool leftPush(const std::string &key, const std::string &value);
   bool rightPush(const std::string &key, const std::string &value);
@@ -61,6 +62,10 @@ public:
                                      TimeUnit unit = TimeUnit::Seconds);
 
   bool release(const std::string &lockName, const std::string &identifer);
+
+  //set KV expire
+  bool setValueExp(const std::string& key, const std::string& field, const std::size_t EXPX,
+            TimeUnit unit = TimeUnit::Seconds);
 
 private:
   bool acquireLock(const std::string &lockName, const std::string &identifer,

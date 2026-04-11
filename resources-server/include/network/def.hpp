@@ -80,6 +80,13 @@ enum class ServiceType : uint8_t {
   SERVICE_FILEUPLOADREQUEST,
   SERVICE_FILEUPLOADRESPONSE,
 
+  /*User send init file fetching request*/
+          SERVICE_INITFILEFETCHINGREQUEST,
+
+          /*User send normal file download request*/
+          SERVICE_FILEDOWNLOADREQUEST,
+          SERVICE_FILEDOWNLOADRESPONSE,
+
   /*sync upload progress*/
   SERVICE_FILECHECKUPLOADPROGRESSREQUEST,
   SERVICE_FILECHECKUPLOADPROGRESSRESPONSE,

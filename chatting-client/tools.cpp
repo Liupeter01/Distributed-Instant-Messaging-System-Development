@@ -162,6 +162,7 @@ void Tools::setQLableImage(QLabel *label, const QString &target,
     return;
   }
   label->setPixmap(QPixmap::fromImage(it->second));
+  label->setScaledContents(true);
   label->update();
 }
 

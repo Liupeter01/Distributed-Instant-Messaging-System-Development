@@ -10,6 +10,7 @@
 #include <singleton/singleton.hpp>
 #include <spdlog/spdlog.h>
 #include <tbb/concurrent_vector.h>
+#include <type_traits>
 
 namespace dispatcher {
 
@@ -29,7 +30,9 @@ public:
                   });
   }
 
-  void commit(std::unique_ptr<handler::FileDescriptionBlock> block,
+  template<typename T, 
+            typename std::enable_if<has_callback<T>::value, int>::type = 0>
+  void commit(std::unique_ptr<T> block,
               [[maybe_unused]] SessionPtr live_extend) {
 
     if (!block)

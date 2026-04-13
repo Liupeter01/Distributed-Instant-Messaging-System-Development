@@ -69,6 +69,11 @@ std::optional<_Ty> string_to_value(std::string_view value) {
   return std::nullopt;
 }
 
+template<typename Derived, typename Base>
+std::unique_ptr<Derived> static_unique_ptr_cast(std::unique_ptr<Base>&& base) {
+          return std::unique_ptr<Derived>(static_cast<Derived*>(base.release()));
+}
+
 } // namespace tools
 
 #endif // !_TOOLS_HPP_

@@ -147,6 +147,7 @@ enum class ServiceStatus : uint8_t {
   FILE_CREATE_ERROR,
   FILE_OPEN_ERROR,
   FILE_WRITE_ERROR,
+  FILE_READ_ERROR,
   FILE_NOT_FOUND
 };
 

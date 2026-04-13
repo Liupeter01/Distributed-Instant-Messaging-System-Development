@@ -17,7 +17,8 @@
 namespace handler {
 class FileProcessingNode {
   using SessionPtr = std::shared_ptr<Session>;
-  using NodePtr = std::unique_ptr<FileDescriptionBlock>;
+
+  using NodePtr = std::unique_ptr< FileHasherDesc>;
   using pair = std::pair<SessionPtr, NodePtr>;
 
 public:
@@ -29,25 +30,45 @@ public:
   void setProcessingId(const std::size_t id);
   const std::size_t getProcessingId() const;
   void shutdown();
-  void commit(std::unique_ptr<FileDescriptionBlock> block,
-              [[maybe_unused]] SessionPtr live_extend);
-  void commit(const std::string &filename, const std::string &block_data,
-              const std::string &checksum, const std::string &curr_sequence,
-              const std::string &last_sequence, const std::string &_eof,
-              std::size_t accumlated_size, std::size_t file_size,
-              [[maybe_unused]] SessionPtr live_extend);
+
+  //we have to constraint the type
+  template<typename T,
+            typename std::enable_if<has_callback<T>::value, int>::type = 0>
+  void commit(std::unique_ptr<T> block, [[maybe_unused]] SessionPtr live_extend) {
+
+            std::lock_guard<std::mutex> _lckg(m_mtx);
+            // if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
+            //   spdlog::warn("[{}]: FileProcessingNode {}'s Queue is full!",
+            //             ServerConfig::get_instance()->GrpcServerName, processing_id);
+            //   return;
+            // }
+            //  spdlog::info("[{}]: Commit File: {}",
+            //  ServerConfig::get_instance()->GrpcServerName, block->filename);
+            m_queue.push(std::make_pair(live_extend, std::move(block)));
+            m_cv.notify_one();
+  }
 
   static bool validFilename(std::string_view name);
 
 protected:
-  [[nodiscard]] std::optional<std::filesystem::path>
-  resolveAndPreparePath(const std::filesystem::path &base,
-                        const std::string &filename);
   bool writeToFile(const std::string &content);
-  bool resetFileStream(const bool isFirstPackage, const std::string &filename,
-                       const std::size_t transfered_size = 0);
+  std::optional<std::string> readFromFile(const std::size_t max_size);
+  bool prepareUploadStream(
+            const std::string& filename,
+            const std::string& uuid,
+            std::uint64_t offset);
 
-  [[nodiscard]] std::string base64Decode(const std::string &origin);
+  bool prepareDownloadStream(
+            const std::string& filename,
+            const std::string& uuid,
+            std::uint64_t offset, 
+            std::size_t &total_size);
+
+  [[nodiscard]] static std::string base64Decode(const std::string &origin);
+  [[nodiscard]] static std::string base64Encode(std::string_view origin);
+
+  [[nodiscard]]
+  static std::size_t calculateTotalSeqNumber(const std::size_t totalSize, const std::size_t chunkSize);
 
 private:
   /*FileProcessingNode Class Operations*/
@@ -57,12 +78,18 @@ private:
   bool openFile(const std::filesystem::path &path, std::ios::openmode mode);
   void closeCurrentFile();
 
+  void upload(std::unique_ptr<FileUploadDescription> block,
+            [[maybe_unused]] SessionPtr live_extend);
+
+  void download(std::unique_ptr<FileDownloadDescription> block,
+            [[maybe_unused]] SessionPtr live_extend);
+
 private:
   std::size_t processing_id;
 
   /*file stream*/
   std::string m_lastfile;
-  std::ofstream m_fileStream;
+  std::fstream m_fileStream;
 
   /*Server stop flag*/
   std::atomic<bool> m_stop;

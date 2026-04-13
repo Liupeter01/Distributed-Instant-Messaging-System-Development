@@ -55,6 +55,19 @@ void handler::FileProcessingNode::processing() {
   }
 }
 
+void handler::FileProcessingNode::execute(pair&& block) {
+          if (block.second->direction == TransferDirection::Download) {
+                    download(tools::static_unique_ptr_cast<FileDownloadDescription>(std::move(block.second)), block.first);
+          }
+          else if (block.second->direction == TransferDirection::Upload) {
+                    upload(tools::static_unique_ptr_cast<FileUploadDescription>(std::move(block.second)), block.first);
+          }
+          else {
+                    spdlog::error("[{}]: Invalid TransferDirection. It could only be Download or Transfer",
+                              ServerConfig::get_instance()->GrpcServerName);
+          }
+}
+
 bool handler::FileProcessingNode::validFilename(std::string_view name) {
   return name.find("..") == std::string::npos &&
          name.find('/') == std::string::npos &&
@@ -73,186 +86,235 @@ void handler::FileProcessingNode::closeCurrentFile() {
   }
 }
 
-void handler::FileProcessingNode::execute(pair &&block) {
+void handler::FileProcessingNode::upload(std::unique_ptr<FileUploadDescription> block,
+          [[maybe_unused]] SessionPtr live_extend) {
 
-          if (!block.second) {
+          if (!block) 
+                    return;
+
+          if (!block->callback) 
+                    return;
+
+          /*if it is first package then we should create a new file*/
+          bool isFirstPackage = block->curr_sequence == std::string("1");
+
+          /*if it is the end of file*/
+          bool isEOF = block->isEOF == std::string("1");
+
+          // redirect file stream
+          if (!prepareUploadStream(block->filename, block->uuid, block->transfered_size)) {
+                    block->callback(ServiceStatus::FILE_OPEN_ERROR);
                     return;
           }
 
-          if (!block.second->callback) {
+          try {
+                    // conduct base64 decode on block data first
+                    block->block_data = base64Decode(block->block_data);
+                    if (block->block_data.empty()) {
+                              spdlog::error("[{}]: Decoded block is empty. Skipping write.",
+                                        ServerConfig::get_instance()->GrpcServerName);
+
+                              return;
+                    }
+          }
+          catch (const std::exception& e) {
+                    spdlog::error("[{}]: base64 decoding failed: {}",
+                              ServerConfig::get_instance()->GrpcServerName, e.what());
+                    block->callback(ServiceStatus::FILE_UPLOAD_ERROR);
                     return;
           }
 
-  /*if it is first package then we should create a new file*/
-  bool isFirstPackage = block.second->curr_sequence == std::string("1");
+          // write to file
+          if (!writeToFile(block->block_data)) {
+                    spdlog::warn("[{}]: Skipped closing file due to write failure.",
+                              ServerConfig::get_instance()->GrpcServerName);
+                    block->callback(ServiceStatus::FILE_WRITE_ERROR);
+                    return;
+          }
 
-  /*if it is the end of file*/
-  bool isEOF = block.second->isEOF == std::string("1");
+          if (isEOF) {
+                    spdlog::info("[{}]: EOF received, file stream closed for '{}'",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              block->filename);
+                    closeCurrentFile();
+          }
 
-  // redirect file stream
-  if (!resetFileStream(isFirstPackage, block.second->filename,
-                       block.second->transfered_size)) {
-
-            block.second->callback(ServiceStatus::FILE_OPEN_ERROR);
-
-    return;
-  }
-
-  try {
-    // conduct base64 decode on block data first
-    block.second->block_data = base64Decode(block.second->block_data);
-    if (block.second->block_data.empty()) {
-      spdlog::error("[{}]: Decoded block is empty. Skipping write.",
-                    ServerConfig::get_instance()->GrpcServerName);
-
-      return;
-    }
-  } catch (const std::exception &e) {
-    spdlog::error("[{}]: base64 decoding failed: {}",
-                  ServerConfig::get_instance()->GrpcServerName, e.what());
-    block.second->callback(ServiceStatus::FILE_UPLOAD_ERROR);
-    return;
-  }
-
-  // write to file
-  if (!writeToFile(block.second->block_data)) {
-    spdlog::warn("[{}]: Skipped closing file due to write failure.",
-                 ServerConfig::get_instance()->GrpcServerName);
-    block.second->callback(ServiceStatus::FILE_WRITE_ERROR);
-    return;
-  }
-
-  if (isEOF) {
-    spdlog::info("[{}]: EOF received, file stream closed for '{}'",
-                 ServerConfig::get_instance()->GrpcServerName,
-                 block.second->filename);
-    closeCurrentFile();
-  }
-
-  block.second->callback(ServiceStatus::SERVICE_SUCCESS);
+          block->callback(ServiceStatus::SERVICE_SUCCESS);
 }
 
-void handler::FileProcessingNode::commit(
-    std::unique_ptr<FileDescriptionBlock> block,
-    [[maybe_unused]] SessionPtr live_extend) {
+void handler::FileProcessingNode::download(std::unique_ptr<FileDownloadDescription> block,
+          [[maybe_unused]] SessionPtr live_extend) {
 
-  std::lock_guard<std::mutex> _lckg(m_mtx);
-  // if (m_queue.size() > ServerConfig::get_instance()->ResourceQueueSize) {
-  //   spdlog::warn("[{}]: FileProcessingNode {}'s Queue is full!",
-  //             ServerConfig::get_instance()->GrpcServerName, processing_id);
-  //   return;
-  // }
-  //  spdlog::info("[{}]: Commit File: {}",
-  //  ServerConfig::get_instance()->GrpcServerName, block->filename);
-  m_queue.push(std::make_pair(live_extend, std::move(block)));
-  m_cv.notify_one();
+          if (!block)
+                    return;
+
+          if (!block->callback)
+                    return;
+
+          /*if it is first package then we should create a new file*/
+          bool isFirstPackage = block->curr_sequence == std::string("1");
+
+          /*if it is the end of file*/
+          bool isEOF = block->isEOF == std::string("1");
+
+          // redirect file stream
+          std::size_t total_size{};
+          if (!prepareDownloadStream(block->filename, block->uuid, block->transfered_size, total_size)) {
+                    block->callback(ServiceStatus::FILE_OPEN_ERROR, nullptr);
+                    return;
+          }
+
+          // write to file
+          auto opt = readFromFile(block->current_block_size);
+          if (!opt.has_value()) {
+                    spdlog::warn("[{}]: Skipped closing file due to read failure.",
+                              ServerConfig::get_instance()->GrpcServerName);
+                    block->callback(ServiceStatus::FILE_READ_ERROR, nullptr);
+          }
+
+          std::string block_data = base64Encode(opt.value());
+          std::string last_seq = isFirstPackage ? std::to_string(calculateTotalSeqNumber(total_size, block->current_block_size)) : block->last_sequence;
+
+          block->callback(ServiceStatus::SERVICE_SUCCESS, 
+                    std::make_unique<typename FileDownloadDescription::DownloadInfo>(
+                              block_data,
+                              std::string{},
+                              last_seq,
+                              total_size)
+          );
 }
 
-bool handler::FileProcessingNode::resetFileStream(const bool isFirstPackage,
-                                                  const std::string &filename,
-                                                  const std::size_t transfered_size) {
+bool handler::FileProcessingNode::prepareUploadStream(
+          const std::string& filename,
+          const std::string& uuid,
+          std::uint64_t offset) {
 
-  if (!validFilename(filename)) {
-    spdlog::error("[{}]: Illegal filename '{}'",
-                  ServerConfig::get_instance()->GrpcServerName, filename);
-    return false;
-  }
+          if (!validFilename(filename)) {
+                    spdlog::error("[{}]: Illegal filename '{}'",
+                              ServerConfig::get_instance()->GrpcServerName, filename);
+                    return false;
+          }
 
-  std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
-  std::filesystem::path full_path = output_dir / filename;
+          std::filesystem::path output_dir =
+                    std::filesystem::path(ServerConfig::get_instance()->outputPath) / uuid;
+          std::filesystem::path full_path = output_dir / filename;
 
-  // If not first package, try to reuse stream
-  if (!isFirstPackage) {
-    if (m_lastfile == filename && m_fileStream.is_open()) {
-      return true;
-    }
+          std::error_code ec;
+          std::filesystem::create_directories(output_dir, ec);
+          if (ec) {
+                    spdlog::error("[{}]: Failed to create dir '{}': {}",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              output_dir.string(), ec.message());
+                    return false;
+          }
 
-    // if m_lastfile is not equal to filename, we need to close the file stream
-    closeCurrentFile();
+          closeCurrentFile();
 
-    // Open another file, and test if it's already created before.
-    if (std::filesystem::exists(full_path)) {
-      if (!openFile(full_path, std::ios::binary | std::ios::app)) {
-        spdlog::error("[{}]: Failed to reopen file '{}'",
-                      ServerConfig::get_instance()->GrpcServerName, filename);
-        return false;
-      }
+          /*File Not Exist*/
+          if (!std::filesystem::exists(full_path)) {
 
-      spdlog::info("[{}]: Reopened file '{}', seeking to {}",
-                   ServerConfig::get_instance()->GrpcServerName, filename,
-                transfered_size);
-      m_fileStream.seekp(transfered_size, std::ios::beg);
-      m_lastfile = filename;
-      return true;
-    }
-  }
+                    //new file, but offset is not zero??
+                    if (offset != 0) {
+                              spdlog::error("[{}]: Resume upload requested for missing file '{}', offset={}",
+                                        ServerConfig::get_instance()->GrpcServerName,
+                                        filename, offset);
+                              return false;
+                    }
 
-  // File doesn't exist ¡ª fall through to create
-  spdlog::warn("[{}]: File '{}' not found, will create new.",
-            ServerConfig::get_instance()->GrpcServerName, filename);
+                    if (!openFile(full_path, std::ios::binary | std::ios::out | std::ios::trunc)) {
+                              spdlog::error("[{}]: Failed to create file '{}'",
+                                        ServerConfig::get_instance()->GrpcServerName,
+                                        full_path.string());
+                              return false;
+                    }
 
-  // Create file path if not exist
-  auto opt_path = resolveAndPreparePath(output_dir, filename);
-  if (!opt_path) {
-    return false;
-  }
+                    m_fileStream.seekp(0, std::ios::beg);
+                    m_lastfile = filename;
+                    return true;
+          }
 
-  // make sure stream is closed before reopening
-  closeCurrentFile();
+          auto actual_size = std::filesystem::file_size(full_path, ec);
+          if (ec) {
+                    spdlog::error("[{}]: Failed to query file size '{}': {}",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              full_path.string(), ec.message());
+                    return false;
+          }
 
-  if (!openFile(*opt_path, std::ios::binary | std::ios::trunc)) {
-    spdlog::error("[{}]: Failed to create and open new file '{}'",
-                  ServerConfig::get_instance()->GrpcServerName, filename);
-    return false;
-  }
+          if (actual_size != offset) {
+                    spdlog::error("[{}]: Upload offset mismatch for '{}': expected={}, however user request '{}'",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              filename, actual_size, offset);
+                    return false;
+          }
 
-  if (transfered_size != 0) {
-            spdlog::error("[{}]: New file '{}', but cur_size = {}, aborting.",
-                      ServerConfig::get_instance()->GrpcServerName, filename, transfered_size);
-            closeCurrentFile();
-            return false;
-  }
+          if (!openFile(full_path, std::ios::binary | std::ios::in | std::ios::out)) {
+                    spdlog::error("[{}]: Failed to reopen file '{}'",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              full_path.string());
+                    return false;
+          }
 
-  m_fileStream.seekp(0, std::ios::beg);
+          m_fileStream.seekp(static_cast<std::streamoff>(offset), std::ios::beg);
+          if (!m_fileStream) {
+                    spdlog::error("[{}]: Failed to seek file '{}'",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              full_path.string());
+                    closeCurrentFile();
+                    return false;
+          }
 
-  spdlog::info("[{}]: Created and opened new file '{}'",
-               ServerConfig::get_instance()->GrpcServerName, filename);
-
-  m_lastfile = filename;
-  return true;
+          m_lastfile = filename;
+          return true;
 }
 
-std::optional<std::filesystem::path>
-handler::FileProcessingNode::resolveAndPreparePath(
-    const std::filesystem::path &base, const std::string &filename) {
+bool handler::FileProcessingNode::prepareDownloadStream(
+          const std::string& filename,
+          const std::string& uuid,
+          std::uint64_t offset,
+          std::size_t& total_size) {
 
-  std::error_code ec;
+          if (!validFilename(filename)) {
+                    return false;
+          }
 
-  // Ensure the output directory exists
-  if (!std::filesystem::exists(base)) {
-    if (!std::filesystem::create_directories(base, ec)) {
-      spdlog::error("[{}]: Failed to create directories '{}': {}",
-                    ServerConfig::get_instance()->GrpcServerName, base.string(),
-                    ec.message());
+          std::filesystem::path full_path =
+                    std::filesystem::path(ServerConfig::get_instance()->outputPath) / uuid / filename;
 
-      return std::nullopt;
-    }
-  }
+          std::error_code ec;
+          if (!std::filesystem::exists(full_path)) {
+                    spdlog::error("[{}]: User '{}' Trys to Download File '{}' does not exist",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              uuid,
+                              full_path.string());
+                    return false;
+          }
 
-  std::filesystem::path full = base / filename;
-  std::filesystem::path target_path =
-      std::filesystem::weakly_canonical(full, ec);
+          total_size = std::filesystem::file_size(full_path, ec);
+          if (ec || offset > total_size) {
+                    spdlog::error("[{}]: Invalid download offset for '{}', expected={}, however user request '{}'",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              full_path.string(), offset, total_size);
+                    return false;
+          }
 
-  if (ec) {
-    spdlog::error("[{}]: Failed to create file '{}' in directory: {}",
-                  ServerConfig::get_instance()->GrpcServerName, filename,
-                  ec.message());
+          closeCurrentFile();
 
-    return std::nullopt;
-  }
-  spdlog::info("[{}]: File path resolved successfully for '{}'",
-               ServerConfig::get_instance()->GrpcServerName, filename);
-  return target_path;
+          if (!openFile(full_path, std::ios::binary | std::ios::in)) {
+                    spdlog::error("[{}]: Failed to open file '{}' for reading",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              full_path.string());
+                    return false;
+          }
+
+          m_fileStream.seekg(static_cast<std::streamoff>(offset), std::ios::beg);
+          if (!m_fileStream) {
+                    closeCurrentFile();
+                    return false;
+          }
+
+          m_lastfile = filename;
+          return true;
 }
 
 bool handler::FileProcessingNode::writeToFile(const std::string &content) {
@@ -277,10 +339,43 @@ bool handler::FileProcessingNode::writeToFile(const std::string &content) {
   return false;
 }
 
+std::optional<std::string> 
+handler::FileProcessingNode::readFromFile(const std::size_t max_size) {
+          try {
+                    if (!m_fileStream.is_open()) {
+                              spdlog::error("[{}]: File stream not open, cannot read",
+                                        ServerConfig::get_instance()->GrpcServerName);
+                              return std::nullopt;
+                    }
+
+                    std::string buffer;
+                    buffer.resize(max_size);
+
+                    m_fileStream.read(buffer.data(), static_cast<std::streamsize>(max_size));
+                    std::streamsize bytes_read = m_fileStream.gcount();
+
+                    if (bytes_read <= 0) {
+                              return std::string();  // EOF
+                    }
+
+                    buffer.resize(static_cast<std::size_t>(bytes_read));
+                    return buffer;
+          }
+          catch (const std::ios_base::failure& e) {
+                    spdlog::error("[{}]: I/O error while reading: {}",
+                              ServerConfig::get_instance()->GrpcServerName, e.what());
+          }
+          catch (const std::exception& e) {
+                    spdlog::error("[{}]: Unexpected error while reading: {}",
+                              ServerConfig::get_instance()->GrpcServerName, e.what());
+          }
+
+          return std::nullopt;
+}
+
 std::string
 handler::FileProcessingNode::base64Decode(const std::string &origin) {
   std::string decoded;
-
 
   if (!absl::Base64Unescape(origin, &decoded)) {
 
@@ -290,4 +385,26 @@ handler::FileProcessingNode::base64Decode(const std::string &origin) {
   }
 
   return decoded;
+}
+
+std::string handler::FileProcessingNode::base64Encode(std::string_view origin) {
+
+          std::string encoded;
+          absl::Base64Escape(origin, &encoded);
+
+          if (encoded.empty()) {
+                    spdlog::error("[{}]: Base64 encode failed",
+                              ServerConfig::get_instance()->GrpcServerName);
+                    return {};
+          }
+
+          return encoded;
+}
+
+[[nodiscard]]
+std::size_t handler::FileProcessingNode::calculateTotalSeqNumber(const std::size_t totalSize,
+          const std::size_t chunkSize) {
+
+          return static_cast<size_t>(
+                    std::ceil(static_cast<double>(totalSize) / chunkSize));
 }

@@ -46,9 +46,6 @@ signals:
   void signal_teminate_chatting_server(const QString &, const QString &);
 
 protected:
-  /*chat list test*/
-  void addItemToChatListTest();
-
   /*customlized functions*/
   bool eventFilter(QObject *object, QEvent *event) override;
 
@@ -95,6 +92,9 @@ protected:
 
   /*load more chatting record*/
   void loadMoreChattingHistory();
+
+  /*load user avatar*/
+  void loadSideBarUserAvatar();
 
 private:
   void registerSignal();
@@ -227,6 +227,10 @@ private slots:
   void slot_create_private_chat(const QString &my_uuid,
                                 const QString &friend_uuid,
                                 const QString &thread_id);
+
+
+  //update all UI interfaces that relevant to avatar icons(qlabels)
+  void slot_update_interfaces_avatar_icons(const QString& path);
 
 private:
   static bool enable_heartBeart;

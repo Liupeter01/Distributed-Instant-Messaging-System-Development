@@ -17,7 +17,11 @@
 #include <addnewuserstackwidget.h>
 #include <chattingtcpnetwork.h>
 #include <namecardwidgetshowlist.h>
+#include <QStandardPaths>
+#include <QDir>
 #include <useraccountmanager.hpp>
+#include <resourcestoragemanager.h>
+#include <logicmethod.h>
 
 /* define how many chat recoreds are going to show up on chat record list */
 std::size_t ChattingDlgMainFrame::CHATRECORED_PER_PAGE = 9;
@@ -76,6 +80,10 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
                            "settings_clicked.png", "logout.png"},
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);
+
+  Tools::loadImgResources({"default_avatar.png"},
+                          ui->my_avator->width(),
+                           ui->my_avator->height());
 
   /*set chatting page as default*/
   Tools::setQLableImage(ui->my_chat, "chat_icon_normal.png");
@@ -298,6 +306,13 @@ void ChattingDlgMainFrame::registerSignal() {
   connect(ChattingTCPNetwork::get_instance().get(),
           &ChattingTCPNetwork::signal_create_private_chat, this,
           &ChattingDlgMainFrame::slot_create_private_chat);
+
+  /* The signal_update_interfaces_avatar_icons original comes from
+   * logicexecutor after the downloading process reaches eof
+   */
+  connect(LogicMethod::get_instance().get(),
+          &LogicMethod::signal_update_interfaces_avatar_icons, this,
+          &ChattingDlgMainFrame::slot_update_interfaces_avatar_icons);
 
   // every 10s
   m_timer->start(10000);
@@ -863,6 +878,43 @@ void ChattingDlgMainFrame::loadMoreChattingHistory() {
       ServiceType::SERVICE_PULLCHATRECORD, std::move(obj));
 }
 
+void ChattingDlgMainFrame::loadSideBarUserAvatar(){
+
+    QString avatar_info = UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath;
+
+    //default avatar name
+    QRegularExpression regex("^default_[a-zA-Z0-9_]+\\.png$");
+    QRegularExpressionMatch match = regex.match(avatar_info);
+
+    //No match, try to load it from local device and directory!!
+    if(match.hasMatch()){
+        Tools::setQLableImage(ui->my_avator, "default_avatar.png");
+         qDebug() << "Default Avatar Loaded.\n";
+        return;
+    }
+
+    QString storageDir =  QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    QDir avatarDir(storageDir + "/avatars/" + UserAccountManager::get_instance()->get_uuid());
+
+    if(!avatarDir.exists()){
+        qDebug() << "Avatar Dir Not Exist!\n";
+        return;
+    }
+
+    QString avatarPath = avatarDir.filePath(QFileInfo(avatar_info).fileName());
+    QPixmap pixmap(avatarPath);
+
+    if(pixmap.isNull()){
+         qDebug() << "Avatar File Loading Error!\n";
+        return;
+    }
+
+    QPixmap pixmapScaled(pixmap.scaled(ui->my_avator->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui->my_avator->setPixmap(pixmapScaled);
+    ui->my_avator->setScaledContents(true);
+    ui->my_avator->update();
+}
+
 void ChattingDlgMainFrame::slot_update_chat_thread(
     std::shared_ptr<ChatThreadPageResult> package) {
 
@@ -988,6 +1040,11 @@ void ChattingDlgMainFrame::slot_create_private_chat(const QString &my_uuid,
   // set UI operations
   ui->chat_list->scrollToItem(item);
   ui->chat_list->setCurrentItem(item);
+}
+
+void ChattingDlgMainFrame::slot_update_interfaces_avatar_icons(const QString &path)
+{
+    ResourceStorageManager::get_instance()->executeQLabelUpdateLists(path);
 }
 
 /*if target user has already became a auth friend with current user

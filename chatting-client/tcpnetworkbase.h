@@ -40,17 +40,11 @@ protected:
 
   void registerSocketSignal();
   void registerErrorHandling();
+  void readyReadHandler(const uint16_t id, QJsonObject &&obj);
+
   virtual void registerNetworkEvent() = 0;
   virtual void registerCallback() = 0;
   virtual void registerMetaType() = 0;
-
-  virtual void readyReadHandler(const uint16_t id, QJsonObject &&obj) {
-      try {
-          m_callbacks[static_cast<ServiceType>(id)](std::move(obj));
-      } catch (const std::exception &e) {
-          qDebug() << e.what();
-      }
-  }
 
   /*establish tcp socket with server*/
   QTcpSocket m_socket;

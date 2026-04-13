@@ -118,6 +118,14 @@ void TCPNetworkBase::registerErrorHandling() {
       });
 }
 
+void TCPNetworkBase::readyReadHandler(const uint16_t id, QJsonObject &&obj) {
+    try {
+        m_callbacks[static_cast<ServiceType>(id)](std::move(obj));
+    } catch (const std::exception &e) {
+        qDebug() << e.what();
+    }
+}
+
 void TCPNetworkBase::shutdown(bool connected) {
 
   if (connected)
@@ -212,6 +220,8 @@ void TCPNetworkBase::setupDataRetrieveEvent(QTcpSocket &socket,
 void TCPNetworkBase::slot_send_message(std::shared_ptr<SendNodeType> data) {
   // another bytearray is now being processed by the kernel network!
   if (m_pending_flag) {
+
+      //guarantee the messages are processed one after another in sequence
     m_queue.push(std::move(data->get_buffer()));
     return;
   }

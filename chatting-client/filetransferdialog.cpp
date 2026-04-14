@@ -69,41 +69,41 @@ void FileTransferDialog::registerNetworkEvent() {
 void FileTransferDialog::registerSignals() {
 
   /* update progress bar*/
-  connect(LogicMethod::get_instance().get(),
-          &LogicMethod::signal_break_point_resume, this,
-          [this](const QString &checksum, const std::size_t curr_seq,
-                 const std::size_t curr_size, const std::size_t total_size,
-                 const bool eof) {
-            if (eof) {
-              ui->send_button->setDisabled(false);
-              ui->open_file_button->setDisabled(false);
-              ui->send_button->setDisabled(true);
-              ui->pauseandresume->setDisabled(true);
-              ui->pauseandresume->setText(QString("pause"));
-              ui->progressBar->setValue(0);
+  // connect(LogicMethod::get_instance().get(),
+  //         &LogicMethod::signal_pause_file_upload, this,
+  //         [this](const QString &checksum, const std::size_t curr_seq,
+  //                const std::size_t curr_size, const std::size_t total_size,
+  //                const bool eof) {
+  //           if (eof) {
+  //             ui->send_button->setDisabled(false);
+  //             ui->open_file_button->setDisabled(false);
+  //             ui->send_button->setDisabled(true);
+  //             ui->pauseandresume->setDisabled(true);
+  //             ui->pauseandresume->setText(QString("pause"));
+  //             ui->progressBar->setValue(0);
 
-              m_state = TransferState::END_TRANSMISSION;
-              return;
-            }
+  //             m_state = TransferState::END_TRANSMISSION;
+  //             return;
+  //           }
 
-            ui->progressBar->setValue(curr_size);
-            ui->progressBar->setMaximum(total_size);
-          });
+  //           ui->progressBar->setValue(curr_size);
+  //           ui->progressBar->setMaximum(total_size);
+  //         });
 
   connect(this, &FileTransferDialog::signal_connection_status, this,
           &FileTransferDialog::slot_connection_status);
 
-  connect(this, &FileTransferDialog::signal_start_file_transmission,
+  connect(this, &FileTransferDialog::signal_start_file_upload,
           LogicMethod::get_instance().get(),
-          &LogicMethod::signal_start_file_transmission);
+          &LogicMethod::signal_start_file_upload);
 
-  connect(this, &FileTransferDialog::signal_pause_file_transmission,
+  connect(this, &FileTransferDialog::signal_pause_file_upload,
           LogicMethod::get_instance().get(),
-          &LogicMethod::signal_pause_file_transmission);
+          &LogicMethod::signal_pause_file_upload);
 
-  connect(this, &FileTransferDialog::signal_resume_file_transmission,
+  connect(this, &FileTransferDialog::signal_resume_file_upload,
           LogicMethod::get_instance().get(),
-          &LogicMethod::signal_resume_file_transmission);
+          &LogicMethod::signal_resume_file_upload);
 }
 
 bool FileTransferDialog::validateFile(const QString &file) {
@@ -179,7 +179,7 @@ void FileTransferDialog::on_send_button_clicked() {
 
   m_state = TransferState::START_TRANSMISSION;
 
-  emit signal_start_file_transmission(m_fileName, m_filePath, m_fileChunk);
+  emit signal_start_file_upload(m_fileName, m_filePath, m_fileChunk);
 }
 
 // void FileTransferDialog::on_connect_server_clicked() {
@@ -214,7 +214,7 @@ void FileTransferDialog::pause_clicked() {
   ui->pauseandresume->setText(QString("resume"));
 
   m_state = going_to_pause;
-  emit signal_pause_file_transmission();
+  emit signal_pause_file_upload();
 }
 
 void FileTransferDialog::resume_clicked() {
@@ -225,7 +225,8 @@ void FileTransferDialog::resume_clicked() {
   ui->pauseandresume->setText(QString("pause"));
 
   m_state = going_to_resume;
-  emit signal_resume_file_transmission();
+
+  emit signal_resume_file_upload( m_fileName , m_filePath );
 }
 
 void FileTransferDialog::on_pauseandresume_clicked() {

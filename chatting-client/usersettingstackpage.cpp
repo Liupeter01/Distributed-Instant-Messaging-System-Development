@@ -20,9 +20,9 @@ UserSettingStackPage::~UserSettingStackPage() { delete ui; }
 
 void UserSettingStackPage::registerSignal() {
 
-  connect(this, &UserSettingStackPage::signal_start_file_transmission,
+  connect(this, &UserSettingStackPage::signal_start_file_upload,
           LogicMethod::get_instance().get(),
-          &LogicMethod::signal_start_file_transmission);
+            &LogicMethod::signal_start_file_upload);
 }
 
 void UserSettingStackPage::on_submit_clicked() {
@@ -36,7 +36,7 @@ void UserSettingStackPage::on_submit_clicked() {
   LogicMethod::get_instance()->setPause(false);
 
   // start to transmit avator to resources server
-  emit signal_start_file_transmission(m_fileName, m_filePath);
+  emit signal_start_file_upload(m_fileName, m_filePath);
 }
 
 void UserSettingStackPage::on_select_avator_clicked() {

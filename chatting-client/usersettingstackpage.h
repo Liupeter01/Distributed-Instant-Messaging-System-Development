@@ -16,7 +16,7 @@ public:
   ~UserSettingStackPage();
 
 signals:
-  void signal_start_file_transmission(const QString &fileName,
+  void signal_start_file_upload(const QString &fileName,
                                       const QString &filePath,
                                       const std::size_t fileChunk = 4096);
 

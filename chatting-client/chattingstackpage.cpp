@@ -135,12 +135,13 @@ ChattingStackPage::getRole(std::shared_ptr<ChattingBaseType> value) {
 std::optional<ChattingMsgItem *>
 ChattingStackPage::setupChattingMsgItem(const ChattingRole role) {
 
-  QString username, pixmap_path;
+    ChattingMsgItem *item = new ChattingMsgItem(role);
+    if (!item)
+        return std::nullopt;
 
   if (role == ChattingRole::Sender) {
     auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
-    username = curUserInfo->m_nickname;
-    pixmap_path = curUserInfo->m_avatorPath;
+      item->setupUserInfo(curUserInfo);
 
   } else {
 
@@ -150,17 +151,10 @@ ChattingStackPage::setupChattingMsgItem(const ChattingRole role) {
       qDebug() << "User Friend Info Not Found!";
       return std::nullopt;
     }
-    auto namecard = opt.value();
-    username = namecard->m_nickname;
-    pixmap_path = namecard->m_avatorPath;
+    item->setupUserInfo(opt.value());
   }
 
-  ChattingMsgItem *item = new ChattingMsgItem(role);
-  if (!item)
-    return std::nullopt;
-
-  item->setupUserName(username);
-  item->setupIconPixmap(QPixmap(pixmap_path));
+  item->setupAvatar();
   return item;
 }
 

@@ -53,7 +53,6 @@ protected:
   void setupBubbleFrameOnItem(const ChattingRole role, const MsgType type,
                               ChattingMsgItem *item,
                               std::shared_ptr<ChattingBaseType> value);
-
 private:
   static bool isChatValid(const MsgType type);
   void distribute(std::shared_ptr<ChattingBaseType> value);

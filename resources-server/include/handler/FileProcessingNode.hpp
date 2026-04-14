@@ -13,6 +13,7 @@
 #include <server/Session.hpp>
 #include <singleton/singleton.hpp>
 #include <thread>
+#include <redis/RedisManager.hpp>
 
 namespace handler {
 class FileProcessingNode {
@@ -20,6 +21,9 @@ class FileProcessingNode {
 
   using NodePtr = std::unique_ptr< FileHasherDesc>;
   using pair = std::pair<SessionPtr, NodePtr>;
+
+  using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,
+            redis::RedisContext>;
 
 public:
   FileProcessingNode();
@@ -56,7 +60,8 @@ protected:
   bool prepareUploadStream(
             const std::string& filename,
             const std::string& uuid,
-            std::uint64_t offset);
+            std::uint64_t offset,
+            bool isTimeout);
 
   bool prepareDownloadStream(
             const std::string& filename,

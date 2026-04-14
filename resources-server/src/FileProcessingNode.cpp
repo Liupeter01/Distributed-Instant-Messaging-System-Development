@@ -89,6 +89,8 @@ void handler::FileProcessingNode::closeCurrentFile() {
 void handler::FileProcessingNode::upload(std::unique_ptr<FileUploadDescription> block,
           [[maybe_unused]] SessionPtr live_extend) {
 
+          RedisRAII raii;
+
           if (!block) 
                     return;
 
@@ -101,8 +103,10 @@ void handler::FileProcessingNode::upload(std::unique_ptr<FileUploadDescription> 
           /*if it is the end of file*/
           bool isEOF = block->isEOF == std::string("1");
 
+          bool isTimeout = raii->get()->existKey(block->key);
+
           // redirect file stream
-          if (!prepareUploadStream(block->filename, block->uuid, block->transfered_size)) {
+          if (!prepareUploadStream(block->filename, block->uuid, block->transfered_size, isTimeout)) {
                     block->callback(ServiceStatus::FILE_OPEN_ERROR);
                     return;
           }
@@ -187,7 +191,8 @@ void handler::FileProcessingNode::download(std::unique_ptr<FileDownloadDescripti
 bool handler::FileProcessingNode::prepareUploadStream(
           const std::string& filename,
           const std::string& uuid,
-          std::uint64_t offset) {
+          std::uint64_t offset, 
+          bool isTimeout) {
 
           if (!validFilename(filename)) {
                     spdlog::error("[{}]: Illegal filename '{}'",
@@ -210,15 +215,24 @@ bool handler::FileProcessingNode::prepareUploadStream(
 
           closeCurrentFile();
 
-          /*File Not Exist*/
-          if (!std::filesystem::exists(full_path)) {
-
-                    //new file, but offset is not zero??
+          //if there is no valid record in redis cache about the upload
+          //then we consider it as upload timeout or the user trys to upload a new one
+          if (isTimeout) {
                     if (offset != 0) {
-                              spdlog::error("[{}]: Resume upload requested for missing file '{}', offset={}",
+                              spdlog::error("[{}]: No active upload record for '{}', but client requested offset={}",
                                         ServerConfig::get_instance()->GrpcServerName,
                                         filename, offset);
                               return false;
+                    }
+
+                    if (std::filesystem::exists(full_path)) {
+                              std::filesystem::remove(full_path, ec);
+                              if (ec) {
+                                        spdlog::error("[{}]: Failed to remove file '{}': {}",
+                                                  ServerConfig::get_instance()->GrpcServerName,
+                                                  full_path.string(), ec.message());
+                                        return false;
+                              }
                     }
 
                     if (!openFile(full_path, std::ios::binary | std::ios::out | std::ios::trunc)) {
@@ -229,8 +243,24 @@ bool handler::FileProcessingNode::prepareUploadStream(
                     }
 
                     m_fileStream.seekp(0, std::ios::beg);
+                    if (!m_fileStream) {
+                              spdlog::error("[{}]: Failed to seek new file '{}'",
+                                        ServerConfig::get_instance()->GrpcServerName,
+                                        full_path.string());
+                              closeCurrentFile();
+                              return false;
+                    }
+
                     m_lastfile = filename;
                     return true;
+          }
+
+          // Redis exist but file not exist! (Its strange!)
+          if (!std::filesystem::exists(full_path)) {
+                    spdlog::error("[{}]: Active upload record exists, but file '{}' is missing",
+                              ServerConfig::get_instance()->GrpcServerName,
+                              full_path.string());
+                    return false;
           }
 
           auto actual_size = std::filesystem::file_size(full_path, ec);
@@ -242,7 +272,7 @@ bool handler::FileProcessingNode::prepareUploadStream(
           }
 
           if (actual_size != offset) {
-                    spdlog::error("[{}]: Upload offset mismatch for '{}': expected={}, however user request '{}'",
+                    spdlog::error("[{}]: Upload offset mismatch for '{}': file_size={}, client_offset={}",
                               ServerConfig::get_instance()->GrpcServerName,
                               filename, actual_size, offset);
                     return false;

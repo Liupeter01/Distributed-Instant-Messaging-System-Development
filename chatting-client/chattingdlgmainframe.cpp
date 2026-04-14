@@ -7,21 +7,21 @@
 #include "ui_chattingdlgmainframe.h"
 #include <ChattingThreadDef.hpp>
 #include <QAction>
+#include <QDir>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMouseEvent>
 #include <QPoint>
 #include <QRandomGenerator>
+#include <QStandardPaths>
 #include <QtEndian>
 #include <addnewuserstackwidget.h>
 #include <chattingtcpnetwork.h>
-#include <namecardwidgetshowlist.h>
-#include <QStandardPaths>
-#include <QDir>
-#include <useraccountmanager.hpp>
-#include <resourcestoragemanager.h>
 #include <logicmethod.h>
+#include <namecardwidgetshowlist.h>
+#include <resourcestoragemanager.h>
+#include <useraccountmanager.hpp>
 
 /* define how many chat recoreds are going to show up on chat record list */
 std::size_t ChattingDlgMainFrame::CHATRECORED_PER_PAGE = 9;
@@ -81,9 +81,8 @@ ChattingDlgMainFrame::ChattingDlgMainFrame(QWidget *parent)
                           (ui->my_chat->width() + ui->my_chat->width()) / 2,
                           (ui->my_chat->height() + ui->my_chat->height()) / 2);
 
-  Tools::loadImgResources({"default_avatar.png"},
-                          ui->my_avator->width(),
-                           ui->my_avator->height());
+  Tools::loadImgResources({"default_avatar.png"}, ui->my_avator->width(),
+                          ui->my_avator->height());
 
   /*set chatting page as default*/
   Tools::setQLableImage(ui->my_chat, "chat_icon_normal.png");
@@ -878,41 +877,45 @@ void ChattingDlgMainFrame::loadMoreChattingHistory() {
       ServiceType::SERVICE_PULLCHATRECORD, std::move(obj));
 }
 
-void ChattingDlgMainFrame::loadSideBarUserAvatar(){
+void ChattingDlgMainFrame::loadSideBarUserAvatar() {
 
-    QString avatar_info = UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath;
+  QString avatar_info =
+      UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath;
 
-    //default avatar name
-    QRegularExpression regex("^default_[a-zA-Z0-9_]+\\.png$");
-    QRegularExpressionMatch match = regex.match(avatar_info);
+  // default avatar name
+  QRegularExpression regex("^default_[a-zA-Z0-9_]+\\.png$");
+  QRegularExpressionMatch match = regex.match(avatar_info);
 
-    //No match, try to load it from local device and directory!!
-    if(match.hasMatch()){
-        Tools::setQLableImage(ui->my_avator, "default_avatar.png");
-         qDebug() << "Default Avatar Loaded.\n";
-        return;
-    }
+  // No match, try to load it from local device and directory!!
+  if (match.hasMatch()) {
+    Tools::setQLableImage(ui->my_avator, "default_avatar.png");
+    qDebug() << "Default Avatar Loaded.\n";
+    return;
+  }
 
-    QString storageDir =  QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
-    QDir avatarDir(storageDir + "/avatars/" + UserAccountManager::get_instance()->get_uuid());
+  QString storageDir =
+      QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+  QDir avatarDir(storageDir + "/avatars/" +
+                 UserAccountManager::get_instance()->get_uuid());
 
-    if(!avatarDir.exists()){
-        qDebug() << "Avatar Dir Not Exist!\n";
-        return;
-    }
+  if (!avatarDir.exists()) {
+    qDebug() << "Avatar Dir Not Exist!\n";
+    return;
+  }
 
-    QString avatarPath = avatarDir.filePath(QFileInfo(avatar_info).fileName());
-    QPixmap pixmap(avatarPath);
+  QString avatarPath = avatarDir.filePath(QFileInfo(avatar_info).fileName());
+  QPixmap pixmap(avatarPath);
 
-    if(pixmap.isNull()){
-         qDebug() << "Avatar File Loading Error!\n";
-        return;
-    }
+  if (pixmap.isNull()) {
+    qDebug() << "Avatar File Loading Error!\n";
+    return;
+  }
 
-    QPixmap pixmapScaled(pixmap.scaled(ui->my_avator->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    ui->my_avator->setPixmap(pixmapScaled);
-    ui->my_avator->setScaledContents(true);
-    ui->my_avator->update();
+  QPixmap pixmapScaled(pixmap.scaled(ui->my_avator->size(), Qt::KeepAspectRatio,
+                                     Qt::SmoothTransformation));
+  ui->my_avator->setPixmap(pixmapScaled);
+  ui->my_avator->setScaledContents(true);
+  ui->my_avator->update();
 }
 
 void ChattingDlgMainFrame::slot_update_chat_thread(
@@ -1042,9 +1045,9 @@ void ChattingDlgMainFrame::slot_create_private_chat(const QString &my_uuid,
   ui->chat_list->setCurrentItem(item);
 }
 
-void ChattingDlgMainFrame::slot_update_interfaces_avatar_icons(const QString &path)
-{
-    ResourceStorageManager::get_instance()->executeQLabelUpdateLists(path);
+void ChattingDlgMainFrame::slot_update_interfaces_avatar_icons(
+    const QString &path) {
+  ResourceStorageManager::get_instance()->executeQLabelUpdateLists(path);
 }
 
 /*if target user has already became a auth friend with current user

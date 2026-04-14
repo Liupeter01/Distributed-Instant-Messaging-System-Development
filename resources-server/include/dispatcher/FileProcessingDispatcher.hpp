@@ -30,7 +30,7 @@ public:
                   });
   }
 
-  template<typename T, 
+  template <typename T,
             typename std::enable_if<has_callback<T>::value, int>::type = 0>
   void commit(std::unique_ptr<T> block,
               [[maybe_unused]] SessionPtr live_extend) {
@@ -49,9 +49,9 @@ public:
     auto node = temp.value();
     node->commit(std::move(block), live_extend);
 
-     spdlog::info("[{}]: Dispatch Task To Node {} Successfully!",
-               ServerConfig::get_instance()->GrpcServerName,
-               node->getProcessingId());
+    spdlog::info("[{}]: Dispatch Task To Node {} Successfully!",
+                 ServerConfig::get_instance()->GrpcServerName,
+                 node->getProcessingId());
   }
 
 protected:

@@ -27,17 +27,18 @@ private:
 signals:
   // start transmission(with init filename & filepath)
   void signal_start_file_upload(const QString &fileName,
-                                      const QString &filePath,
-                                      const std::size_t fileChunk = 4096);
+                                const QString &filePath,
+                                const std::size_t fileChunk = 4096);
 
   // pause transmission
   void signal_pause_file_upload();
 
   // resume transmission
-  void signal_resume_file_upload(const QString &fileName,const QString &filePath);
+  void signal_resume_file_upload(const QString &fileName,
+                                 const QString &filePath);
 
-  //update all UI interfaces that relevant to avatar icons(qlabels)
-  void signal_update_interfaces_avatar_icons(const QString& path);
+  // update all UI interfaces that relevant to avatar icons(qlabels)
+  void signal_update_interfaces_avatar_icons(const QString &path);
 
 private slots:
 

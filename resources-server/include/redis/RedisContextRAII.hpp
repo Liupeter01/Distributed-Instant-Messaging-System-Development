@@ -63,9 +63,9 @@ public:
 
   bool release(const std::string &lockName, const std::string &identifer);
 
-  //set KV expire
-  bool setValueExp(const std::string& key, const std::string& field, const std::size_t EXPX,
-            TimeUnit unit = TimeUnit::Seconds);
+  // set KV expire
+  bool setValueExp(const std::string &key, const std::string &field,
+                   const std::size_t EXPX, TimeUnit unit = TimeUnit::Seconds);
 
 private:
   bool acquireLock(const std::string &lockName, const std::string &identifer,

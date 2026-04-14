@@ -22,7 +22,7 @@ void UserSettingStackPage::registerSignal() {
 
   connect(this, &UserSettingStackPage::signal_start_file_upload,
           LogicMethod::get_instance().get(),
-            &LogicMethod::signal_start_file_upload);
+          &LogicMethod::signal_start_file_upload);
 }
 
 void UserSettingStackPage::on_submit_clicked() {
@@ -73,23 +73,25 @@ void UserSettingStackPage::on_select_avator_clicked() {
   QDir dir(appDir);
 
   if (!dir.exists(subDirName)) {
-      if (!dir.mkdir(subDirName)) {
-          qDebug() << "Create Directory Failed:" << dir.absoluteFilePath(subDirName);
-          QMessageBox::critical(this, tr("Error"), tr("Check your Privilege"));
-          return;
-      }
+    if (!dir.mkdir(subDirName)) {
+      qDebug() << "Create Directory Failed:"
+               << dir.absoluteFilePath(subDirName);
+      QMessageBox::critical(this, tr("Error"), tr("Check your Privilege"));
+      return;
+    }
   }
 
   dir.cd(subDirName);
 
-  m_fileName = QString("avatar_%1.png").arg(UserAccountManager::get_instance()->get_uuid());
+  m_fileName = QString("avatar_%1.png")
+                   .arg(UserAccountManager::get_instance()->get_uuid());
 
   m_filePath = dir.filePath(m_fileName);
 
   if (!m_avator.save(m_filePath, "PNG")) {
-      qDebug() << "Save failed to:" << m_filePath;
-      QMessageBox::critical(this, tr("Save Error"), tr("Check your Privilege"));
-      return;
+    qDebug() << "Save failed to:" << m_filePath;
+    QMessageBox::critical(this, tr("Save Error"), tr("Check your Privilege"));
+    return;
   }
 
   qDebug() << "Avatar Has Been Storged to path = " << m_filePath << "\n";

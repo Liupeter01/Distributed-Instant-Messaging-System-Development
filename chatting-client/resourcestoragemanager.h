@@ -1,72 +1,53 @@
 #ifndef RESOURCESTORAGEMANAGER_H
 #define RESOURCESTORAGEMANAGER_H
 #include "singleton.hpp"
+#include <QFileInfo>
+#include <QLabel>
 #include <QString>
 #include <UserDef.hpp>
-#include <QFileInfo>
-#include <optional>
 #include <mutex>
+#include <optional>
 #include <unordered_map>
-#include <QLabel>
 #include <vector>
 
-enum class TransferDirection{
-    Download,
-    Upload
-};
+enum class TransferDirection { Download, Upload };
 
 struct FileTransferDesc {
-    FileTransferDesc (const QString& _filename,
-                     const QString& _checksum,
-                      const QString& _filePath,
-                   const std::size_t _curr_sequence,
-                   const std::size_t _last_sequence,
-                     const bool _eof,
+  FileTransferDesc(const QString &_filename, const QString &_checksum,
+                   const QString &_filePath, const std::size_t _curr_sequence,
+                   const std::size_t _last_sequence, const bool _eof,
                    const std::size_t _transfered_size,
                    const std::size_t _total_size,
-                     TransferDirection _direction = TransferDirection::Upload)
+                   TransferDirection _direction = TransferDirection::Upload)
 
-        : filename(_filename)
-        , checksum(_checksum)
-        , curr_sequence(_curr_sequence)
-        ,last_sequence(_last_sequence)
-        , transfered_size(_transfered_size)
-        ,filePath(_filePath)
-        ,total_size(_total_size)
-        , isEOF(_eof)
-        , key(_filename + QString("_") + _checksum)
-        , direction(_direction)
-    {
-    }
+      : filename(_filename), checksum(_checksum), curr_sequence(_curr_sequence),
+        last_sequence(_last_sequence), transfered_size(_transfered_size),
+        filePath(_filePath), total_size(_total_size), isEOF(_eof),
+        key(_filename + QString("_") + _checksum), direction(_direction) {}
 
-    QString key; //=filename_checksum
+  QString key; //=filename_checksum
 
-    QString filename;
-    QString filePath;
-    QString checksum;
+  QString filename;
+  QString filePath;
+  QString checksum;
 
-    std::size_t  curr_sequence;
-    std::size_t  last_sequence;
-    bool isEOF;
+  std::size_t curr_sequence;
+  std::size_t last_sequence;
+  bool isEOF;
 
-    std::size_t transfered_size;
-    std::size_t total_size;
+  std::size_t transfered_size;
+  std::size_t total_size;
 
-    TransferDirection direction = TransferDirection::Upload;
+  TransferDirection direction = TransferDirection::Upload;
 };
 
+struct FileTransferControlBlock : public FileTransferDesc {
 
-struct FileTransferControlBlock: public FileTransferDesc  {
+  FileTransferControlBlock(const FileTransferDesc &o, const QString &block)
+      : FileTransferDesc(o), block_data(block) {}
 
-    FileTransferControlBlock(const FileTransferDesc & o,
-                         const QString& block)
-        : FileTransferDesc(o), block_data(block)
-    {
-    }
-
-    QString block_data;
+  QString block_data;
 };
-
 
 class ResourceStorageManager : public Singleton<ResourceStorageManager> {
   friend class Singleton<ResourceStorageManager>;
@@ -87,7 +68,7 @@ public:
 
 public:
   void recordUnfinishedTask(const QString &checksum,
-                              std::shared_ptr<FileTransferDesc> info);
+                            std::shared_ptr<FileTransferDesc> info);
 
   [[nodiscard]]
   std::optional<std::shared_ptr<FileTransferDesc>>
@@ -96,7 +77,7 @@ public:
   bool removeUnfinishedTask(const QString &str);
   bool isDownloading(const QString &str);
 
-  bool recordQLabelUpdateLists(const QString &path, QLabel* label);
+  bool recordQLabelUpdateLists(const QString &path, QLabel *label);
   bool executeQLabelUpdateLists(const QString &path);
   void removeQLabelUpdateLists(const QString &path);
 
@@ -132,10 +113,9 @@ private:
 
       m_unfinished_tasks;
 
-
   /* hashmap + linklist
    *   store the relationship between filename(useravatar) and qlabel objects!!!
-    */
+   */
   std::unordered_map<
       /*filename*/
       QString,
@@ -143,7 +123,7 @@ private:
       /*vector of qlabels*/
       std::vector<std::shared_ptr<QLabel>>>
 
-          m_batch_qlabels;
+      m_batch_qlabels;
 };
 
 #endif // RESOURCESTORAGEMANAGER_H

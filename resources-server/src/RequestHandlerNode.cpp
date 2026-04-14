@@ -60,16 +60,16 @@ void handler::RequestHandlerNode::registerCallbacks() {
                 std::placeholders::_3)));
 
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_INITFILEFETCHINGREQUEST,
-            std::bind(&RequestHandlerNode::handlingFileDownloading, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+      ServiceType::SERVICE_INITFILEFETCHINGREQUEST,
+      std::bind(&RequestHandlerNode::handlingFileDownloading, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 
   m_callbacks.insert(std::pair<ServiceType, CallbackFunc>(
-            ServiceType::SERVICE_FILEDOWNLOADREQUEST,
-            std::bind(&RequestHandlerNode::handlingFileDownloading, this,
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+      ServiceType::SERVICE_FILEDOWNLOADREQUEST,
+      std::bind(&RequestHandlerNode::handlingFileDownloading, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3)));
 }
 
 void handler::RequestHandlerNode::commit(
@@ -315,15 +315,13 @@ void handler::RequestHandlerNode::handlingFileUploading(
   parseJson(session, recv, src_obj);
 
   // Parsing json object
-  if (!(src_obj.contains("uuid") && 
-            src_obj.contains("filename") && 
-            src_obj.contains("checksum") && 
-            src_obj.contains("filepath")&&
+  if (!(src_obj.contains("uuid") && src_obj.contains("filename") &&
+        src_obj.contains("checksum") && src_obj.contains("filepath") &&
         src_obj.contains("total_size") &&
-            src_obj.contains("current_block_size") && 
-        src_obj.contains("transfered_size") && 
-            src_obj.contains("cur_seq")  && src_obj.contains("block") &&
-        src_obj.contains("last_seq") && src_obj.contains("EOF"))) {
+        src_obj.contains("current_block_size") &&
+        src_obj.contains("transfered_size") && src_obj.contains("cur_seq") &&
+        src_obj.contains("block") && src_obj.contains("last_seq") &&
+        src_obj.contains("EOF"))) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEUPLOADRESPONSE,
@@ -331,21 +329,21 @@ void handler::RequestHandlerNode::handlingFileUploading(
     return;
   }
   [[maybe_unused]] auto uuid =
-            boost::json::value_to<std::string>(src_obj["uuid"]);
+      boost::json::value_to<std::string>(src_obj["uuid"]);
   [[maybe_unused]] auto filename =
       boost::json::value_to<std::string>(src_obj["filename"]);
   [[maybe_unused]] auto checksum =
       boost::json::value_to<std::string>(src_obj["checksum"]);
   [[maybe_unused]] auto filepath =
-            boost::json::value_to<std::string>(src_obj["filepath"]);
+      boost::json::value_to<std::string>(src_obj["filepath"]);
   [[maybe_unused]] auto last_seq =
       boost::json::value_to<std::string>(src_obj["last_seq"]);
   [[maybe_unused]] auto cur_seq =
       boost::json::value_to<std::string>(src_obj["cur_seq"]);
   [[maybe_unused]] auto transfered_size =
       std::stoi(boost::json::value_to<std::string>(src_obj["transfered_size"]));
-  [[maybe_unused]] auto current_block_size =
-            std::stoi(boost::json::value_to<std::string>(src_obj["current_block_size"]));
+  [[maybe_unused]] auto current_block_size = std::stoi(
+      boost::json::value_to<std::string>(src_obj["current_block_size"]));
   [[maybe_unused]] auto total_size =
       std::stoi(boost::json::value_to<std::string>(src_obj["total_size"]));
   [[maybe_unused]] auto eof =
@@ -364,61 +362,54 @@ void handler::RequestHandlerNode::handlingFileUploading(
    * new one It's READ ONLY!
    */
   auto desc = std::make_shared<handler::FileHasherDesc>(
-            uuid,
-      filename, 
-            checksum, 
-            filepath, 
-            cur_seq, 
-            last_seq, 
-            eof, 
-            transfered_size, 
-            current_block_size, 
-            total_size, 
-            TransferDirection::Upload);
+      uuid, filename, checksum, filepath, cur_seq, last_seq, eof,
+      transfered_size, current_block_size, total_size,
+      TransferDirection::Upload);
 
   /*now the records are in redis!*/
   FileHasherLogger::get_instance()->insert(desc);
 
-  auto callback = [/*life length*/session, uuid, cur_seq, filename, filepath, checksum, total_size, transfered_size, current_block_size, last_seq, isEOF](const ServiceStatus status) {
+  auto callback = [/*life length*/ session, uuid, cur_seq, filename, filepath,
+                   checksum, total_size, transfered_size, current_block_size,
+                   last_seq, isEOF](const ServiceStatus status) {
+    boost::json::object obj;
 
-            boost::json::object obj;
+    if (status != ServiceStatus::SERVICE_SUCCESS) {
+      obj["error"] = static_cast<uint8_t>(status);
+    } else {
+      obj["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+      obj["uuid"] = uuid;
+      obj["filename"] = filename;
+      obj["filepath"] = filepath;
+      obj["checksum"] = checksum;
+      obj["curr_seq"] = cur_seq;
+      obj["last_seq"] = last_seq;
 
-            if (status != ServiceStatus::SERVICE_SUCCESS) {
-                      obj["error"] = static_cast<uint8_t>(status);
-            }
-            else {
-                      obj["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-                      obj["uuid"] = uuid;
-                      obj["filename"] = filename;
-                      obj["filepath"] = filepath;
-                      obj["checksum"] = checksum;
-                      obj["curr_seq"] = cur_seq;
-                      obj["last_seq"] = last_seq;
+      // transfered: the accumlated transfered size in the perviou rounds
+      // current_block_size: the transfered size in the last round
+      obj["curr_size"] = std::to_string(transfered_size + current_block_size);
+      obj["total_size"] = std::to_string(total_size);
 
-                      //transfered: the accumlated transfered size in the perviou rounds
-                    //current_block_size: the transfered size in the last round
-                      obj["curr_size"] = std::to_string(transfered_size + current_block_size);
-                      obj["total_size"] = std::to_string(total_size);
+      /*End Of File*/
+      obj["EOF"] = isEOF ? true : false;
 
-                      /*End Of File*/
-                      obj["EOF"] = isEOF ? true : false;
-
-                      session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                                boost::json::serialize(obj), session);
-            }
-            };
+      session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                           boost::json::serialize(obj), session);
+    }
+  };
 
   auto file_chunk = std::make_unique<handler::FileUploadDescription>(
-      *desc, boost::json::value_to<std::string>(src_obj["block"]), std::move(callback));
+      *desc, boost::json::value_to<std::string>(src_obj["block"]),
+      std::move(callback));
 
   dispatcher::FileProcessingDispatcher::get_instance()->commit(
       std::move(file_chunk), session);
 }
 
-void handler::RequestHandlerNode::handlingFileDownloading(ServiceType srv_type,
-          std::shared_ptr<Session> session, NodePtr recv) {
+void handler::RequestHandlerNode::handlingFileDownloading(
+    ServiceType srv_type, std::shared_ptr<Session> session, NodePtr recv) {
 
-            boost::json::object src_obj;
+  boost::json::object src_obj;
   boost::json::object dst_root;
 
   /*output file*/
@@ -427,13 +418,11 @@ void handler::RequestHandlerNode::handlingFileDownloading(ServiceType srv_type,
   parseJson(session, recv, src_obj);
 
   // Parsing json object
-  if (!(src_obj.contains("uuid") &&
-            src_obj.contains("filename") && 
-            src_obj.contains("filepath")&&
-            src_obj.contains("current_block_size") && 
-        src_obj.contains("transfered_size") && 
-            src_obj.contains("cur_seq")  && 
-             src_obj.contains("EOF"))) {
+  if (!(src_obj.contains("uuid") && src_obj.contains("filename") &&
+        src_obj.contains("filepath") &&
+        src_obj.contains("current_block_size") &&
+        src_obj.contains("transfered_size") && src_obj.contains("cur_seq") &&
+        src_obj.contains("EOF"))) {
 
     generateErrorMessage("Failed to parse json data",
                          ServiceType::SERVICE_FILEDOWNLOADRESPONSE,
@@ -442,27 +431,27 @@ void handler::RequestHandlerNode::handlingFileDownloading(ServiceType srv_type,
   }
 
   [[maybe_unused]] auto uuid =
-            boost::json::value_to<std::string>(src_obj["uuid"]);
+      boost::json::value_to<std::string>(src_obj["uuid"]);
   [[maybe_unused]] auto filename =
-            boost::json::value_to<std::string>(src_obj["filename"]);
+      boost::json::value_to<std::string>(src_obj["filename"]);
   [[maybe_unused]] auto cur_seq =
-            boost::json::value_to<std::string>(src_obj["cur_seq"]);
+      boost::json::value_to<std::string>(src_obj["cur_seq"]);
   [[maybe_unused]] auto filepath =
-            boost::json::value_to<std::string>(src_obj["filepath"]);
+      boost::json::value_to<std::string>(src_obj["filepath"]);
   [[maybe_unused]] auto eof =
-            boost::json::value_to<std::string>(src_obj["EOF"]);
-  [[maybe_unused]] auto current_block_size =
-            std::stoi(boost::json::value_to<std::string>(src_obj["current_block_size"]));
+      boost::json::value_to<std::string>(src_obj["EOF"]);
+  [[maybe_unused]] auto current_block_size = std::stoi(
+      boost::json::value_to<std::string>(src_obj["current_block_size"]));
   [[maybe_unused]] auto transfered_size =
-            std::stoi(boost::json::value_to<std::string>(src_obj["transfered_size"]));
+      std::stoi(boost::json::value_to<std::string>(src_obj["transfered_size"]));
 
   std::filesystem::path output_dir = ServerConfig::get_instance()->outputPath;
   std::filesystem::path full_path = output_dir / uuid / filename;
 
   /*
- * if it is first package then we should create a new file
- * if it is end of the file
- */
+   * if it is first package then we should create a new file
+   * if it is end of the file
+   */
   bool isFirstPackage = (cur_seq == std::string("1"));
   bool isEOF = (eof == std::string("1"));
 
@@ -472,76 +461,71 @@ void handler::RequestHandlerNode::handlingFileDownloading(ServiceType srv_type,
    * new one It's READ ONLY!
    */
   auto desc = std::make_shared<handler::FileHasherDesc>(
-            uuid,
-            filename, 
-            std::string{}, 
-            filepath, cur_seq, 
-            std::string{}, 
-            eof, 
-            transfered_size, 
-            current_block_size, 
-            std::numeric_limits<std::size_t>::max(), 
-            TransferDirection::Download);
+      uuid, filename, std::string{}, filepath, cur_seq, std::string{}, eof,
+      transfered_size, current_block_size,
+      std::numeric_limits<std::size_t>::max(), TransferDirection::Download);
 
   if (srv_type != ServiceType::SERVICE_INITFILEFETCHINGREQUEST) {
-  
-            if (!(src_obj.contains("checksum") && 
-                      src_obj.contains("total_size") &&
-                      src_obj.contains("last_seq"))) {
 
-                      generateErrorMessage("Failed to parse json data",
-                                ServiceType::SERVICE_FILEDOWNLOADRESPONSE,
-                                ServiceStatus::JSONPARSE_ERROR, session);
-                      return;
-            }
+    if (!(src_obj.contains("checksum") && src_obj.contains("total_size") &&
+          src_obj.contains("last_seq"))) {
 
-            [[maybe_unused]] auto checksum =
-                      boost::json::value_to<std::string>(src_obj["checksum"]);
-            [[maybe_unused]] auto total_size =
-                      std::stoi(boost::json::value_to<std::string>(src_obj["total_size"]));
-            [[maybe_unused]] auto last_seq =
-                      boost::json::value_to<std::string>(src_obj["last_seq"]);
+      generateErrorMessage("Failed to parse json data",
+                           ServiceType::SERVICE_FILEDOWNLOADRESPONSE,
+                           ServiceStatus::JSONPARSE_ERROR, session);
+      return;
+    }
 
-            desc->checksum = checksum;
-            desc->total_size = total_size;
-            desc->last_sequence = last_seq;
+    [[maybe_unused]] auto checksum =
+        boost::json::value_to<std::string>(src_obj["checksum"]);
+    [[maybe_unused]] auto total_size =
+        std::stoi(boost::json::value_to<std::string>(src_obj["total_size"]));
+    [[maybe_unused]] auto last_seq =
+        boost::json::value_to<std::string>(src_obj["last_seq"]);
+
+    desc->checksum = checksum;
+    desc->total_size = total_size;
+    desc->last_sequence = last_seq;
   }
 
-  auto callback = [/*life length*/session, uuid, cur_seq, filename, filepath, transfered_size, current_block_size, isEOF](
-            const ServiceStatus status, std::unique_ptr<FileDownloadDescription::DownloadInfo> info = nullptr) {
+  auto callback =
+      [/*life length*/ session, uuid, cur_seq, filename, filepath,
+       transfered_size, current_block_size,
+       isEOF](const ServiceStatus status,
+              std::unique_ptr<FileDownloadDescription::DownloadInfo> info =
+                  nullptr) {
+        boost::json::object obj;
 
-            boost::json::object obj;
+        if (status != ServiceStatus::SERVICE_SUCCESS && !info) {
+          obj["error"] = static_cast<uint8_t>(status);
+        } else {
+          obj["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
+          obj["uuid"] = uuid;
+          obj["filename"] = filename;
+          obj["filepath"] = filepath;
+          obj["checksum"] = info->checksum;
+          obj["curr_seq"] = cur_seq;
+          obj["last_seq"] = info->last_seq;
 
-            if (status != ServiceStatus::SERVICE_SUCCESS && !info) {
-                      obj["error"] = static_cast<uint8_t>(status);
-            }
-            else {
-                      obj["error"] = static_cast<uint8_t>(ServiceStatus::SERVICE_SUCCESS);
-                      obj["uuid"] = uuid;
-                      obj["filename"] = filename;
-                      obj["filepath"] = filepath;
-                      obj["checksum"] = info->checksum;
-                      obj["curr_seq"] = cur_seq;
-                      obj["last_seq"] = info->last_seq;
+          // transfered: the accumlated transfered size in the perviou rounds
+          // current_block_size: the transfered size in the last round
+          obj["curr_size"] =
+              std::to_string(transfered_size + current_block_size);
+          obj["total_size"] = info->total_size;
 
-                      //transfered: the accumlated transfered size in the perviou rounds
-                    //current_block_size: the transfered size in the last round
-                      obj["curr_size"] = std::to_string(transfered_size + current_block_size);
-                      obj["total_size"] =info->total_size;
+          /*End Of File*/
+          obj["EOF"] = isEOF ? true : false;
 
-                      /*End Of File*/
-                      obj["EOF"] = isEOF ? true : false;
-
-                      session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
-                                boost::json::serialize(obj), session);
-            }
-            };
+          session->sendMessage(ServiceType::SERVICE_FILEUPLOADRESPONSE,
+                               boost::json::serialize(obj), session);
+        }
+      };
 
   auto file_chunk = std::make_unique<handler::FileDownloadDescription>(
-            *desc, std::move(callback));
+      *desc, std::move(callback));
 
   dispatcher::FileProcessingDispatcher::get_instance()->commit(
-            std::move(file_chunk), session);
+      std::move(file_chunk), session);
 }
 
 void handler::RequestHandlerNode::handlingCheckUploadProgress(
@@ -562,7 +546,7 @@ void handler::RequestHandlerNode::handlingCheckUploadProgress(
   }
 
   std::string filename =
-            boost::json::value_to<std::string>(src_obj["filename"]);
+      boost::json::value_to<std::string>(src_obj["filename"]);
   std::string checksum =
       boost::json::value_to<std::string>(src_obj["checksum"]);
 
@@ -583,8 +567,8 @@ void handler::RequestHandlerNode::handlingCheckUploadProgress(
     dst_root["curr_seq"] = opt->curr_sequence;
     dst_root["last_seq"] = opt->last_sequence;
 
-    //transfered: the accumlated transfered size in the perviou rounds
-    //current_block_size: the transfered size in the last round
+    // transfered: the accumlated transfered size in the perviou rounds
+    // current_block_size: the transfered size in the last round
     dst_root["curr_size"] = opt->transfered_size + opt->current_block_size;
     dst_root["total_size"] = opt->total_size;
 

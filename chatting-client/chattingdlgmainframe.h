@@ -228,9 +228,8 @@ private slots:
                                 const QString &friend_uuid,
                                 const QString &thread_id);
 
-
-  //update all UI interfaces that relevant to avatar icons(qlabels)
-  void slot_update_interfaces_avatar_icons(const QString& path);
+  // update all UI interfaces that relevant to avatar icons(qlabels)
+  void slot_update_interfaces_avatar_icons(const QString &path);
 
 private:
   static bool enable_heartBeart;

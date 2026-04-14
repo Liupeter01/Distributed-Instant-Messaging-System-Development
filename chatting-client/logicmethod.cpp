@@ -25,11 +25,10 @@ void LogicMethod::registerSignals() {
 
   /*incoming signal from FileTcpNetwork class*/
   connect(FileTCPNetwork::get_instance().get(),
-          &FileTCPNetwork::signal_breakpoint_upload,
-          m_exec,
+          &FileTCPNetwork::signal_breakpoint_upload, m_exec,
           &LogicExecutor::slot_breakpoint_upload);
 
-  //forward signal to executor
+  // forward signal to executor
   connect(this, &LogicMethod::signal_start_file_upload, m_exec,
           &LogicExecutor::signal_start_file_upload);
 
@@ -39,9 +38,9 @@ void LogicMethod::registerSignals() {
   connect(this, &LogicMethod::signal_resume_file_upload, m_exec,
           &LogicExecutor::signal_resume_file_upload);
 
-  //update all UI interfaces that relevant to avatar icons(qlabels)
-  connect(m_exec,&LogicExecutor::signal_update_interfaces_avatar_icons,
-          this, &LogicMethod::signal_update_interfaces_avatar_icons);
+  // update all UI interfaces that relevant to avatar icons(qlabels)
+  connect(m_exec, &LogicExecutor::signal_update_interfaces_avatar_icons, this,
+          &LogicMethod::signal_update_interfaces_avatar_icons);
 
   connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
 }

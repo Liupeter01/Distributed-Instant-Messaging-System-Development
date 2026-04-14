@@ -1,21 +1,21 @@
 #pragma once
 #ifndef _TOOLS_HPP_
 #define _TOOLS_HPP_
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <charconv>
 #include <hiredis.h>
 #include <memory>
 #include <optional>
 #include <string>
 #include <type_traits>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 namespace tools {
-          static std::string userTokenGenerator() {
-                    boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
-                    return boost::uuids::to_string(uuid_gen);
-          }
+static std::string userTokenGenerator() {
+  boost::uuids::uuid uuid_gen = boost::uuids::random_generator()();
+  return boost::uuids::to_string(uuid_gen);
+}
 
 template <typename _Ty> class ResourcesWrapper {
 public:
@@ -69,9 +69,9 @@ std::optional<_Ty> string_to_value(std::string_view value) {
   return std::nullopt;
 }
 
-template<typename Derived, typename Base>
-std::unique_ptr<Derived> static_unique_ptr_cast(std::unique_ptr<Base>&& base) {
-          return std::unique_ptr<Derived>(static_cast<Derived*>(base.release()));
+template <typename Derived, typename Base>
+std::unique_ptr<Derived> static_unique_ptr_cast(std::unique_ptr<Base> &&base) {
+  return std::unique_ptr<Derived>(static_cast<Derived *>(base.release()));
 }
 
 } // namespace tools

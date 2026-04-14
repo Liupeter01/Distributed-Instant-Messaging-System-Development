@@ -17,8 +17,8 @@ public:
 
 signals:
   void signal_start_file_upload(const QString &fileName,
-                                      const QString &filePath,
-                                      const std::size_t fileChunk = 4096);
+                                const QString &filePath,
+                                const std::size_t fileChunk = 4096);
 
 private:
   void registerSignal();

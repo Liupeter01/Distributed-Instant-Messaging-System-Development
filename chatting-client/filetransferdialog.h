@@ -55,11 +55,12 @@ signals:
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
   void signal_start_file_upload(const QString &fileName,
-                                      const QString &filePath,
-                                      const std::size_t fileChunk);
+                                const QString &filePath,
+                                const std::size_t fileChunk);
 
   void signal_pause_file_upload();
-  void signal_resume_file_upload(const QString &fileName,const QString &filePath);
+  void signal_resume_file_upload(const QString &fileName,
+                                 const QString &filePath);
 
 private slots:
   /*open file*/

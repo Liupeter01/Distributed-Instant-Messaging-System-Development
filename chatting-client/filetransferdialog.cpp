@@ -226,7 +226,7 @@ void FileTransferDialog::resume_clicked() {
 
   m_state = going_to_resume;
 
-  emit signal_resume_file_upload( m_fileName , m_filePath );
+  emit signal_resume_file_upload(m_fileName, m_filePath);
 }
 
 void FileTransferDialog::on_pauseandresume_clicked() {

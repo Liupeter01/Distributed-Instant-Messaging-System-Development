@@ -75,7 +75,7 @@ protected:
                              std::shared_ptr<Session> session, NodePtr recv);
 
   void handlingFileDownloading(ServiceType srv_type,
-            std::shared_ptr<Session> session, NodePtr recv);
+                               std::shared_ptr<Session> session, NodePtr recv);
 
   void handlingCheckUploadProgress(ServiceType srv_type,
                                    std::shared_ptr<Session> session,

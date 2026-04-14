@@ -135,13 +135,13 @@ ChattingStackPage::getRole(std::shared_ptr<ChattingBaseType> value) {
 std::optional<ChattingMsgItem *>
 ChattingStackPage::setupChattingMsgItem(const ChattingRole role) {
 
-    ChattingMsgItem *item = new ChattingMsgItem(role);
-    if (!item)
-        return std::nullopt;
+  ChattingMsgItem *item = new ChattingMsgItem(role);
+  if (!item)
+    return std::nullopt;
 
   if (role == ChattingRole::Sender) {
     auto curUserInfo = UserAccountManager::get_instance()->getCurUserInfo();
-      item->setupUserInfo(curUserInfo);
+    item->setupUserInfo(curUserInfo);
 
   } else {
 

@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QSpacerItem>
 #include <QWidget>
+#include <UserDef.hpp>
 
 enum class MessageStatus {
   UNSENT,
@@ -26,8 +27,8 @@ public:
   virtual ~ChattingMsgItem();
 
 public:
-  void setupUserName(const QString &name);
-  void setupIconPixmap(const QPixmap &icon);
+  void setupUserInfo(std::shared_ptr<UserNameCard> card);
+  void setupAvatar();
   void setupBubbleWidget(QWidget *bubble);
   void setupMsgStatus(const MessageStatus status);
 
@@ -41,6 +42,7 @@ private:
   void addStyleSheet();
 
 private:
+  std::shared_ptr<UserNameCard> m_userInfo;
   QFont m_font;
   ChattingRole m_role;
   QLabel *m_nameLabel;   /*display name*/

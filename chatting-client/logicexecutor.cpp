@@ -205,17 +205,17 @@ void LogicExecutor::slot_resume_file_upload(const QString &fileName,const QStrin
 
 void LogicExecutor::slot_breakpoint_upload(std::shared_ptr<FileTransferDesc> desc)
 {
+     ResourceStorageManager::get_instance()->removeUnfinishedTask(desc->checksum);
+
     //file transfer finished!
     if (desc->isEOF) {
-
-        ResourceStorageManager::get_instance()->removeUnfinishedTask(desc->checksum);
-
         // reset pause status to prevent unexpected error!
         LogicMethod::get_instance()->setPause(false);
 
         return;
     }
 
+    ResourceStorageManager::get_instance()->recordUnfinishedTask(desc->checksum, desc);
     emit signal_send_next_block(desc->checksum);
 }
 

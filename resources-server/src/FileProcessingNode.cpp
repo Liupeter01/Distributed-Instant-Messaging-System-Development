@@ -107,7 +107,7 @@ void handler::FileProcessingNode::upload(
   /*if it is the end of file*/
   bool isEOF = block->isEOF == std::string("1");
 
-  bool isTimeout = raii->get()->existKey(block->key);
+  bool isTimeout = !raii->get()->existKey(block->key);
 
   // redirect file stream
   if (!prepareUploadStream(block->filename, block->uuid, block->transfered_size,

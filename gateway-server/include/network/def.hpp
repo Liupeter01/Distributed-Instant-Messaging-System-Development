@@ -52,11 +52,11 @@ enum class ServiceType : uint8_t {
   SERVICE_FRIENDREQUESTCONFIRM,
 
   /*If the forwarding successful, then send SERVICE_FRIENDSENDERRESPONSE to User
-   B*/
+ B*/
   SERVICE_FRIENDCONFIRMRESPONSE,
 
   /*if the friending process success, then both src_uuid and dst_uuid could
-   receive this*/
+ receive this*/
   SERVICE_FRIENDING_ON_BIDDIRECTIONAL,
 
   /*User send text chat msg request*/
@@ -87,6 +87,7 @@ enum class ServiceType : uint8_t {
   SERVICE_FILEDOWNLOADREQUEST,
   SERVICE_FILEDOWNLOADRESPONSE,
 
+  /*sync upload progress*/
   SERVICE_FILECHECKUPLOADPROGRESSREQUEST,
   SERVICE_FILECHECKUPLOADPROGRESSRESPONSE,
 

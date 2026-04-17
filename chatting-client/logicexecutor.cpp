@@ -26,8 +26,8 @@ void LogicExecutor::registerSignal() {
   connect(this, &LogicExecutor::signal_start_file_upload, this,
           &LogicExecutor::slot_start_file_upload);
 
-    connect(this, &LogicExecutor::signal_send_first_block, this,
-            &LogicExecutor::slot_send_first_block);
+  connect(this, &LogicExecutor::signal_send_first_block, this,
+          &LogicExecutor::slot_send_first_block);
 
   connect(this, &LogicExecutor::signal_send_next_block, this,
           &LogicExecutor::slot_send_next_block);
@@ -39,66 +39,62 @@ void LogicExecutor::registerSignal() {
           &LogicExecutor::slot_resume_file_upload);
 }
 
-void LogicExecutor::slot_send_first_block(const QString &checksum,
-                                          std::shared_ptr<FileTransferDesc> desc)
-{
+void LogicExecutor::slot_send_first_block(
+    const QString &checksum, std::shared_ptr<FileTransferDesc> desc) {
 
-    ResourceStorageManager::get_instance()->recordUnfinishedTask(
-        /* QString */
-        checksum,
-        /* std::shared_ptr<FileTransferDesc> */
-        desc);
+  ResourceStorageManager::get_instance()->recordUnfinishedTask(
+      /* QString */
+      checksum,
+      /* std::shared_ptr<FileTransferDesc> */
+      desc);
 
+  QFile file(desc->filePath);
 
-    QFile file(desc->filePath);
-
-    if (!file.isOpen()) {
-        if (!file.open(QIODevice::ReadOnly)) {
-            qDebug() << "Cannot Use ReadOnly Mode To Open File";
-            return;
-        }
+  if (!file.isOpen()) {
+    if (!file.open(QIODevice::ReadOnly)) {
+      qDebug() << "Cannot Use ReadOnly Mode To Open File";
+      return;
     }
+  }
 
-    // this is the current file pointer startup point!
-    file.seek(0);
+  // this is the current file pointer startup point!
+  file.seek(0);
 
-    if (file.atEnd()) {
-        qDebug() << "Rearch At the End of the File, Terminate Process!";
-        return;
-    }
+  if (file.atEnd()) {
+    qDebug() << "Rearch At the End of the File, Terminate Process!";
+    return;
+  }
 
-    std::size_t bytes_transferred_curr_sequence =
-        (1 != desc->last_sequence)
-            ? m_chunkSize
-            : desc->total_size;
+  std::size_t bytes_transferred_curr_sequence =
+      (1 != desc->last_sequence) ? m_chunkSize : desc->total_size;
 
-    QByteArray buffer = file.read(bytes_transferred_curr_sequence);
-    if (buffer.isEmpty()) {
-        qDebug() << "transferred bytes = 0 in seq = 1\n";
-        return;
-    }
+  QByteArray buffer = file.read(bytes_transferred_curr_sequence);
+  if (buffer.isEmpty()) {
+    qDebug() << "transferred bytes = 0 in seq = 1\n";
+    return;
+  }
 
-    QJsonObject obj;
-    obj["uuid"] = UserAccountManager::get_instance()->get_uuid();
-    obj["filename"] = desc->filename;
-    obj["filepath"] = desc->filePath;
+  QJsonObject obj;
+  obj["uuid"] = UserAccountManager::get_instance()->get_uuid();
+  obj["filename"] = desc->filename;
+  obj["filepath"] = desc->filePath;
 
-    obj["checksum"] = desc->checksum;
+  obj["checksum"] = desc->checksum;
 
-    obj["cur_seq"] = QString::number(1);
-    obj["last_seq"] = QString::number(desc->last_sequence);
+  obj["cur_seq"] = QString::number(1);
+  obj["last_seq"] = QString::number(desc->last_sequence);
 
-    obj["current_block_size"] = QString::number(bytes_transferred_curr_sequence);
-    obj["transfered_size"] = QString::number(0);
-    obj["total_size"] = QString::number(desc->total_size);
+  obj["current_block_size"] = QString::number(bytes_transferred_curr_sequence);
+  obj["transfered_size"] = QString::number(0);
+  obj["total_size"] = QString::number(desc->total_size);
 
-    obj["block"] = QString(buffer.toBase64());
-    obj["EOF"] = QString::number((1 == desc->last_sequence) ? 1 : 0);
+  obj["block"] = QString(buffer.toBase64());
+  obj["EOF"] = QString::number((1 == desc->last_sequence) ? 1 : 0);
 
-    FileTCPNetwork::get_instance()->send_buffer(
-        ServiceType::SERVICE_FILEUPLOADREQUEST, std::move(obj));
+  FileTCPNetwork::get_instance()->send_buffer(
+      ServiceType::SERVICE_FILEUPLOADREQUEST, std::move(obj));
 
-    file.close();
+  file.close();
 }
 
 void LogicExecutor::slot_send_next_block(const QString &checksum) {
@@ -164,7 +160,8 @@ void LogicExecutor::slot_send_next_block(const QString &checksum) {
   obj["total_size"] = QString::number(transfer_data->total_size);
 
   obj["block"] = QString(buffer.toBase64());
-  obj["EOF"] = QString::number((transfer_data->curr_sequence ==transfer_data->last_sequence) ? 1 : 0);
+  obj["EOF"] = QString::number(
+      (transfer_data->curr_sequence == transfer_data->last_sequence) ? 1 : 0);
 
   FileTCPNetwork::get_instance()->send_buffer(
       ServiceType::SERVICE_FILEUPLOADREQUEST, std::move(obj));
@@ -210,8 +207,9 @@ void LogicExecutor::slot_start_file_upload(const QString &fileName,
   QString checksum =
       QString::fromStdString(hash.result().toHex().toStdString());
 
-  emit signal_send_first_block(checksum,   std::make_shared<FileTransferDesc>(fileName, checksum, filePath, 1,
-                                                                            totalBlocks, false, 0, fileSize));
+  emit signal_send_first_block(checksum, std::make_shared<FileTransferDesc>(
+                                             fileName, checksum, filePath, 1,
+                                             totalBlocks, false, 0, fileSize));
 
   file.close();
 }
@@ -275,7 +273,7 @@ void LogicExecutor::slot_breakpoint_upload(
     return;
   }
 
-  //if is not eof then increment seq
+  // if is not eof then increment seq
   ++desc->curr_sequence;
 
   ResourceStorageManager::get_instance()->recordUnfinishedTask(desc->checksum,

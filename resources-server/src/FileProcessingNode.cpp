@@ -105,8 +105,8 @@ void handler::FileProcessingNode::upload(
   // redirect file stream
   auto sessionDescOpt = prepareUploadStream(*block);
   if (!sessionDescOpt.has_value()) {
-            block->callback(ServiceStatus::FILE_OPEN_ERROR, 0);
-            return;
+    block->callback(ServiceStatus::FILE_OPEN_ERROR, 0);
+    return;
   }
 
   auto sessionDesc = sessionDescOpt.value();
@@ -130,24 +130,22 @@ void handler::FileProcessingNode::upload(
   const std::size_t actualBlockSize = block->block_data.size();
 
   if (block->transfered_size > sessionDesc.total_size) {
-            spdlog::error("[{}]: Invalid offset for '{}': offset={}, server_total={}",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      block->filename,
-                      block->transfered_size,
-                      sessionDesc.total_size);
-            block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
-            return;
+    spdlog::error("[{}]: Invalid offset for '{}': offset={}, server_total={}",
+                  ServerConfig::get_instance()->GrpcServerName, block->filename,
+                  block->transfered_size, sessionDesc.total_size);
+    block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
+    return;
   }
 
-  if (actualBlockSize > static_cast<std::size_t>(sessionDesc.total_size - block->transfered_size)) {
-            spdlog::error("[{}]: Block overflow for '{}': offset={}, block_size={}, server_total={}",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      block->filename,
-                      block->transfered_size,
-                      actualBlockSize,
-                      sessionDesc.total_size);
-            block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
-            return;
+  if (actualBlockSize > static_cast<std::size_t>(sessionDesc.total_size -
+                                                 block->transfered_size)) {
+    spdlog::error("[{}]: Block overflow for '{}': offset={}, block_size={}, "
+                  "server_total={}",
+                  ServerConfig::get_instance()->GrpcServerName, block->filename,
+                  block->transfered_size, actualBlockSize,
+                  sessionDesc.total_size);
+    block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
+    return;
   }
 
   // write to file
@@ -158,35 +156,31 @@ void handler::FileProcessingNode::upload(
     return;
   }
 
-  //update progress
+  // update progress
   block->transfered_size += block->block_data.size();
 
   if (!isEOF) {
-            if (!FileHasherLogger::get_instance()->refresh(block->key, *block)) {
-                      spdlog::error("[{}]: Failed to refresh redis upload record after write, key='{}'",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                block->key);
-                      block->callback(ServiceStatus::REDIS_UNKOWN_ERROR, 0);
-                      return;
-            }
-  }
-  else
-  {
-            spdlog::info("[{}]: EOF received, finalize upload for '{}'",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      block->filename);
+    if (!FileHasherLogger::get_instance()->refresh(block->key, *block)) {
+      spdlog::error(
+          "[{}]: Failed to refresh redis upload record after write, key='{}'",
+          ServerConfig::get_instance()->GrpcServerName, block->key);
+      block->callback(ServiceStatus::REDIS_UNKOWN_ERROR, 0);
+      return;
+    }
+  } else {
+    spdlog::info("[{}]: EOF received, finalize upload for '{}'",
+                 ServerConfig::get_instance()->GrpcServerName, block->filename);
 
-            // when EOF, then remove KV value inside redis!
-            if (!FileHasherLogger::get_instance()->remove(block->key)) {
-                      spdlog::error("[{}]: Failed to remove redis upload record, key='{}'",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                block->key);
-                      closeCurrentFile();
-                      block->callback(ServiceStatus::REDIS_UNKOWN_ERROR, 0);
-                      return;
-            }
+    // when EOF, then remove KV value inside redis!
+    if (!FileHasherLogger::get_instance()->remove(block->key)) {
+      spdlog::error("[{}]: Failed to remove redis upload record, key='{}'",
+                    ServerConfig::get_instance()->GrpcServerName, block->key);
+      closeCurrentFile();
+      block->callback(ServiceStatus::REDIS_UNKOWN_ERROR, 0);
+      return;
+    }
 
-            closeCurrentFile();
+    closeCurrentFile();
   }
 
   block->callback(ServiceStatus::SERVICE_SUCCESS, block->transfered_size);
@@ -236,7 +230,9 @@ void handler::FileProcessingNode::download(
           block_data, std::string{}, last_seq, total_size));
 }
 
-std::optional<handler::FileHasherDesc> handler::FileProcessingNode::prepareUploadStream(const FileUploadDescription& block) {
+std::optional<handler::FileHasherDesc>
+handler::FileProcessingNode::prepareUploadStream(
+    const FileUploadDescription &block) {
 
   if (!validFilename(block.key)) {
     spdlog::error("[{}]: Illegal filename '{}'",
@@ -245,7 +241,8 @@ std::optional<handler::FileHasherDesc> handler::FileProcessingNode::prepareUploa
   }
 
   std::filesystem::path output_dir =
-      std::filesystem::path(ServerConfig::get_instance()->outputPath) / block.uuid;
+      std::filesystem::path(ServerConfig::get_instance()->outputPath) /
+      block.uuid;
   std::filesystem::path full_path = output_dir / block.key;
 
   std::error_code ec;
@@ -259,116 +256,116 @@ std::optional<handler::FileHasherDesc> handler::FileProcessingNode::prepareUploa
 
   closeCurrentFile();
 
-  //only check redis record for once
-  auto serverDescOpt = FileHasherLogger::get_instance()->getFileDescBlock(block.key);
+  // only check redis record for once
+  auto serverDescOpt =
+      FileHasherLogger::get_instance()->getFileDescBlock(block.key);
   bool hasActiveRecord = serverDescOpt.has_value();
   bool fileExists = std::filesystem::exists(full_path);
 
   /*
-  *   No active redis record:
-  *   1. stale local file exists -> timeout / invalid old upload
-  *   2. no local file          -> completely new upload
-  */
+   *   No active redis record:
+   *   1. stale local file exists -> timeout / invalid old upload
+   *   2. no local file          -> completely new upload
+   */
   if (!hasActiveRecord) {
 
-            //Redis has no record, but local file exists (old timeout file / stale upload remains)
-            // We must remove it and restart from beginning
-            if (fileExists) {
-                      spdlog::warn("[{}]: No active redis record for key='{}', but old file exists '{}'. Restart upload from zero.",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                block.key,
-                                full_path.string());
+    // Redis has no record, but local file exists (old timeout file / stale
+    // upload remains)
+    //  We must remove it and restart from beginning
+    if (fileExists) {
+      spdlog::warn("[{}]: No active redis record for key='{}', but old file "
+                   "exists '{}'. Restart upload from zero.",
+                   ServerConfig::get_instance()->GrpcServerName, block.key,
+                   full_path.string());
 
-                      // client tries to resume, but server state already expired
-                      if (block.transfered_size != 0) {
-                                spdlog::error("[{}]: Upload state expired for '{}', client requested offset={}, expected offset=0",
-                                          ServerConfig::get_instance()->GrpcServerName,
-                                          block.filename,
-                                          block.transfered_size);
-
-                                return std::nullopt;
-                      }
-
-                      std::error_code remove_ec;
-                      std::filesystem::remove(full_path, remove_ec);
-
-                      if (remove_ec) {
-                                spdlog::error("[{}]: Failed to remove old file '{}': {}",
-                                          ServerConfig::get_instance()->GrpcServerName,
-                                          full_path.string(),
-                                          remove_ec.message());
-
-                                return std::nullopt;
-                      }
-
-                      spdlog::info("[{}]: Stale file '{}' removed successfully.",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                full_path.string());
-            }
-            else {
-                      //No redis record + no local file  => completely new upload
-                      if (block.transfered_size != 0) {
-                                spdlog::error("[{}]: New upload '{}' requested invalid offset={}, expected 0",
-                                          ServerConfig::get_instance()->GrpcServerName,
-                                          block.filename,
-                                          block.transfered_size);
-                                return std::nullopt;
-                      }
-
-                      spdlog::info("[{}]: New upload detected for key='{}', file='{}'.",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                block.key,
-                                block.filename);
-            }
-
-            if (!openFile(full_path, std::ios::binary | std::ios::out | std::ios::trunc)) {
-                      spdlog::error("[{}]: Failed to create file '{}'",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                full_path.string());
-                      return std::nullopt;
-            }
-
-            m_fileStream.seekp(0, std::ios::beg);
-
-            if (!m_fileStream) {
-                      spdlog::error("[{}]: Failed to seek new file '{}'",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                full_path.string());
-
-                      closeCurrentFile();
-                      return std::nullopt;
-            }
-
-            if (!FileHasherLogger::get_instance()->insert(block)) {
-                      spdlog::error("[{}]: Failed to create redis upload record, key='{}'",
-                                ServerConfig::get_instance()->GrpcServerName,
-                                block.key);
-
-                      closeCurrentFile();
-                      return std::nullopt;
-            }
-
-            spdlog::info( "[{}]: Upload stream prepared successfully for new upload '{}'",
+      // client tries to resume, but server state already expired
+      if (block.transfered_size != 0) {
+        spdlog::error("[{}]: Upload state expired for '{}', client requested "
+                      "offset={}, expected offset=0",
                       ServerConfig::get_instance()->GrpcServerName,
-                      block.filename);
+                      block.filename, block.transfered_size);
 
-            m_lastfile = block.filename;
-            return block;
+        return std::nullopt;
+      }
+
+      std::error_code remove_ec;
+      std::filesystem::remove(full_path, remove_ec);
+
+      if (remove_ec) {
+        spdlog::error("[{}]: Failed to remove old file '{}': {}",
+                      ServerConfig::get_instance()->GrpcServerName,
+                      full_path.string(), remove_ec.message());
+
+        return std::nullopt;
+      }
+
+      spdlog::info("[{}]: Stale file '{}' removed successfully.",
+                   ServerConfig::get_instance()->GrpcServerName,
+                   full_path.string());
+    } else {
+      // No redis record + no local file  => completely new upload
+      if (block.transfered_size != 0) {
+        spdlog::error(
+            "[{}]: New upload '{}' requested invalid offset={}, expected 0",
+            ServerConfig::get_instance()->GrpcServerName, block.filename,
+            block.transfered_size);
+        return std::nullopt;
+      }
+
+      spdlog::info("[{}]: New upload detected for key='{}', file='{}'.",
+                   ServerConfig::get_instance()->GrpcServerName, block.key,
+                   block.filename);
+    }
+
+    if (!openFile(full_path,
+                  std::ios::binary | std::ios::out | std::ios::trunc)) {
+      spdlog::error("[{}]: Failed to create file '{}'",
+                    ServerConfig::get_instance()->GrpcServerName,
+                    full_path.string());
+      return std::nullopt;
+    }
+
+    m_fileStream.seekp(0, std::ios::beg);
+
+    if (!m_fileStream) {
+      spdlog::error("[{}]: Failed to seek new file '{}'",
+                    ServerConfig::get_instance()->GrpcServerName,
+                    full_path.string());
+
+      closeCurrentFile();
+      return std::nullopt;
+    }
+
+    if (!FileHasherLogger::get_instance()->insert(block)) {
+      spdlog::error("[{}]: Failed to create redis upload record, key='{}'",
+                    ServerConfig::get_instance()->GrpcServerName, block.key);
+
+      closeCurrentFile();
+      return std::nullopt;
+    }
+
+    spdlog::info(
+        "[{}]: Upload stream prepared successfully for new upload '{}'",
+        ServerConfig::get_instance()->GrpcServerName, block.filename);
+
+    m_lastfile = block.filename;
+    return block;
   }
 
   /*
-  * Active redis record exists: try to resume upload from current offset
-  */
+   * Active redis record exists: try to resume upload from current offset
+   */
 
-// Redis says upload is active, but local file is gone. This is an inconsistent stale state; remove redis record.
+  // Redis says upload is active, but local file is gone. This is an
+  // inconsistent stale state; remove redis record.
   if (!fileExists) {
-            spdlog::error("[{}]: Active upload record exists for key='{}', but local file '{}' is missing. Remove stale redis record.",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      block.key,
-                      full_path.string());
+    spdlog::error("[{}]: Active upload record exists for key='{}', but local "
+                  "file '{}' is missing. Remove stale redis record.",
+                  ServerConfig::get_instance()->GrpcServerName, block.key,
+                  full_path.string());
 
-            FileHasherLogger::get_instance()->remove(block.key);
-            return std::nullopt;
+    FileHasherLogger::get_instance()->remove(block.key);
+    return std::nullopt;
   }
 
   auto actual_size = std::filesystem::file_size(full_path, ec);
@@ -382,8 +379,8 @@ std::optional<handler::FileHasherDesc> handler::FileProcessingNode::prepareUploa
   if (block.transfered_size != actual_size) {
     spdlog::error(
         "[{}]: Upload offset mismatch for '{}': file_size={}, client_offset={}",
-        ServerConfig::get_instance()->GrpcServerName, block.filename, actual_size,
-              block.transfered_size);
+        ServerConfig::get_instance()->GrpcServerName, block.filename,
+        actual_size, block.transfered_size);
     return std::nullopt;
   }
 
@@ -394,31 +391,29 @@ std::optional<handler::FileHasherDesc> handler::FileProcessingNode::prepareUploa
     return std::nullopt;
   }
 
-  m_fileStream.seekp(static_cast<std::streamoff>(block.transfered_size), std::ios::beg);
+  m_fileStream.seekp(static_cast<std::streamoff>(block.transfered_size),
+                     std::ios::beg);
   if (!m_fileStream) {
-            spdlog::error("[{}]: Failed to seek file '{}' to offset={}",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      full_path.string(),
-                      block.transfered_size);
+    spdlog::error("[{}]: Failed to seek file '{}' to offset={}",
+                  ServerConfig::get_instance()->GrpcServerName,
+                  full_path.string(), block.transfered_size);
     closeCurrentFile();
     return std::nullopt;
   }
 
   // Refresh redis active-upload record and TTL
   if (!FileHasherLogger::get_instance()->refresh(block.key, block)) {
-            spdlog::error("[{}]: Failed to refresh redis upload record for key='{}'",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      block.key);
+    spdlog::error("[{}]: Failed to refresh redis upload record for key='{}'",
+                  ServerConfig::get_instance()->GrpcServerName, block.key);
 
-            closeCurrentFile();
-            return std::nullopt;
+    closeCurrentFile();
+    return std::nullopt;
   }
 
-  spdlog::info("[{}]: File upload stream prepared successfully for key='{}', file='{}', offset={}",
-            ServerConfig::get_instance()->GrpcServerName,
-            block.key,
-            block.filename,
-            block.transfered_size);
+  spdlog::info("[{}]: File upload stream prepared successfully for key='{}', "
+               "file='{}', offset={}",
+               ServerConfig::get_instance()->GrpcServerName, block.key,
+               block.filename, block.transfered_size);
 
   m_lastfile = block.filename;
   return *serverDescOpt.value();

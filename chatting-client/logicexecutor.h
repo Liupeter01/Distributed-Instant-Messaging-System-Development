@@ -40,7 +40,8 @@ signals:
   void signal_resume_file_upload(const QString &fileName,
                                  const QString &filePath);
 
-  void signal_send_first_block(const QString &checksum, std::shared_ptr<FileTransferDesc> desc);
+  void signal_send_first_block(const QString &checksum,
+                               std::shared_ptr<FileTransferDesc> desc);
   void signal_send_next_block(const QString &checksum);
 
   // update all UI interfaces that relevant to avatar icons(qlabels)
@@ -51,7 +52,8 @@ private:
 
 private slots:
 
-  void slot_send_first_block(const QString &checksum, std::shared_ptr<FileTransferDesc> desc);
+  void slot_send_first_block(const QString &checksum,
+                             std::shared_ptr<FileTransferDesc> desc);
   void slot_send_next_block(const QString &checksum);
 
   void slot_start_file_upload(const QString &fileName, const QString &filePath,

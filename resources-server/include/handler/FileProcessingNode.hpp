@@ -58,7 +58,8 @@ public:
 protected:
   bool writeToFile(const std::string &content);
   std::optional<std::string> readFromFile(const std::size_t max_size);
-  std::optional<handler::FileHasherDesc> prepareUploadStream(const FileUploadDescription& block);
+  std::optional<handler::FileHasherDesc>
+  prepareUploadStream(const FileUploadDescription &block);
 
   bool prepareDownloadStream(const std::string &filename,
                              const std::string &uuid, std::uint64_t offset,

@@ -152,14 +152,15 @@ void handler::RequestHandlerNode::execute(pair &&node) {
     /*executing callback on specific type*/
     auto it = m_callbacks.find(type);
     if (it == m_callbacks.end()) {
-              spdlog::error("[{}]: RequestHandlerNode::execute ervice Type Not Found!", ServerConfig::get_instance()->GrpcServerName);
+      spdlog::error("[{}]: RequestHandlerNode::execute ervice Type Not Found!",
+                    ServerConfig::get_instance()->GrpcServerName);
       return;
     }
     m_callbacks[type](type, session, std::move(node.second));
   } catch (const std::exception &e) {
-            spdlog::error("[{}]: RequestHandlerNode::execute Method Failed, Internel Server Error! Error Code {}",
-                      ServerConfig::get_instance()->GrpcServerName,
-                      e.what());
+    spdlog::error("[{}]: RequestHandlerNode::execute Method Failed, Internel "
+                  "Server Error! Error Code {}",
+                  ServerConfig::get_instance()->GrpcServerName, e.what());
   }
 }
 
@@ -367,8 +368,8 @@ void handler::RequestHandlerNode::handlingFileUploading(
       TransferDirection::Upload);
 
   auto callback = [/*life length*/ session, uuid, cur_seq, filename, filepath,
-                   checksum, total_size, 
-                   last_seq, isEOF](const ServiceStatus status, const std::size_t curr_size) {
+                   checksum, total_size, last_seq, isEOF](
+                      const ServiceStatus status, const std::size_t curr_size) {
     boost::json::object obj;
 
     if (status != ServiceStatus::SERVICE_SUCCESS) {
@@ -505,8 +506,7 @@ void handler::RequestHandlerNode::handlingFileDownloading(
 
           // transfered: the accumlated transfered size in the perviou rounds
           // current_block_size: the transfered size in the last round
-          obj["curr_size"] =
-              std::to_string(transfered_size);
+          obj["curr_size"] = std::to_string(transfered_size);
           obj["total_size"] = info->total_size;
 
           /*End Of File*/

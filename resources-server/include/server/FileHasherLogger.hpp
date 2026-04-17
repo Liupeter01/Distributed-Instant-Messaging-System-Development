@@ -9,6 +9,7 @@
 #include <optional>
 #include <singleton/singleton.hpp>
 #include <string>
+#include <tools/tools.hpp>
 
 /*
  * we no longer gonna to leave it at server's memory (tbb/concurrent_hash_map)
@@ -41,10 +42,13 @@ struct FileHasherDesc {
         filePath(_filePath), curr_sequence(_curr_sequence),
         last_sequence(_last_sequence), transfered_size(_transfered_size),
         current_block_size(_current_block_size), total_size(_total_size),
-        isEOF(_eof), key(_filename + std::string("_") + _checksum),
-        direction(_direction) {}
+        isEOF(_eof), key(_checksum + std::string("_") + _filename),
+        direction(_direction) 
+  {
+            key = _checksum + std::string("_") + _filename;
+  }
 
-  std::string key; //=filename_checksum
+  std::string key; //=checksum_filename
 
   std::string uuid;
 
@@ -82,16 +86,24 @@ struct FileDownloadDescription : public FileHasherDesc {
   FileDownloadDescription(const FileHasherDesc &o, Func &&_callback)
       : FileHasherDesc(o), callback(std::move(_callback)) {}
 
+  operator FileHasherDesc () const{
+            return *this;
+  }
+
   Func callback;
 };
 
 struct FileUploadDescription : public FileHasherDesc {
-  using Func = std::function<void(const ServiceStatus)>;
+  using Func = std::function<void(const ServiceStatus, const std::size_t)>;
 
   /*only for upload mode*/
   FileUploadDescription(const FileHasherDesc &o, const std::string &block,
                         Func &&_callback)
       : FileHasherDesc(o), block_data(block), callback(std::move(_callback)) {}
+
+  operator FileHasherDesc () const {
+            return *this;
+  }
 
   std::string block_data;
   Func callback;
@@ -111,60 +123,164 @@ public:
   ~FileHasherLogger() = default;
 
 public:
-  bool insert(std::shared_ptr<handler::FileHasherDesc> block) {
-    RedisRAII raii;
-    boost::json::object src_obj;
-    src_obj["uuid"] = block->uuid;
-    src_obj["key"] = block->key;
-    src_obj["filename"] = block->filename;
-    src_obj["checksum"] = block->checksum;
-    src_obj["filepath"] = block->filePath;
-    src_obj["last_seq"] = block->last_sequence;
-    src_obj["cur_seq"] = block->curr_sequence;
-    src_obj["transfered_size"] = block->transfered_size;
-    src_obj["current_block_size"] = block->current_block_size;
-    src_obj["total_size"] = block->total_size;
-    src_obj["EOF"] = block->isEOF;
+          bool insert(const std::shared_ptr<handler::FileHasherDesc>& block) {
+                    if (!block) {
+                              spdlog::error("[{}]: insert failed, block is null",
+                                        ServerConfig::get_instance()->GrpcServerName);
+                              return false;
+                    }
+                    return insert(*block);
+          }
 
-    return raii->get()->setValueExp(block->key, boost::json::serialize(src_obj),
-                                    3000);
+  bool insert(const handler::FileHasherDesc& block, const std::size_t expSec = 3) {
+            if (block.key.empty()) {
+                      spdlog::error("[{}]: insert failed, empty redis key",
+                                ServerConfig::get_instance()->GrpcServerName);
+                      return false;
+            }
+
+            RedisRAII raii;
+            auto payload = serializeBlock(block);
+
+            bool ok = raii->get()->setValueExp(block.key, payload, expSec);
+            if (!ok) {
+                      spdlog::error("[{}]: insert redis record failed, key='{}'",
+                                ServerConfig::get_instance()->GrpcServerName,
+                                block.key);
+            }
+            return ok;
+  }
+
+  bool remove(const std::string& key) {
+            if (key.empty()) {
+                      spdlog::warn("[{}]: remove skipped, empty key",
+                                ServerConfig::get_instance()->GrpcServerName);
+                      return false;
+            }
+
+            RedisRAII raii;
+            bool ok = raii->get()->delPair(key);
+            if (!ok) {
+                      spdlog::warn("[{}]: remove redis key='{}' failed or key not found",
+                                ServerConfig::get_instance()->GrpcServerName,
+                                key);
+            }
+            return ok;
+  }
+
+  bool refresh(const std::string& key,
+            const std::shared_ptr<handler::FileHasherDesc>& block,
+            const std::size_t expSec = 10) {
+            if (!block) {
+                      spdlog::error("[{}]: refresh failed, block is null, key='{}'",
+                                ServerConfig::get_instance()->GrpcServerName,
+                                key);
+                      return false;
+            }
+            return refresh(key, *block, expSec);
+  }
+
+  bool refresh(const std::string& key,
+            const handler::FileHasherDesc& block,
+            const std::size_t expSec = 10) {
+
+            if (key.empty()) {
+                      spdlog::error("[{}]: refresh failed, empty key",
+                                ServerConfig::get_instance()->GrpcServerName);
+                      return false;
+            }
+
+            RedisRAII raii;
+            auto payload = serializeBlock(block);
+
+            bool ok = raii->get()->setValueExp(key, payload, expSec);
+            if (!ok) {
+                      spdlog::error("[{}]: refresh redis record failed, key='{}'",
+                                ServerConfig::get_instance()->GrpcServerName,
+                                key);
+            }
+            return ok;
   }
 
   [[nodiscard]]
   std::optional<std::shared_ptr<handler::FileHasherDesc>>
   getFileDescBlock(const std::string &key) {
 
-    RedisRAII raii;
-
     if (key.empty()) {
-      return {};
+              spdlog::warn("[{}]: getFileDescBlock skipped, empty key",
+                        ServerConfig::get_instance()->GrpcServerName);
+              return std::nullopt;
     }
+
+    RedisRAII raii;
 
     // Search For Info Cache in Redis
     auto opt = raii->get()->checkValue(key);
     if (!opt.has_value()) {
-      return {};
+              return std::nullopt;
     }
 
     /*parse cache data inside Redis*/
     try {
-      boost::json::object obj = boost::json::parse(opt.value()).as_object();
+              boost::json::value jv = boost::json::parse(opt.value());
+              boost::json::object obj = jv.as_object();
+
+              std::string uuid = tools::getString(obj, "uuid");
+              std::string filename = tools::getString(obj, "filename");
+              std::string checksum = tools::getString(obj, "checksum");
+              std::string filepath = tools::getString(obj, "filepath");
+              std::string lastSeq = tools::getString(obj, "last_seq");
+              std::string curSeq = tools::getString(obj, "cur_seq");
+              std::string eof = tools::getString(obj, "EOF");
+
+              std::int64_t transferedSize = tools::getInt64(obj, "transfered_size");
+              std::int64_t currentBlockSize = tools::getInt64(obj, "current_block_size");
+              std::int64_t totalSize = tools::getInt64(obj, "total_size");
 
       return std::make_shared<handler::FileHasherDesc>(
-          boost::json::value_to<std::string>(obj["uuid"]),
-          boost::json::value_to<std::string>(obj["filename"]),
-          boost::json::value_to<std::string>(obj["checksum"]),
-          boost::json::value_to<std::string>(obj["filepath"]),
-          boost::json::value_to<std::string>(obj["cur_seq"]),
-          boost::json::value_to<std::string>(obj["last_seq"]),
-          boost::json::value_to<std::string>(obj["EOF"]),
-          obj["transfered_size"].as_uint64(),
-          obj["current_block_size"].as_uint64(), obj["total_size"].as_uint64());
-    } catch (const boost::json::system_error &e) {
-      spdlog::error("Failed to parse json data!");
-      return std::nullopt;
+                uuid,
+                filename,
+                checksum,
+                filepath,
+                curSeq,
+                lastSeq,
+                eof,
+                static_cast<int>(transferedSize),
+                static_cast<int>(currentBlockSize),
+                static_cast<int>(totalSize));
+
+    }
+    catch (const boost::json::system_error& e) {
+              spdlog::error("[{}]: Failed to parse redis json for key='{}', reason={}",
+                        ServerConfig::get_instance()->GrpcServerName,
+                        key, e.what());
+              return std::nullopt;
+    }
+    catch (const std::exception& e) {
+              spdlog::error("[{}]: Failed to build FileHasherDesc from redis for key='{}', reason={}",
+                        ServerConfig::get_instance()->GrpcServerName,
+                        key, e.what());
+              return std::nullopt;
     }
   }
+
+  private:
+            static std::string serializeBlock(const handler::FileHasherDesc& block) {
+                      boost::json::object obj;
+                      obj["uuid"] = block.uuid;
+                      obj["key"] = block.key;
+                      obj["filename"] = block.filename;
+                      obj["checksum"] = block.checksum;
+                      obj["filepath"] = block.filePath;
+                      obj["last_seq"] = block.last_sequence;
+                      obj["cur_seq"] = block.curr_sequence;
+                      obj["transfered_size"] = block.transfered_size;
+                      obj["current_block_size"] = block.current_block_size;
+                      obj["total_size"] = block.total_size;
+                      obj["EOF"] = block.isEOF;
+
+                      return boost::json::serialize(obj);
+            }
 };
 
 #endif //_FILEHASHERLOGGER_HPP_

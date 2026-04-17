@@ -11,7 +11,7 @@ CREATE TABLE chatting.Authentication (
  -- Create UserProfile Table
  CREATE TABLE chatting.UserProfile (
     uuid INT PRIMARY KEY,
-    avatar VARCHAR(255),
+    avatar VARCHAR(255) DEFAULT 'default_avatar.png',
     nickname VARCHAR(50),
     description TEXT,
     sex BOOL,

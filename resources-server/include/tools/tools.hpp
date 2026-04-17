@@ -10,6 +10,9 @@
 #include <optional>
 #include <string>
 #include <type_traits>
+#include <boost/json.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
 
 namespace tools {
 static std::string userTokenGenerator() {
@@ -72,6 +75,55 @@ std::optional<_Ty> string_to_value(std::string_view value) {
 template <typename Derived, typename Base>
 std::unique_ptr<Derived> static_unique_ptr_cast(std::unique_ptr<Base> &&base) {
   return std::unique_ptr<Derived>(static_cast<Derived *>(base.release()));
+}
+
+static std::string getString(const boost::json::object& obj, const char* key) {
+          auto it = obj.find(key);
+          if (it == obj.end()) {
+                    throw std::runtime_error(std::string("missing field: ") + key);
+          }
+          return boost::json::value_to<std::string>(it->value());
+}
+
+static std::int64_t getInt64(const boost::json::object& obj, const char* key) {
+          auto it = obj.find(key);
+          if (it == obj.end()) {
+                    throw std::runtime_error(std::string("missing field: ") + key);
+          }
+
+          const auto& v = it->value();
+
+          if (v.is_int64()) {
+                    return v.as_int64();
+          }
+          if (v.is_uint64()) {
+                    return static_cast<std::int64_t>(v.as_uint64());
+          }
+          if (v.is_string()) {
+                    return std::stoll(boost::json::value_to<std::string>(v));
+          }
+
+          throw std::runtime_error(std::string("invalid integer field: ") + key);
+}
+
+static bool getBool(const boost::json::object& obj, const char* key) {
+
+          auto it = obj.find(key);
+          if (it == obj.end()) {
+                    throw std::runtime_error(std::string("missing field: ") + key);
+          }
+
+          const auto& v = it->value();
+
+          if (v.is_bool()) {
+                    return v.as_bool();
+          }
+          if (v.is_string()) {
+                    auto s = boost::json::value_to<std::string>(v);
+                    return s == "true" || s == "1";
+          }
+
+          throw std::runtime_error(std::string("invalid bool field: ") + key);
 }
 
 } // namespace tools

@@ -58,8 +58,7 @@ public:
 protected:
   bool writeToFile(const std::string &content);
   std::optional<std::string> readFromFile(const std::size_t max_size);
-  bool prepareUploadStream(const std::string &filename, const std::string &uuid,
-                           std::uint64_t offset, bool isTimeout);
+  bool prepareUploadStream(const FileUploadDescription& block);
 
   bool prepareDownloadStream(const std::string &filename,
                              const std::string &uuid, std::uint64_t offset,

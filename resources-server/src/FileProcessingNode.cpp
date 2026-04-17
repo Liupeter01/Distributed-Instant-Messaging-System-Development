@@ -103,10 +103,13 @@ void handler::FileProcessingNode::upload(
   bool isEOF = (block->isEOF == std::string("1"));
 
   // redirect file stream
-  if (!prepareUploadStream(*block)) {
-    block->callback(ServiceStatus::FILE_OPEN_ERROR, 0);
-    return;
+  auto sessionDescOpt = prepareUploadStream(*block);
+  if (!sessionDescOpt.has_value()) {
+            block->callback(ServiceStatus::FILE_OPEN_ERROR, 0);
+            return;
   }
+
+  auto sessionDesc = sessionDescOpt.value();
 
   try {
     // conduct base64 decode on block data first
@@ -122,6 +125,29 @@ void handler::FileProcessingNode::upload(
                   ServerConfig::get_instance()->GrpcServerName, e.what());
     block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
     return;
+  }
+
+  const std::size_t actualBlockSize = block->block_data.size();
+
+  if (block->transfered_size > sessionDesc.total_size) {
+            spdlog::error("[{}]: Invalid offset for '{}': offset={}, server_total={}",
+                      ServerConfig::get_instance()->GrpcServerName,
+                      block->filename,
+                      block->transfered_size,
+                      sessionDesc.total_size);
+            block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
+            return;
+  }
+
+  if (actualBlockSize > static_cast<std::size_t>(sessionDesc.total_size - block->transfered_size)) {
+            spdlog::error("[{}]: Block overflow for '{}': offset={}, block_size={}, server_total={}",
+                      ServerConfig::get_instance()->GrpcServerName,
+                      block->filename,
+                      block->transfered_size,
+                      actualBlockSize,
+                      sessionDesc.total_size);
+            block->callback(ServiceStatus::FILE_UPLOAD_ERROR, 0);
+            return;
   }
 
   // write to file
@@ -210,12 +236,12 @@ void handler::FileProcessingNode::download(
           block_data, std::string{}, last_seq, total_size));
 }
 
-bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescription& block) {
+std::optional<handler::FileHasherDesc> handler::FileProcessingNode::prepareUploadStream(const FileUploadDescription& block) {
 
   if (!validFilename(block.key)) {
     spdlog::error("[{}]: Illegal filename '{}'",
                   ServerConfig::get_instance()->GrpcServerName, block.filename);
-    return false;
+    return std::nullopt;
   }
 
   std::filesystem::path output_dir =
@@ -228,16 +254,14 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
     spdlog::error("[{}]: Failed to create dir '{}': {}",
                   ServerConfig::get_instance()->GrpcServerName,
                   output_dir.string(), ec.message());
-    return false;
+    return std::nullopt;
   }
 
   closeCurrentFile();
 
   //only check redis record for once
-  bool hasActiveRecord = FileHasherLogger::get_instance()
-            ->getFileDescBlock(block.key)
-            .has_value();
-
+  auto serverDescOpt = FileHasherLogger::get_instance()->getFileDescBlock(block.key);
+  bool hasActiveRecord = serverDescOpt.has_value();
   bool fileExists = std::filesystem::exists(full_path);
 
   /*
@@ -262,7 +286,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                                           block.filename,
                                           block.transfered_size);
 
-                                return false;
+                                return std::nullopt;
                       }
 
                       std::error_code remove_ec;
@@ -274,7 +298,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                                           full_path.string(),
                                           remove_ec.message());
 
-                                return false;
+                                return std::nullopt;
                       }
 
                       spdlog::info("[{}]: Stale file '{}' removed successfully.",
@@ -288,7 +312,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                                           ServerConfig::get_instance()->GrpcServerName,
                                           block.filename,
                                           block.transfered_size);
-                                return false;
+                                return std::nullopt;
                       }
 
                       spdlog::info("[{}]: New upload detected for key='{}', file='{}'.",
@@ -301,7 +325,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                       spdlog::error("[{}]: Failed to create file '{}'",
                                 ServerConfig::get_instance()->GrpcServerName,
                                 full_path.string());
-                      return false;
+                      return std::nullopt;
             }
 
             m_fileStream.seekp(0, std::ios::beg);
@@ -312,7 +336,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                                 full_path.string());
 
                       closeCurrentFile();
-                      return false;
+                      return std::nullopt;
             }
 
             if (!FileHasherLogger::get_instance()->insert(block)) {
@@ -321,7 +345,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                                 block.key);
 
                       closeCurrentFile();
-                      return false;
+                      return std::nullopt;
             }
 
             spdlog::info( "[{}]: Upload stream prepared successfully for new upload '{}'",
@@ -329,7 +353,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                       block.filename);
 
             m_lastfile = block.filename;
-            return true;
+            return block;
   }
 
   /*
@@ -344,7 +368,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                       full_path.string());
 
             FileHasherLogger::get_instance()->remove(block.key);
-            return false;
+            return std::nullopt;
   }
 
   auto actual_size = std::filesystem::file_size(full_path, ec);
@@ -352,7 +376,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
     spdlog::error("[{}]: Failed to query file size '{}': {}",
                   ServerConfig::get_instance()->GrpcServerName,
                   full_path.string(), ec.message());
-    return false;
+    return std::nullopt;
   }
 
   if (block.transfered_size != actual_size) {
@@ -360,14 +384,14 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
         "[{}]: Upload offset mismatch for '{}': file_size={}, client_offset={}",
         ServerConfig::get_instance()->GrpcServerName, block.filename, actual_size,
               block.transfered_size);
-    return false;
+    return std::nullopt;
   }
 
   if (!openFile(full_path, std::ios::binary | std::ios::in | std::ios::out)) {
     spdlog::error("[{}]: Failed to reopen file '{}'",
                   ServerConfig::get_instance()->GrpcServerName,
                   full_path.string());
-    return false;
+    return std::nullopt;
   }
 
   m_fileStream.seekp(static_cast<std::streamoff>(block.transfered_size), std::ios::beg);
@@ -377,7 +401,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                       full_path.string(),
                       block.transfered_size);
     closeCurrentFile();
-    return false;
+    return std::nullopt;
   }
 
   // Refresh redis active-upload record and TTL
@@ -387,7 +411,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
                       block.key);
 
             closeCurrentFile();
-            return false;
+            return std::nullopt;
   }
 
   spdlog::info("[{}]: File upload stream prepared successfully for key='{}', file='{}', offset={}",
@@ -397,7 +421,7 @@ bool handler::FileProcessingNode::prepareUploadStream(const FileUploadDescriptio
             block.transfered_size);
 
   m_lastfile = block.filename;
-  return true;
+  return *serverDescOpt.value();
 }
 
 bool handler::FileProcessingNode::prepareDownloadStream(

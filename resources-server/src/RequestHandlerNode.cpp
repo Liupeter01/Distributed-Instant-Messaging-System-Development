@@ -118,7 +118,7 @@ void handler::RequestHandlerNode::generateErrorMessage(const std::string &log,
 
   boost::json::object obj;
   obj["error"] = static_cast<uint8_t>(status);
-  spdlog::warn("[Resources Server]: " + log);
+  spdlog::warn("[{}]: {}", ServerConfig::get_instance()->GrpcServerName, log);
   conn->sendMessage(type, boost::json::serialize(obj), conn);
 }
 
@@ -152,13 +152,14 @@ void handler::RequestHandlerNode::execute(pair &&node) {
     /*executing callback on specific type*/
     auto it = m_callbacks.find(type);
     if (it == m_callbacks.end()) {
-      spdlog::error("Service Type Not Found!");
+              spdlog::error("[{}]: RequestHandlerNode::execute ervice Type Not Found!", ServerConfig::get_instance()->GrpcServerName);
       return;
     }
     m_callbacks[type](type, session, std::move(node.second));
   } catch (const std::exception &e) {
-    spdlog::error("Excute Method Failed, Internel Server Error! Error Code {}",
-                  e.what());
+            spdlog::error("[{}]: RequestHandlerNode::execute Method Failed, Internel Server Error! Error Code {}",
+                      ServerConfig::get_instance()->GrpcServerName,
+                      e.what());
   }
 }
 
@@ -353,7 +354,6 @@ void handler::RequestHandlerNode::handlingFileUploading(
    * if it is first package then we should create a new file
    * if it is end of the file
    */
-  bool isFirstPackage = (cur_seq == std::string("1"));
   bool isEOF = (eof == std::string("1"));
 
   /*
@@ -366,12 +366,9 @@ void handler::RequestHandlerNode::handlingFileUploading(
       transfered_size, current_block_size, total_size,
       TransferDirection::Upload);
 
-  /*now the records are in redis!*/
-  FileHasherLogger::get_instance()->insert(desc);
-
   auto callback = [/*life length*/ session, uuid, cur_seq, filename, filepath,
-                   checksum, total_size, transfered_size, current_block_size,
-                   last_seq, isEOF](const ServiceStatus status) {
+                   checksum, total_size, 
+                   last_seq, isEOF](const ServiceStatus status, const std::size_t curr_size) {
     boost::json::object obj;
 
     if (status != ServiceStatus::SERVICE_SUCCESS) {
@@ -387,7 +384,7 @@ void handler::RequestHandlerNode::handlingFileUploading(
 
       // transfered: the accumlated transfered size in the perviou rounds
       // current_block_size: the transfered size in the last round
-      obj["curr_size"] = std::to_string(transfered_size + current_block_size);
+      obj["curr_size"] = std::to_string(curr_size);
       obj["total_size"] = std::to_string(total_size);
 
       /*End Of File*/
@@ -452,7 +449,6 @@ void handler::RequestHandlerNode::handlingFileDownloading(
    * if it is first package then we should create a new file
    * if it is end of the file
    */
-  bool isFirstPackage = (cur_seq == std::string("1"));
   bool isEOF = (eof == std::string("1"));
 
   /*
@@ -510,7 +506,7 @@ void handler::RequestHandlerNode::handlingFileDownloading(
           // transfered: the accumlated transfered size in the perviou rounds
           // current_block_size: the transfered size in the last round
           obj["curr_size"] =
-              std::to_string(transfered_size + current_block_size);
+              std::to_string(transfered_size);
           obj["total_size"] = info->total_size;
 
           /*End Of File*/
@@ -564,12 +560,14 @@ void handler::RequestHandlerNode::handlingCheckUploadProgress(
     dst_root["filename"] = opt->filename;
     dst_root["filepath"] = opt->filePath;
     dst_root["checksum"] = opt->checksum;
+
+    //
     dst_root["curr_seq"] = opt->curr_sequence;
     dst_root["last_seq"] = opt->last_sequence;
 
     // transfered: the accumlated transfered size in the perviou rounds
     // current_block_size: the transfered size in the last round
-    dst_root["curr_size"] = opt->transfered_size + opt->current_block_size;
+    dst_root["curr_size"] = opt->transfered_size;
     dst_root["total_size"] = opt->total_size;
 
     /*End Of File*/

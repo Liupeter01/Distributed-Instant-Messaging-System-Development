@@ -46,7 +46,7 @@ void FileTCPNetwork::send_download_request(
 void FileTCPNetwork::registerNetworkEvent() {}
 
 void FileTCPNetwork::registerCallback() {
-  auto uploadcallback = [this](QJsonObject &&json) {
+  auto uploadcallback = [this](QJsonObject &&json, ServiceType type) {
     [[maybe_unused]] auto filename = json["filename"].toString();
     [[maybe_unused]] auto filepath = json["filepath"].toString();
     [[maybe_unused]] auto checksum = json["checksum"].toString();
@@ -58,7 +58,7 @@ void FileTCPNetwork::registerCallback() {
 
     emit signal_breakpoint_upload(std::make_shared<FileTransferDesc>(
         filename, checksum, filepath, curr_seq, last_seq, eof, curr_size,
-        total_size));
+        total_size,TransferDirection::Upload, type));
   };
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
@@ -74,7 +74,23 @@ void FileTCPNetwork::registerCallback() {
           return;
         }
 
-        uploadcallback(std::move(json));
+        uploadcallback(std::move(json), ServiceType::SERVICE_FILEUPLOADREQUEST);
+      }));
+
+  m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
+      ServiceType::SERVICE_AVATARUPLOADRESPONSE,
+      [this, uploadcallback](QJsonObject &&json) {
+          if (!json.contains("error")) {
+              qDebug() << "Json Parse Error!";
+              return;
+          }
+          if (json["error"].toInt() !=
+              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+              qDebug() << "File Upload Failed!!";
+              return;
+          }
+
+          uploadcallback(std::move(json), ServiceType::SERVICE_AVATARUPLOADREQUEST);
       }));
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
@@ -92,7 +108,7 @@ void FileTCPNetwork::registerCallback() {
 
         LogicMethod::get_instance()->setPause(true);
 
-        uploadcallback(std::move(json));
+        uploadcallback(std::move(json), ServiceType::SERVICE_FILEUPLOADREQUEST);
       }));
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(

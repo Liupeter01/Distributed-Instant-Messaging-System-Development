@@ -9,6 +9,7 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <def.hpp>
 
 enum class TransferDirection { Download, Upload };
 
@@ -18,12 +19,13 @@ struct FileTransferDesc {
                    const std::size_t _last_sequence, const bool _eof,
                    const std::size_t _transfered_size,
                    const std::size_t _total_size,
-                   TransferDirection _direction = TransferDirection::Upload)
+                   TransferDirection _direction = TransferDirection::Upload,
+                    ServiceType _type = ServiceType::SERVICE_FILEUPLOADREQUEST)
 
       : filename(_filename), checksum(_checksum), curr_sequence(_curr_sequence),
         last_sequence(_last_sequence), transfered_size(_transfered_size),
         filePath(_filePath), total_size(_total_size), isEOF(_eof),
-        key(_filename + QString("_") + _checksum), direction(_direction) {}
+        key(_filename + QString("_") + _checksum), direction(_direction),type(_type) {}
 
   QString key; //=filename_checksum
 
@@ -39,6 +41,7 @@ struct FileTransferDesc {
   std::size_t total_size;
 
   TransferDirection direction = TransferDirection::Upload;
+  ServiceType type = ServiceType::SERVICE_FILEUPLOADREQUEST;
 };
 
 struct FileTransferControlBlock : public FileTransferDesc {

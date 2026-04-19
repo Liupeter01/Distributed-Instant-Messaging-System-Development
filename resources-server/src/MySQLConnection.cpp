@@ -119,6 +119,19 @@ mysql::MySQLConnection::getUserProfile(std::size_t uuid) {
       static_cast<Sex>(row.at(4).as_int64()));
 }
 
+bool  mysql::MySQLConnection::updateUserProfileAvatar(const std::size_t uuid, const std::string& avatar) {
+          if (avatar.empty()) {
+                    return false;
+          }
+
+          if (checkUUID(uuid)) {
+                    [[maybe_unused]] auto res = executeCommand(
+                              MySQLSelection::UPDATE_USER_AVATAR, avatar, uuid);
+                    return true;
+          }
+          return false;
+}
+
 bool mysql::MySQLConnection::checkTimeout(
     const std::chrono::steady_clock::time_point &curr, std::size_t timeout) {
   if (std::chrono::duration_cast<std::chrono::seconds>(curr -

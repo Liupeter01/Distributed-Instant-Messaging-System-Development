@@ -68,6 +68,13 @@ void mysql::MySQLConnectionPool::registerSQLStatement() {
       fmt::format("UPDATE Authentication SET {} = ? WHERE {} = ? AND {} = ?",
                   std::string("password"), std::string("username"),
                   std::string("email"))));
+
+  m_sql.insert(std::pair(
+            MySQLSelection::UPDATE_USER_AVATAR,
+            fmt::format("UPDATE UserProfile SET {} = ? WHERE {} = ? ",
+                      std::string("avatar"),
+                      std::string("uuid"))));
+
   m_sql.insert(std::pair(
       MySQLSelection::USER_LOGIN_CHECK,
       fmt::format("SELECT * FROM Authentication WHERE {} = ? AND {} = ?",

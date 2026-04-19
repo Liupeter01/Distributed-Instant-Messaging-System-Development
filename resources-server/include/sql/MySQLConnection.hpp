@@ -37,6 +37,8 @@ enum class MySQLSelection : uint8_t {
   CREATE_FRIENDING_REQUEST,     // User A send friend request to B, status = 0
   UPDATE_FRIEND_REQUEST_STATUS, // User A agreed with B's request, then change
                                 // status = 1
+
+  UPDATE_USER_AVATAR,
   CREATE_AUTH_FRIEND_ENTRY,     // After update status, add user A & B's info to
                                 // AuthFriend Table
 
@@ -61,14 +63,8 @@ public:
   /*get user profile*/
   std::optional<std::unique_ptr<UserNameCard>> getUserProfile(std::size_t uuid);
 
-  /*create user friend request MySQLSelection::USER_FRIEND_REQUEST*/
-  bool createFriendRequest(const std::size_t src_uuid,
-                           const std::size_t dst_uuid,
-                           std::string_view nickname, std::string_view message);
-
   /*update user friend request to confirmed status*/
-  bool updateFriendingStatus(const std::size_t src_uuid,
-                             const std::size_t dst_uuid);
+  bool updateUserProfileAvatar(const std::size_t uuid, const std::string& avatar);
 
   bool createAuthFriendsRelation(const std::size_t self_uuid,
                                  const std::size_t friend_uuid,

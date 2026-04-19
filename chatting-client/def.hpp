@@ -81,6 +81,10 @@ enum class ServiceType : uint8_t {
   SERVICE_FILEUPLOADREQUEST,
   SERVICE_FILEUPLOADRESPONSE,
 
+  /*User send avatar file to server, and server should record it inside the mysql*/
+  SERVICE_AVATARUPLOADREQUEST,
+  SERVICE_AVATARUPLOADRESPONSE,
+
   /*User send init file fetching request*/
   SERVICE_INITFILEFETCHINGREQUEST,
 
@@ -147,7 +151,9 @@ enum class ServiceStatus : uint8_t {
   FILE_OPEN_ERROR,
   FILE_WRITE_ERROR,
   FILE_READ_ERROR,
-  FILE_NOT_FOUND
+  FILE_NOT_FOUND,
+
+  DATABASE_ERROR
 };
 
 Q_DECLARE_METATYPE(ServiceType)

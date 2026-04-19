@@ -179,7 +179,7 @@ void FileTransferDialog::on_send_button_clicked() {
 
   m_state = TransferState::START_TRANSMISSION;
 
-  emit signal_start_file_upload(m_fileName, m_filePath, m_fileChunk);
+  emit signal_start_file_upload(m_fileName, m_filePath, ServiceType::SERVICE_FILEUPLOADREQUEST, m_fileChunk);
 }
 
 // void FileTransferDialog::on_connect_server_clicked() {

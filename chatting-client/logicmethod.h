@@ -28,6 +28,7 @@ signals:
   // start transmission(with init filename & filepath)
   void signal_start_file_upload(const QString &fileName,
                                 const QString &filePath,
+                                 ServiceType type,
                                 const std::size_t fileChunk = 4096);
 
   // pause transmission

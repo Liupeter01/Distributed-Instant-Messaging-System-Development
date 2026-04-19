@@ -92,7 +92,7 @@ void LogicExecutor::slot_send_first_block(
   obj["EOF"] = QString::number((1 == desc->last_sequence) ? 1 : 0);
 
   FileTCPNetwork::get_instance()->send_buffer(
-      ServiceType::SERVICE_FILEUPLOADREQUEST, std::move(obj));
+      desc->type, std::move(obj));
 
   file.close();
 }
@@ -164,13 +164,14 @@ void LogicExecutor::slot_send_next_block(const QString &checksum) {
       (transfer_data->curr_sequence == transfer_data->last_sequence) ? 1 : 0);
 
   FileTCPNetwork::get_instance()->send_buffer(
-      ServiceType::SERVICE_FILEUPLOADREQUEST, std::move(obj));
+      transfer_data->type, std::move(obj));
 
   file.close();
 }
 
 void LogicExecutor::slot_start_file_upload(const QString &fileName,
                                            const QString &filePath,
+                                           ServiceType type,
                                            const std::size_t fileChunk) {
 
   if (!fileChunk || filePath.isEmpty() || fileName.isEmpty()) {
@@ -209,7 +210,8 @@ void LogicExecutor::slot_start_file_upload(const QString &fileName,
 
   emit signal_send_first_block(checksum, std::make_shared<FileTransferDesc>(
                                              fileName, checksum, filePath, 1,
-                                             totalBlocks, false, 0, fileSize));
+                                             totalBlocks, false, 0, fileSize,
+                                             TransferDirection::Upload, type));
 
   file.close();
 }

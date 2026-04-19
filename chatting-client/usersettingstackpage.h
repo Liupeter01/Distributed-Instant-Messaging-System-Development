@@ -3,6 +3,7 @@
 
 #include <QPixmap>
 #include <QWidget>
+#include <def.hpp>
 
 namespace Ui {
 class UserSettingStackPage;
@@ -18,6 +19,7 @@ public:
 signals:
   void signal_start_file_upload(const QString &fileName,
                                 const QString &filePath,
+                                ServiceType type,
                                 const std::size_t fileChunk = 4096);
 
 private:

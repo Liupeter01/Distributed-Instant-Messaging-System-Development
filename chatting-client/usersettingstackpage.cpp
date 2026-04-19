@@ -36,7 +36,7 @@ void UserSettingStackPage::on_submit_clicked() {
   LogicMethod::get_instance()->setPause(false);
 
   // start to transmit avator to resources server
-  emit signal_start_file_upload(m_fileName, m_filePath);
+  emit signal_start_file_upload(m_fileName, m_filePath, ServiceType::SERVICE_AVATARUPLOADREQUEST);
 }
 
 void UserSettingStackPage::on_select_avator_clicked() {

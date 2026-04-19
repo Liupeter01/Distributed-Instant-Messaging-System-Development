@@ -30,7 +30,7 @@ namespace handler {
 enum class TransferDirection { Download, Upload };
 
 struct FileHasherDesc {
-
+          FileHasherDesc() = default;
   FileHasherDesc(const std::string &_uuid, const std::string &_filename,
                  const std::string &_checksum, const std::string &_filePath,
                  const std::string &_curr_sequence,

@@ -17,6 +17,9 @@
 #include <service/ConnectionPool.hpp>
 #include <thread>
 #include <unordered_map>
+#include <sql/MySQLConnection.hpp>
+#include <sql/MySQLConnectionPool.hpp>
+#include <server/FileHasherLogger.hpp>
 
 namespace handler {
 
@@ -31,6 +34,9 @@ public:
 
   using RedisRAII = connection::ConnectionRAII<redis::RedisConnectionPool,
                                                redis::RedisContext>;
+
+  using MySQLRAII = connection::ConnectionRAII<mysql::MySQLConnectionPool,
+            mysql::MySQLConnection>;
 
 public:
   RequestHandlerNode();
@@ -71,6 +77,9 @@ protected:
   void handlingLogout(ServiceType srv_type, std::shared_ptr<Session> session,
                       NodePtr recv);
 
+  void handlingAvatarUploading(ServiceType srv_type,
+            std::shared_ptr<Session> session, NodePtr recv);
+
   void handlingFileUploading(ServiceType srv_type,
                              std::shared_ptr<Session> session, NodePtr recv);
 
@@ -80,6 +89,27 @@ protected:
   void handlingCheckUploadProgress(ServiceType srv_type,
                                    std::shared_ptr<Session> session,
                                    NodePtr recv);
+
+protected:
+          [[nodiscard]]
+          static
+                    std::optional<std::shared_ptr<FileHasherDesc>>
+                    parseUploadRequest(std::shared_ptr<Session> session, NodePtr& recv, std::string& block_data);
+
+          static
+                    void submitUploadTask(
+                              std::shared_ptr<FileHasherDesc> desc,
+                              std::string&& block_data,
+                              std::shared_ptr<Session> session,
+                              ServiceType response_type,
+                              std::function<ServiceStatus(ServiceStatus, std::size_t, std::shared_ptr<FileHasherDesc>)> businessHandler);
+
+          static void sendUploadResponse(
+                    std::shared_ptr<Session> session,
+                    ServiceType type,
+                    std::shared_ptr<FileHasherDesc> req,
+                    ServiceStatus status,
+                    std::size_t curr_size);
 
 public:
   /*redis*/

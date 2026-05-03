@@ -16,7 +16,7 @@ public:
 
   void setUserInfo(std::shared_ptr<UserNameCard> info);
   void setItemDisplay(std::shared_ptr<UserNameCard> info);
-  void setLastMessage(const QString &msg);
+  void setLastMessage();
   void setNewMessageArrival(bool status);
 
   std::shared_ptr<UserNameCard> getFriendsInfo();

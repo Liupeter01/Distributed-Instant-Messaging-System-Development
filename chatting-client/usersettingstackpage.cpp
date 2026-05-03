@@ -8,12 +8,15 @@
 #include <imagecropperdialog.h>
 #include <logicmethod.h>
 #include <useraccountmanager.hpp>
+#include <tools.h>
 
 UserSettingStackPage::UserSettingStackPage(QWidget *parent)
     : QWidget(parent), ui(new Ui::UserSettingStackPage) {
   ui->setupUi(this);
 
   registerSignal();
+
+  Tools::loadAvatarResources(UserAccountManager::get_instance()->getCurUserInfo(), ui->new_avator);
 }
 
 UserSettingStackPage::~UserSettingStackPage() { delete ui; }

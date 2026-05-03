@@ -879,43 +879,7 @@ void ChattingDlgMainFrame::loadMoreChattingHistory() {
 
 void ChattingDlgMainFrame::loadSideBarUserAvatar() {
 
-  QString avatar_info =
-      UserAccountManager::get_instance()->getCurUserInfo()->m_avatorPath;
-
-  // default avatar name
-  QRegularExpression regex("^default_[a-zA-Z0-9_]+\\.png$");
-  QRegularExpressionMatch match = regex.match(avatar_info);
-
-  // No match, try to load it from local device and directory!!
-  if (match.hasMatch()) {
-    Tools::setQLableImage(ui->my_avator, "default_avatar.png");
-    qDebug() << "Default Avatar Loaded.\n";
-    return;
-  }
-
-  QString storageDir =
-      QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
-  QDir avatarDir(storageDir + "/avatars/" +
-                 UserAccountManager::get_instance()->get_uuid());
-
-  if (!avatarDir.exists()) {
-    qDebug() << "Avatar Dir Not Exist!\n";
-    return;
-  }
-
-  QString avatarPath = avatarDir.filePath(QFileInfo(avatar_info).fileName());
-  QPixmap pixmap(avatarPath);
-
-  if (pixmap.isNull()) {
-    qDebug() << "Avatar File Loading Error!\n";
-    return;
-  }
-
-  QPixmap pixmapScaled(pixmap.scaled(ui->my_avator->size(), Qt::KeepAspectRatio,
-                                     Qt::SmoothTransformation));
-  ui->my_avator->setPixmap(pixmapScaled);
-  ui->my_avator->setScaledContents(true);
-  ui->my_avator->update();
+    Tools::loadAvatarResources( UserAccountManager::get_instance()->getCurUserInfo(), ui->my_avator);
 }
 
 void ChattingDlgMainFrame::slot_update_chat_thread(
@@ -1132,7 +1096,6 @@ void ChattingDlgMainFrame::slot_switch_chat_item(
   }
 
   chatItem->setItemDisplay(thread->getUserNameCard());
-  chatItem->setLastMessage(thread->getLastMsg()->getMsgContent());
 
   /*switch to chatting dialog page*/
   slot_switch_chattingdlg_page(thread);

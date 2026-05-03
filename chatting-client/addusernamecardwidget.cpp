@@ -1,6 +1,6 @@
 #include "addusernamecardwidget.h"
 #include "ui_addusernamecardwidget.h"
-#include <UserDef.hpp>
+#include <tools.h>
 
 AddUserNameCardWidget::AddUserNameCardWidget(QWidget *parent)
     : QFrame(parent), ui(new Ui::AddUserNameCardWidget) {
@@ -21,11 +21,13 @@ void AddUserNameCardWidget::setNameCardInfo(
   m_info = std::move(info);
 
   /*set avator qlabel*/
-  Tools::loadImgResources({m_info->sender_card.m_avatorPath}, image_width,
-                          image_height, "/static/");
+  // Tools::loadImgResources({m_info->sender_card.m_avatorPath}, image_width,
+  //                         image_height, "/static/");
 
-  Tools::setQLableImage(ui->avator, m_info->sender_card.m_avatorPath,
-                        "/static/");
+  // Tools::setQLableImage(ui->avator, m_info->sender_card.m_avatorPath,
+  //                       "/static/");
+
+  Tools::loadAvatarResources(std::make_shared<UserNameCard>(m_info->sender_card), ui->avator);
 
   ui->avator->setScaledContents(true);
 

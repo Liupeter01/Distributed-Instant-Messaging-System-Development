@@ -31,10 +31,12 @@ void AddUserNameCardDialog::setupUserInfo(std::unique_ptr<UserNameCard> info) {
   ui->user_name->setText(m_info->m_nickname);
 
   /*load image resources*/
-  Tools::loadImgResources({m_info->m_avatorPath}, ui->user_avator->width(),
-                          ui->user_avator->height(), "/static/");
+  // Tools::loadImgResources({m_info->m_avatorPath}, ui->user_avator->width(),
+  //                         ui->user_avator->height(), "/static/");
 
-  Tools::setQLableImage(ui->user_avator, m_info->m_avatorPath, "/static/");
+  // Tools::setQLableImage(ui->user_avator, m_info->m_avatorPath, "/static/");
+
+    Tools::loadAvatarResources(std::make_shared<UserNameCard>(*info),  ui->user_avator);
 }
 
 void AddUserNameCardDialog::setWindowsStatus() {

@@ -29,7 +29,7 @@ ContactsProfile::~ContactsProfile() { delete ui; }
 void ContactsProfile::setUserInfo(std::shared_ptr<UserNameCard> info) {
   m_userInfo = info;
 
-  Tools::setQLableImage(ui->avator, m_userInfo->m_avatorPath, "/static");
+  Tools::loadAvatarResources(info, ui->avator);
 
   ui->nickname->setText(m_userInfo->m_nickname);
   ui->username->setText(m_userInfo->m_username);

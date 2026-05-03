@@ -99,6 +99,7 @@ enum class ServiceType : uint8_t {
   SERVICE_HEARTBEAT_REQUEST,
   SERVICE_HEARTBEAT_RESPONSE,
 
+  SERVICE_BENCH_ECHO,   // benchmark-only
   SERVICE_UNKNOWN // unkown service
 };
 

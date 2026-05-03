@@ -86,7 +86,7 @@
          </size>
         </property>
         <property name="text">
-         <string>A</string>
+         <string/>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>

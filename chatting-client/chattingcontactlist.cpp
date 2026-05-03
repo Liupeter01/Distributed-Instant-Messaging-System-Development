@@ -26,12 +26,14 @@ ChattingContactList::ChattingContactList(QWidget *parent)
   /*show contact as a group*/
   addGroupSeperator(QString("My Contact"));
 
-  /*load test user avator image im "/static/" dir*/
-  Tools::loadImgResources({"0.png", "1.png", "2.png", "3.png", "4.png", "5.png",
-                           "6.png", "7.png", "8.png"},
-                          ChattingContactItem::getImageSize().width(),
-                          ChattingContactItem::getImageSize().height(),
-                          "/static/");
+  // /*load test user avator image im "/static/" dir*/
+  // Tools::loadImgResources({"0.png", "1.png", "2.png", "3.png", "4.png", "5.png",
+  //                          "6.png", "7.png", "8.png"},
+  //                         ChattingContactItem::getImageSize().width(),
+  //                         ChattingContactItem::getImageSize().height(),
+  //                         "/static/");
+
+
 }
 
 ChattingContactList::~ChattingContactList() {}

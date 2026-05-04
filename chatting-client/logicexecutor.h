@@ -30,8 +30,7 @@ public:
 signals:
 
   void signal_start_file_upload(const QString &fileName,
-                                const QString &filePath,
-                                 ServiceType type,
+                                const QString &filePath, ServiceType type,
                                 const std::size_t fileChunk);
 
   // pause transmission
@@ -58,8 +57,7 @@ private slots:
   void slot_send_next_block(const QString &checksum);
 
   void slot_start_file_upload(const QString &fileName, const QString &filePath,
-                                ServiceType type,
-                              const std::size_t fileChunk);
+                              ServiceType type, const std::size_t fileChunk);
 
   // pause transmission
   void slot_pause_file_upload();

@@ -81,7 +81,8 @@ enum class ServiceType : uint8_t {
   SERVICE_FILEUPLOADREQUEST,
   SERVICE_FILEUPLOADRESPONSE,
 
-  /*User send avatar file to server, and server should record it inside the mysql*/
+  /*User send avatar file to server, and server should record it inside the
+     mysql*/
   SERVICE_AVATARUPLOADREQUEST,
   SERVICE_AVATARUPLOADRESPONSE,
 
@@ -99,8 +100,8 @@ enum class ServiceType : uint8_t {
   SERVICE_HEARTBEAT_REQUEST,
   SERVICE_HEARTBEAT_RESPONSE,
 
-  SERVICE_BENCH_ECHO,   // benchmark-only
-  SERVICE_UNKNOWN // unkown service
+  SERVICE_BENCH_ECHO, // benchmark-only
+  SERVICE_UNKNOWN     // unkown service
 };
 
 enum class ServiceStatus : uint8_t {

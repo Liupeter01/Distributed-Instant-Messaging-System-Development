@@ -5,8 +5,8 @@
 #include <QByteArray>
 #include <QDialog>
 #include <QThread>
-#include <memory>
 #include <def.hpp>
+#include <memory>
 
 #define GB_TO_BYTES(gb) ((gb) * 1024LL * 1024 * 1024)
 #define FOUR_GB GB_TO_BYTES(4)
@@ -56,8 +56,7 @@ signals:
   void signal_connect2_resources_server();
   void signal_terminate_resources_server();
   void signal_start_file_upload(const QString &fileName,
-                                const QString &filePath,
-                                ServiceType type,
+                                const QString &filePath, ServiceType type,
                                 const std::size_t fileChunk);
 
   void signal_pause_file_upload();

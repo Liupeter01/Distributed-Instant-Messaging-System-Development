@@ -27,7 +27,8 @@ void AddUserNameCardWidget::setNameCardInfo(
   // Tools::setQLableImage(ui->avator, m_info->sender_card.m_avatorPath,
   //                       "/static/");
 
-  Tools::loadAvatarResources(std::make_shared<UserNameCard>(m_info->sender_card), ui->avator);
+  Tools::loadAvatarResources(
+      std::make_shared<UserNameCard>(m_info->sender_card), ui->avator);
 
   ui->avator->setScaledContents(true);
 

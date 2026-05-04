@@ -7,8 +7,8 @@
 #include <QString>
 #include <imagecropperdialog.h>
 #include <logicmethod.h>
-#include <useraccountmanager.hpp>
 #include <tools.h>
+#include <useraccountmanager.hpp>
 
 UserSettingStackPage::UserSettingStackPage(QWidget *parent)
     : QWidget(parent), ui(new Ui::UserSettingStackPage) {
@@ -16,7 +16,8 @@ UserSettingStackPage::UserSettingStackPage(QWidget *parent)
 
   registerSignal();
 
-  Tools::loadAvatarResources(UserAccountManager::get_instance()->getCurUserInfo(), ui->new_avator);
+  Tools::loadAvatarResources(
+      UserAccountManager::get_instance()->getCurUserInfo(), ui->new_avator);
 }
 
 UserSettingStackPage::~UserSettingStackPage() { delete ui; }
@@ -39,7 +40,8 @@ void UserSettingStackPage::on_submit_clicked() {
   LogicMethod::get_instance()->setPause(false);
 
   // start to transmit avator to resources server
-  emit signal_start_file_upload(m_fileName, m_filePath, ServiceType::SERVICE_AVATARUPLOADREQUEST);
+  emit signal_start_file_upload(m_fileName, m_filePath,
+                                ServiceType::SERVICE_AVATARUPLOADREQUEST);
 }
 
 void UserSettingStackPage::on_select_avator_clicked() {

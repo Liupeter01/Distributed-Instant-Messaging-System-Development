@@ -91,8 +91,7 @@ void LogicExecutor::slot_send_first_block(
   obj["block"] = QString(buffer.toBase64());
   obj["EOF"] = QString::number((1 == desc->last_sequence) ? 1 : 0);
 
-  FileTCPNetwork::get_instance()->send_buffer(
-      desc->type, std::move(obj));
+  FileTCPNetwork::get_instance()->send_buffer(desc->type, std::move(obj));
 
   file.close();
 }
@@ -163,8 +162,8 @@ void LogicExecutor::slot_send_next_block(const QString &checksum) {
   obj["EOF"] = QString::number(
       (transfer_data->curr_sequence == transfer_data->last_sequence) ? 1 : 0);
 
-  FileTCPNetwork::get_instance()->send_buffer(
-      transfer_data->type, std::move(obj));
+  FileTCPNetwork::get_instance()->send_buffer(transfer_data->type,
+                                              std::move(obj));
 
   file.close();
 }

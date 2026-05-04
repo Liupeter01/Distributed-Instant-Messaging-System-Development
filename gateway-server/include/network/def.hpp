@@ -80,9 +80,10 @@ enum class ServiceType : uint8_t {
   SERVICE_FILEUPLOADREQUEST,
   SERVICE_FILEUPLOADRESPONSE,
 
-  /*User send avatar file to server, and server should record it inside the mysql*/
-          SERVICE_AVATARUPLOADREQUEST,
-          SERVICE_AVATARUPLOADRESPONSE,
+  /*User send avatar file to server, and server should record it inside the
+     mysql*/
+  SERVICE_AVATARUPLOADREQUEST,
+  SERVICE_AVATARUPLOADRESPONSE,
 
   /*User send init file fetching request*/
   SERVICE_INITFILEFETCHINGREQUEST,

@@ -3,15 +3,15 @@
 #include <echo_session.h>
 
 class EchoServer {
-          tcp::acceptor acc_;
+  tcp::acceptor acc_;
 
-          boost::asio::io_context& m_ioc;
+  boost::asio::io_context &m_ioc;
 
 public:
-          EchoServer(io_context& ioc, uint16_t port);
-          void startAccept();
+  EchoServer(io_context &ioc, uint16_t port);
+  void startAccept();
 
 private:
-          void handleAccept(std::shared_ptr<EchoSession> session,
+  void handleAccept(std::shared_ptr<EchoSession> session,
                     boost::system::error_code ec);
 };

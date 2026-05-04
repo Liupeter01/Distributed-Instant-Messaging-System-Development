@@ -12,6 +12,3 @@ add_executable(im-bench-client ${source_file} ${header_file})
 target_include_directories(im-bench-client PUBLIC include ${Boost_INCLUDE_DIR})
 
 target_link_libraries(im-bench-client PUBLIC boost_common)
-
-target_compile_definitions(
-  im-bench-client PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

@@ -1,7 +1,7 @@
 #include <echo_session.h>
 
-EchoSession::EchoSession(tcp::socket s) : sock_(std::move(s)) {
-          sock_.set_option(tcp::no_delay(true));
+EchoSession::EchoSession(boost::asio::io_context& _ioc) : sock_(_ioc) {
+          //sock_.set_option(tcp::no_delay(true));
 }
 
 void EchoSession::start() { read_header(); }

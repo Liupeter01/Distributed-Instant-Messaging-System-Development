@@ -3,17 +3,22 @@
 #include <iostream>
 #include <memory>
 #include <protocol.h>
+#include <IOServicePool.hpp>
+#include <atomic>
+#include <queue>
+#include <mutex>
 
 using namespace boost::asio;
 using ip::tcp;
 
 class EchoSession : public std::enable_shared_from_this<EchoSession> {
-          tcp::socket sock_;
+
           std::array<uint8_t, 4> hdr_buf_;
           std::vector<uint8_t> body_buf_;
 
 public:
-          explicit EchoSession(tcp::socket s);
+          boost::asio::ip::tcp::socket sock_;
+          EchoSession(boost::asio::io_context& _ioc);
           void start();
 
 private:

@@ -1,16 +1,28 @@
 #include <echo_server.h>
 
 EchoServer::EchoServer(io_context& ioc, uint16_t port)
-          : acc_(ioc, tcp::endpoint(tcp::v4(), port)) {
+          : acc_(ioc, tcp::endpoint(boost::asio::ip::address_v4::any(), port)),m_ioc(ioc) {
           std::cout << "Echo server on port " << port << "\n";
-          do_accept();
+
+          acc_.listen(boost::asio::socket_base::max_listen_connections);
 }
 
-void EchoServer::do_accept() {
-                    acc_.async_accept([this](auto ec, tcp::socket sock) {
-                              if (!ec) {
-                                        std::make_shared<EchoSession>(std::move(sock))->start();
-                              }
-                              do_accept();
-                              });
+void EchoServer::startAccept() {
+          auto& ioc = IOServicePool::get_instance()->getIOServiceContext();
+          std::shared_ptr<EchoSession> session = std::make_shared<EchoSession>(ioc);
+
+          acc_.async_accept(
+                    session->sock_,
+                    std::bind(&EchoServer::handleAccept, this, session,
+                              std::placeholders::_1) /*extend the life length of the session*/
+          );
+}
+
+void EchoServer::handleAccept(std::shared_ptr<EchoSession> session,
+          boost::system::error_code ec) {
+          if (!ec) {
+                    /*start session read and write function*/
+                    session->start();
+          }
+          this->startAccept();
 }

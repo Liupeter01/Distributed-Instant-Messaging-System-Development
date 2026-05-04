@@ -15,7 +15,3 @@ target_link_libraries(im-bench-server PUBLIC boost_common)
 
 target_compile_definitions(
   im-bench-server PUBLIC -DCONFIG_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
-
-  if(APPLE)
-    target_link_libraries(im-bench-server pthread)
-endif()

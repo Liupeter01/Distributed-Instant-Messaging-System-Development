@@ -100,13 +100,7 @@ FetchContent_Declare(
   GIT_TAG boost-1.84.0
   GIT_SUBMODULES_RECURSE TRUE)
 
-FetchContent_Declare(
-  gRPC
-  GIT_REPOSITORY https://github.com/grpc/grpc
-  GIT_TAG v1.50.2
-  GIT_SUBMODULES_RECURSE TRUE)
-
-FetchContent_MakeAvailable(boost gRPC)
+FetchContent_MakeAvailable(boost)
 
 set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
@@ -134,6 +128,15 @@ target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql
 if(DIMS_ENABLE_BENCH_ECHO)
 add_subdirectory(im-benchmark)
 else()
+
+FetchContent_Declare(
+  gRPC
+  GIT_REPOSITORY https://github.com/grpc/grpc
+  GIT_TAG v1.50.2
+  GIT_SUBMODULES_RECURSE TRUE)
+
+FetchContent_MakeAvailable(gRPC)
+
 # Add external dependencies once
 add_subdirectory(external/inifile)
 add_subdirectory(external/spdlog)

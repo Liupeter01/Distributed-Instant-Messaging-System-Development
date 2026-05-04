@@ -1,4 +1,8 @@
 #include <echo_client.h>
+#include <filesystem>
+#include <fstream>
+
+namespace fs = std::filesystem;
 
 int main(int argc, char **argv) {
   if (argc != 5) {
@@ -38,6 +42,10 @@ int main(int argc, char **argv) {
   for (int i = 0; i < N; i++) {
     auto &ioc = *iocs[i % nt];
     std::make_shared<BenchSession>(ioc, stats)->start(ep);
+
+    if ((i + 1) % 53 == 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
   }
 
   // 5 minutes
@@ -62,11 +70,34 @@ int main(int argc, char **argv) {
 
   // CSV dump
   {
-    std::ofstream f(csv);
+    std::error_code ec;
+    fs::path dir = fs::path(RESULTS_HOME) / "results";
+    fs::create_directories(dir, ec);
+    if (ec) {
+      throw std::runtime_error("mkdir failed: " + ec.message());
+    }
+
+    if (!fs::exists(dir)) {
+      throw std::runtime_error("dir not exist: " + dir.string());
+    }
+
+    fs::path file = dir / fs::path(csv).filename();
+
+    std::cout << "Writing to: " << file << std::endl;
+
+    std::ofstream f(file);
+    if (!f.is_open()) {
+      throw std::runtime_error("Failed to open file: " + file.string());
+    }
+
     f << "t_ms,rtt_us\n";
-    std::lock_guard lk(stats.mu);
     for (auto &s : stats.samples)
       f << s.t_ms << "," << s.rtt_us << "\n";
+
+    if (!f) {
+      throw std::runtime_error("Write failed: " + file.string());
+    }
+    f.close();
   }
 
   // Quick stats

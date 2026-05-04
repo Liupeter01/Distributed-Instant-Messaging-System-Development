@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   int N = std::atoi(argv[3]);
   std::string csv = argv[4];
 
-  int nt = std::min(8u, std::thread::hardware_concurrency());
+  int nt = std::max(8u, std::thread::hardware_concurrency());
 
   std::vector<std::unique_ptr<io_context>> iocs;
   std::vector<std::unique_ptr<executor_work_guard<io_context::executor_type>>>

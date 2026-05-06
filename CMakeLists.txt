@@ -106,6 +106,7 @@ set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 add_library(boost_common INTERFACE)
+target_include_directories(boost_common INTERFACE common/include)
 target_link_libraries(boost_common INTERFACE Boost::asio Boost::system
                                              Boost::filesystem Boost::uuid)
 

@@ -879,7 +879,8 @@ void ChattingDlgMainFrame::loadMoreChattingHistory() {
 
 void ChattingDlgMainFrame::loadSideBarUserAvatar() {
 
-    Tools::loadAvatarResources( UserAccountManager::get_instance()->getCurUserInfo(), ui->my_avator);
+  Tools::loadAvatarResources(
+      UserAccountManager::get_instance()->getCurUserInfo(), ui->my_avator);
 }
 
 void ChattingDlgMainFrame::slot_update_chat_thread(

@@ -54,7 +54,8 @@ void ChattingContactItem::setChattingContact(
   m_userinfo = info;
 
   /*setup avator by static label*/
-  //Tools::setQLableImage(ui->notification_label, info->m_avatorPath, "/static/");
+  // Tools::setQLableImage(ui->notification_label, info->m_avatorPath,
+  // "/static/");
 
   Tools::loadAvatarResources(m_userinfo, ui->avator_label);
 

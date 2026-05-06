@@ -58,7 +58,7 @@ void FileTCPNetwork::registerCallback() {
 
     emit signal_breakpoint_upload(std::make_shared<FileTransferDesc>(
         filename, checksum, filepath, curr_seq, last_seq, eof, curr_size,
-        total_size,TransferDirection::Upload, type));
+        total_size, TransferDirection::Upload, type));
   };
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
@@ -80,17 +80,18 @@ void FileTCPNetwork::registerCallback() {
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(
       ServiceType::SERVICE_AVATARUPLOADRESPONSE,
       [this, uploadcallback](QJsonObject &&json) {
-          if (!json.contains("error")) {
-              qDebug() << "Json Parse Error!";
-              return;
-          }
-          if (json["error"].toInt() !=
-              static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
-              qDebug() << "File Upload Failed!!";
-              return;
-          }
+        if (!json.contains("error")) {
+          qDebug() << "Json Parse Error!";
+          return;
+        }
+        if (json["error"].toInt() !=
+            static_cast<int>(ServiceStatus::SERVICE_SUCCESS)) {
+          qDebug() << "File Upload Failed!!";
+          return;
+        }
 
-          uploadcallback(std::move(json), ServiceType::SERVICE_AVATARUPLOADREQUEST);
+        uploadcallback(std::move(json),
+                       ServiceType::SERVICE_AVATARUPLOADREQUEST);
       }));
 
   m_callbacks.insert(std::pair<ServiceType, Callbackfunction>(

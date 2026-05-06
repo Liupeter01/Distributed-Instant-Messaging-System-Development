@@ -117,7 +117,7 @@ void ChattingMsgItem::setupAvatar() {
     return;
   }
 
-Tools::loadAvatarResources(m_userInfo, m_iconLabel);
+  Tools::loadAvatarResources(m_userInfo, m_iconLabel);
 }
 
 void ChattingMsgItem::setupBubbleWidget(QWidget *bubble) {

@@ -36,7 +36,8 @@ void AddUserNameCardDialog::setupUserInfo(std::unique_ptr<UserNameCard> info) {
 
   // Tools::setQLableImage(ui->user_avator, m_info->m_avatorPath, "/static/");
 
-    Tools::loadAvatarResources(std::make_shared<UserNameCard>(*info),  ui->user_avator);
+  Tools::loadAvatarResources(std::make_shared<UserNameCard>(*info),
+                             ui->user_avator);
 }
 
 void AddUserNameCardDialog::setWindowsStatus() {

@@ -58,12 +58,12 @@ bool ResourceStorageManager::removeUnfinishedTask(const QString &str) {
 
 bool ResourceStorageManager::isDownloading(const QString &str) {
 
-    std::lock_guard<std::mutex> _lckg(m_mtx);
-    auto it = m_unfinished_tasks.find(str);
-    if (it == m_unfinished_tasks.end())
-        return false;
+  std::lock_guard<std::mutex> _lckg(m_mtx);
+  auto it = m_unfinished_tasks.find(str);
+  if (it == m_unfinished_tasks.end())
+    return false;
 
-    return it->second->direction== TransferDirection::Download;
+  return it->second->direction == TransferDirection::Download;
 }
 
 bool ResourceStorageManager::recordQLabelUpdateLists(const QString &path,

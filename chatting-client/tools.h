@@ -9,11 +9,11 @@
 #include <QString>
 #include <QUrl>
 #include <QWidget>
+#include <UserDef.hpp>
 #include <initializer_list>
 #include <map>
 #include <optional>
 #include <type_traits>
-#include <UserDef.hpp>
 
 struct LabelState {
   LabelState();
@@ -106,7 +106,8 @@ struct Tools {
   static void loadIconResources(std::initializer_list<QString> file_list,
                                 const QString &load_dir = "/res/");
 
-  static void loadAvatarResources(std::shared_ptr<UserNameCard> card, QLabel* img);
+  static void loadAvatarResources(std::shared_ptr<UserNameCard> card,
+                                  QLabel *img);
 };
 
 Q_DECLARE_METATYPE(LabelState)

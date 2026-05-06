@@ -1,7 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 project(DistributedIMSystem)
 
-option(DIMS_BUILD_TESTING "Enable DistributedIMSystem building tests" ON)
+option(DIMS_BUILD_TESTING "Enable DistributedIMSystem building tests" OFF)
+option(DIMS_ENABLE_BENCH_ECHO "Enable DistributedIMSystem performance testing" OFF)
+
+# Set the value when you need it!
+# set(DIMS_BUILD_TESTING OFF CACHE BOOL "Enable DistributedIMSystem building tests" FORCE)
+# set(DIMS_ENABLE_BENCH_ECHO ON CACHE BOOL "Enable DistributedIMSystem performance testing" FORCE)
+
+message(STATUS "DIMS_BUILD_TESTING: ${DIMS_BUILD_TESTING}")
+message(STATUS "DIMS_ENABLE_BENCH_ECHO: ${DIMS_ENABLE_BENCH_ECHO}")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -92,18 +100,13 @@ FetchContent_Declare(
   GIT_TAG boost-1.84.0
   GIT_SUBMODULES_RECURSE TRUE)
 
-FetchContent_Declare(
-  gRPC
-  GIT_REPOSITORY https://github.com/grpc/grpc
-  GIT_TAG v1.50.2
-  GIT_SUBMODULES_RECURSE TRUE)
-
-FetchContent_MakeAvailable(boost gRPC)
+FetchContent_MakeAvailable(boost)
 
 set(PROTOBUF_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 add_library(boost_common INTERFACE)
+target_include_directories(boost_common INTERFACE common/include)
 target_link_libraries(boost_common INTERFACE Boost::asio Boost::system
                                              Boost::filesystem Boost::uuid)
 
@@ -123,6 +126,18 @@ add_library(boost_resources INTERFACE)
 target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql
                                                 Boost::json)
 
+if(DIMS_ENABLE_BENCH_ECHO)
+add_subdirectory(im-benchmark)
+else()
+
+FetchContent_Declare(
+  gRPC
+  GIT_REPOSITORY https://github.com/grpc/grpc
+  GIT_TAG v1.50.2
+  GIT_SUBMODULES_RECURSE TRUE)
+
+FetchContent_MakeAvailable(gRPC)
+
 # Add external dependencies once
 add_subdirectory(external/inifile)
 add_subdirectory(external/spdlog)
@@ -134,3 +149,4 @@ add_subdirectory(gateway-server)
 add_subdirectory(balance-server)
 add_subdirectory(chatting-server)
 add_subdirectory(resources-server)
+endif()

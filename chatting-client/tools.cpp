@@ -1,15 +1,14 @@
 #include "tools.h"
 #include <QApplication>
 #include <QDir>
+#include <QFileInfo>
+#include <QMessageBox>
 #include <QObject>
 #include <QRegularExpression>
 #include <QSettings> /*handle ini file*/
+#include <QStandardPaths>
 #include <QString>
 #include <QStyle>
-#include <QDir>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QStandardPaths>
 #include <filetcpnetwork.h>
 #include <resourcestoragemanager.h>
 #include <tools.h>
@@ -162,92 +161,92 @@ void Tools::loadIconResources(std::initializer_list<QString> file_list,
   }
 }
 
-void Tools::loadAvatarResources(std::shared_ptr<UserNameCard> card, QLabel *img)
-{
-    if(!img){
-        qDebug() << "Invalid QLabel Pointer!\n";
-        return;
+void Tools::loadAvatarResources(std::shared_ptr<UserNameCard> card,
+                                QLabel *img) {
+  if (!img) {
+    qDebug() << "Invalid QLabel Pointer!\n";
+    return;
+  }
+
+  if (!card) {
+    qDebug() << "No Valid User Info! You Must call setupUserInfo() before "
+                "setup Avatar\n";
+    return;
+  }
+
+  QString avatar_info = card->m_avatorPath;
+
+  // default avatar name
+  QRegularExpression regex("^default_[a-zA-Z0-9_]+\\.png$");
+
+  // default avatar name
+  QRegularExpressionMatch match = regex.match(avatar_info);
+
+  // Matched default avatar pattern, load directly
+  if (match.hasMatch()) {
+    Tools::setQLableImage(img, "default_avatar.png");
+    qDebug() << "Default Avatar Loaded.\n";
+    return;
+  }
+
+  QString storagePath =
+      QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+  QString subDirName = "avatars/" + card->m_uuid;
+  QDir storageDir(storagePath);
+  if (!storageDir.exists(subDirName)) {
+    if (!storageDir.mkpath(subDirName)) {
+      qDebug() << "Create Directory Failed:"
+               << storageDir.absoluteFilePath(subDirName);
+      return;
     }
+  }
 
-    if (!card) {
-        qDebug() << "No Valid User Info! You Must call setupUserInfo() before "
-                    "setup Avatar\n";
-        return;
-    }
+  QDir avatarDir = QDir(storagePath).filePath("avatars/" + card->m_uuid);
+  QString avatarPath = avatarDir.filePath(QFileInfo(avatar_info).fileName());
+  QPixmap pixmap(avatarPath);
 
-    QString avatar_info = card->m_avatorPath;
+  /*avator_info is still downloading, so we choose defult avatar instead!*/
+  bool isDownloading =
+      ResourceStorageManager::get_instance()->isDownloading(avatar_info);
 
-    // default avatar name
-    QRegularExpression regex("^default_[a-zA-Z0-9_]+\\.png$");
+  // pixmap exist and also downloading finished!
+  if ((!pixmap.isNull()) && (!isDownloading)) {
 
-    // default avatar name
-    QRegularExpressionMatch match = regex.match(avatar_info);
+    QPixmap pixmapScaled(pixmap.scaled(img->size(), Qt::KeepAspectRatio,
+                                       Qt::SmoothTransformation));
+    img->setPixmap(pixmapScaled);
+    img->setScaledContents(true);
+    img->update();
+    return;
+  }
 
-    // Matched default avatar pattern, load directly
-    if (match.hasMatch()) {
-        Tools::setQLableImage(img, "default_avatar.png");
-        qDebug() << "Default Avatar Loaded.\n";
-        return;
-    }
-
-    QString storagePath =
-        QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
-    QString subDirName = "avatars/" + card->m_uuid;
-    QDir storageDir(storagePath);
-    if (!storageDir.exists(subDirName)) {
-        if (!storageDir.mkpath(subDirName)) {
-            qDebug() << "Create Directory Failed:"
-                     << storageDir.absoluteFilePath(subDirName);
-            return;
-        }
-    }
-
-    QDir avatarDir = QDir(storagePath).filePath("avatars/" + card->m_uuid);
-    QString avatarPath = avatarDir.filePath(QFileInfo(avatar_info).fileName());
-    QPixmap pixmap(avatarPath);
-
-    /*avator_info is still downloading, so we choose defult avatar instead!*/
-    bool isDownloading =
-        ResourceStorageManager::get_instance()->isDownloading(avatar_info);
-
-    // pixmap exist and also downloading finished!
-    if ((!pixmap.isNull()) && (!isDownloading)) {
-
-        QPixmap pixmapScaled(pixmap.scaled(img->size(), Qt::KeepAspectRatio,
-                                           Qt::SmoothTransformation));
-        img->setPixmap(pixmapScaled);
-        img->setScaledContents(true);
-        img->update();
-        return;
-    }
-
-    /*\
+  /*\
    * still in download(downloading process already been inited)
    * pixmap not exist at all(no downloading request yet)
    */
-    qDebug() << "Pixmap can not be loaded! Loading default!\n";
-    Tools::setQLableImage(img, "default_avatar.png");
+  qDebug() << "Pixmap can not be loaded! Loading default!\n";
+  Tools::setQLableImage(img, "default_avatar.png");
 
-    // still in download mode(downloading process already been inited)
-    if (isDownloading) {
-        qDebug() << "Pixmap is still downloading...\n";
-        return;
-    }
+  // still in download mode(downloading process already been inited)
+  if (isDownloading) {
+    qDebug() << "Pixmap is still downloading...\n";
+    return;
+  }
 
-    // add qlabel to current avatar's updating list
-    if (!ResourceStorageManager::get_instance()->recordQLabelUpdateLists(
-            avatarPath, img))
-        qDebug() << "QLabel Updating List Update Failed!\n";
+  // add qlabel to current avatar's updating list
+  if (!ResourceStorageManager::get_instance()->recordQLabelUpdateLists(
+          avatarPath, img))
+    qDebug() << "QLabel Updating List Update Failed!\n";
 
-    auto download_info = std::make_shared<FileTransferDesc>(
-        avatar_info, QString{}, avatarPath, 1,
-        std::numeric_limits<std::size_t>::max(), false, 0,
-        std::numeric_limits<std::size_t>::max(), TransferDirection::Download);
+  auto download_info = std::make_shared<FileTransferDesc>(
+      avatar_info, QString{}, avatarPath, 1,
+      std::numeric_limits<std::size_t>::max(), false, 0,
+      std::numeric_limits<std::size_t>::max(), TransferDirection::Download);
 
-    ResourceStorageManager::get_instance()->recordUnfinishedTask(avatar_info,
-                                                                 download_info);
+  ResourceStorageManager::get_instance()->recordUnfinishedTask(avatar_info,
+                                                               download_info);
 
-    FileTCPNetwork::get_instance()->send_download_request(download_info);
+  FileTCPNetwork::get_instance()->send_download_request(download_info);
 }
 
 void Tools::setQLableImage(QLabel *label, const QString &target,

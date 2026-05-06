@@ -1,10 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <cstring>
-#pragma once
-#include <cstdint>
-#include <cstring>
-#include <def.hpp>
+#include <network/def.hpp>
 #include <vector>
 
 constexpr uint16_t BENCH_ECHO_ID =

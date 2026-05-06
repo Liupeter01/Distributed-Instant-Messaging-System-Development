@@ -1,5 +1,4 @@
 #pragma once
-#include <service/IOServicePool.hpp>
 #include <atomic>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -7,6 +6,7 @@
 #include <mutex>
 #include <protocol.h>
 #include <queue>
+#include <service/IOServicePool.hpp>
 
 using namespace boost::asio;
 using ip::tcp;

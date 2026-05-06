@@ -21,4 +21,3 @@ echo "[4/5] enabling TIME_WAIT reuse..."
 sudo sysctl -w net.ipv4.tcp_tw_reuse=1
 
 echo "[5/5] done"
-

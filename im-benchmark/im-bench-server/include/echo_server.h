@@ -1,6 +1,6 @@
 #pragma once
-#include <service/IOServicePool.hpp>
 #include <echo_session.h>
+#include <service/IOServicePool.hpp>
 
 class EchoServer {
   tcp::acceptor acc_;

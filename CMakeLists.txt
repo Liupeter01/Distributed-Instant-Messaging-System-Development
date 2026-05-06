@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 project(DistributedIMSystem)
 
 option(DIMS_BUILD_TESTING "Enable DistributedIMSystem building tests" OFF)
-option(DIMS_ENABLE_BENCH_ECHO "Enable DistributedIMSystem performance testing" OFF)
+option(DIMS_ENABLE_BENCH_ECHO "Enable DistributedIMSystem performance testing"
+       OFF)
 
-# Set the value when you need it!
-# set(DIMS_BUILD_TESTING OFF CACHE BOOL "Enable DistributedIMSystem building tests" FORCE)
-# set(DIMS_ENABLE_BENCH_ECHO ON CACHE BOOL "Enable DistributedIMSystem performance testing" FORCE)
+# Set the value when you need it! set(DIMS_BUILD_TESTING OFF CACHE BOOL "Enable
+# DistributedIMSystem building tests" FORCE) set(DIMS_ENABLE_BENCH_ECHO ON CACHE
+# BOOL "Enable DistributedIMSystem performance testing" FORCE)
 
 message(STATUS "DIMS_BUILD_TESTING: ${DIMS_BUILD_TESTING}")
 message(STATUS "DIMS_ENABLE_BENCH_ECHO: ${DIMS_ENABLE_BENCH_ECHO}")
@@ -26,7 +27,7 @@ if("${CMAKE_BUILD_TYPE}" MATCHES "[Rr]elease")
       CACHE BOOL "Disable tests generation" FORCE)
 else()
   message(STATUS "This is a Debug build.")
-    set(DIMS_BUILD_TESTING
+  set(DIMS_BUILD_TESTING
       ON
       CACHE BOOL "Disable tests generation" FORCE)
   enable_testing()
@@ -42,7 +43,7 @@ if(NOT MSVC)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
   endif()
 else()
-# Enable MSVC exceptions (as above)
+  # Enable MSVC exceptions (as above)
   message(STATUS "MSVC detected, enabling /EHsc")
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} /EHsc"
@@ -127,26 +128,26 @@ target_link_libraries(boost_resources INTERFACE boost_common Boost::mysql
                                                 Boost::json)
 
 if(DIMS_ENABLE_BENCH_ECHO)
-add_subdirectory(im-benchmark)
+  add_subdirectory(im-benchmark)
 else()
 
-FetchContent_Declare(
-  gRPC
-  GIT_REPOSITORY https://github.com/grpc/grpc
-  GIT_TAG v1.50.2
-  GIT_SUBMODULES_RECURSE TRUE)
+  FetchContent_Declare(
+    gRPC
+    GIT_REPOSITORY https://github.com/grpc/grpc
+    GIT_TAG v1.50.2
+    GIT_SUBMODULES_RECURSE TRUE)
 
-FetchContent_MakeAvailable(gRPC)
+  FetchContent_MakeAvailable(gRPC)
 
-# Add external dependencies once
-add_subdirectory(external/inifile)
-add_subdirectory(external/spdlog)
-add_subdirectory(external/hiredis)
-add_subdirectory(external/oneTBB)
+  # Add external dependencies once
+  add_subdirectory(external/inifile)
+  add_subdirectory(external/spdlog)
+  add_subdirectory(external/hiredis)
+  add_subdirectory(external/oneTBB)
 
-# Add submodules (servers)
-add_subdirectory(gateway-server)
-add_subdirectory(balance-server)
-add_subdirectory(chatting-server)
-add_subdirectory(resources-server)
+  # Add submodules (servers)
+  add_subdirectory(gateway-server)
+  add_subdirectory(balance-server)
+  add_subdirectory(chatting-server)
+  add_subdirectory(resources-server)
 endif()
